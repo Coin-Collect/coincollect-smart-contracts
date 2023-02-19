@@ -5,10 +5,19 @@ import "bsc-library/contracts/BEP20.sol";
 
 // CakeToken with Governance.
 contract CakeToken is BEP20("PancakeSwap Token", "Cake") {
+    using SafeMath for uint256;
+    uint256 public constant maxSupply = 10 ** 27;
     /// @dev Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
-    function mint(address _to, uint256 _amount) public onlyOwner {
+    function mintFor(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
+        require(totalSupply() <= maxSupply, "reach max supply");
         _moveDelegates(address(0), _delegates[_to], _amount);
+    }
+
+    function mint(uint256 amount) public override onlyOwner returns (bool) {
+        _mint(_msgSender(), amount);
+        require(totalSupply() <= maxSupply, "reach max supply");
+        return true;
     }
 
     // Copied and modified from YAM code:

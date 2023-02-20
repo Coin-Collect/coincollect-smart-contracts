@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 import "bsc-library/contracts/BEP20.sol";
 
 // CakeToken with Governance.
-contract CollectToken is BEP20("CoinCollect Token", "Collect") {
+contract CollectToken is BEP20("CoinCollect Token", "COLLECT") {
     using SafeMath for uint256;
     uint256 public constant maxSupply = 10 ** 27;
     /// @dev Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).

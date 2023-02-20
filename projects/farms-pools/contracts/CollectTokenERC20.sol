@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 contract CollectToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
     uint256 public constant maxSupply = 500000000 * 1e18; 
     
-    constructor() ERC20("Collect Token", "Collect") ERC20Permit("Collect Token") {
+    constructor() ERC20("CoinCollect Token", "Collect") ERC20Permit("CoinCollect Token") {
         _mint(msg.sender, 50 * 10 ** decimals());
     }
 

@@ -7,9 +7,9 @@ import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../core/SafeOwnable.sol';
-import '../token/BabyVault.sol';
+import '../token/CoinCollectVault.sol';
 
-contract BabyPoolV2 is SafeOwnable, ReentrancyGuard {
+contract CoinCollectPool is SafeOwnable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -29,7 +29,7 @@ contract BabyPoolV2 is SafeOwnable, ReentrancyGuard {
     uint256 lastRewardBlock;                    // Last block number that CAKEs distribution occurs.
     uint256 accRewardPerShare;                  // Accumulated CAKEs per share, times 1e12. See below.
 
-    BabyVault public vault;
+    CoinCollectVault public vault;
     uint256 public rewardPerBlock;
 
     mapping (address => UserInfo) public userInfo;
@@ -50,8 +50,8 @@ contract BabyPoolV2 is SafeOwnable, ReentrancyGuard {
         return 0;
     }
     
-    constructor(BabyVault _vault, uint256 _rewardPerBlock, uint256 _startBlock, address _owner) {
-        token = _vault.babyToken();
+    constructor(CoinCollectVault _vault, uint256 _rewardPerBlock, uint256 _startBlock, address _owner) {
+        token = _vault.coinCollectToken();
         require(_startBlock >= block.number, "illegal startBlock num");
         startBlock = _startBlock;
         vault = _vault;
@@ -68,8 +68,8 @@ contract BabyPoolV2 is SafeOwnable, ReentrancyGuard {
         return (token, 0, lastRewardBlock, accRewardPerShare);
     }
 
-    function setVault(BabyVault _vault) external onlyOwner {
-        require(_vault.babyToken() == token, "illegal vault");
+    function setVault(CoinCollectVault _vault) external onlyOwner {
+        require(_vault.coinCollectToken() == token, "illegal vault");
         vault = _vault;
     }
 

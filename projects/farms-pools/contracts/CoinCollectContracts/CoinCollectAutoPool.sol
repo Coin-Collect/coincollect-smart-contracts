@@ -7,22 +7,22 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../core/SafeOwnable.sol";
-import "./BabyPoolV2.sol";
+import "./CoinCollectPool.sol";
 import 'hardhat/console.sol';
 
-contract BabyAutoPoolV2 is SafeOwnable, Pausable {
+contract CoinCollectAutoPool is SafeOwnable, Pausable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
     struct UserInfo {
         uint256 shares;                 // number of shares for a user
         uint256 lastDepositedTime;      // keeps track of deposited time for potential penalty
-        uint256 babyAtLastUserAction;   // keeps track of baby deposited at the last user action
+        uint256 coinCollectAtLastUserAction;   // keeps track of coinCollect deposited at the last user action
         uint256 lastUserActionTime;     // keeps track of the last user action time
     }
 
     IERC20 public immutable token; 
-    BabyPoolV2 public immutable pool;
+    CoinCollectPool public immutable pool;
     mapping(address => UserInfo) public userInfo;
 
     uint256 public totalShares;
@@ -46,7 +46,7 @@ contract BabyAutoPoolV2 is SafeOwnable, Pausable {
     event Pause();
     event Unpause();
 
-    constructor(BabyPoolV2 _pool, address _admin, address _treasury, address _owner) {
+    constructor(CoinCollectPool _pool, address _admin, address _treasury, address _owner) {
         require(address(_pool) != address(0), "_pool address should not be address(0)");
         require(_admin != address(0), "_admin should not be address(0)");
         require(_treasury != address(0), "_treasury should not be address(0)");
@@ -124,7 +124,7 @@ contract BabyAutoPoolV2 is SafeOwnable, Pausable {
         user.shares = user.shares.add(currentShares);
         user.lastDepositedTime = block.timestamp;
         totalShares = totalShares.add(currentShares);
-        user.babyAtLastUserAction = user.shares.mul(balanceOf()).div(
+        user.coinCollectAtLastUserAction = user.shares.mul(balanceOf()).div(
             totalShares
         );
         user.lastUserActionTime = block.timestamp;
@@ -165,9 +165,9 @@ contract BabyAutoPoolV2 is SafeOwnable, Pausable {
         user.lastUserActionTime = block.timestamp;
         token.safeTransfer(msg.sender, currentAmount);
         if (user.shares > 0) {
-            user.babyAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
+            user.coinCollectAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
         } else {
-            user.babyAtLastUserAction = 0;
+            user.coinCollectAtLastUserAction = 0;
         }
         emit Withdraw(msg.sender, currentAmount, _shares);
     }
@@ -261,14 +261,14 @@ contract BabyAutoPoolV2 is SafeOwnable, Pausable {
         emit Unpause();
     }
 
-    function calculateHarvestBabyRewards() external view returns (uint256) {
+    function calculateHarvestCoinCollectRewards() external view returns (uint256) {
         uint256 amount = pool.pendingReward(address(this));
         amount = amount.add(available());
         uint256 currentCallFee = amount.mul(callFee).div(10000);
         return currentCallFee;
     }
 
-    function calculateTotalPendingBabyRewards()
+    function calculateTotalPendingCoinCollectRewards()
         external
         view
         returns (uint256)

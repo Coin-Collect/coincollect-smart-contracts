@@ -6,9 +6,9 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../core/SafeOwnable.sol';
-import '../token/BabyVault.sol';
+import '../token/CoinCollectVault.sol';
 
-contract BabyFarmV2 is SafeOwnable {
+contract CoinCollectFarm is SafeOwnable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -33,7 +33,7 @@ contract BabyFarmV2 is SafeOwnable {
     IERC20 public immutable rewardToken;
     uint256 public startBlock;
 
-    BabyVault public vault;
+    CoinCollectVault public vault;
     uint256 public rewardPerBlock;
 
     PoolInfo[] public poolInfo;
@@ -68,8 +68,8 @@ contract BabyFarmV2 is SafeOwnable {
         return 0;
     }
     
-    constructor(BabyVault _vault, uint256 _rewardPerBlock, uint256 _startBlock, address _owner, uint[] memory _allocPoints, IERC20[] memory _lpTokens) {
-        rewardToken = _vault.babyToken();
+    constructor(CoinCollectVault _vault, uint256 _rewardPerBlock, uint256 _startBlock, address _owner, uint[] memory _allocPoints, IERC20[] memory _lpTokens) {
+        rewardToken = _vault.coinCollectToken();
         require(_startBlock >= block.number, "illegal startBlock");
         startBlock = _startBlock;
         vault = _vault;
@@ -99,8 +99,8 @@ contract BabyFarmV2 is SafeOwnable {
         fetchVaultType = FETCH_VAULT_TYPE.FROM_ALL;
     }
 
-    function setVault(BabyVault _vault) external onlyOwner {
-        require(_vault.babyToken() == rewardToken, "illegal vault");
+    function setVault(CoinCollectVault _vault) external onlyOwner {
+        require(_vault.coinCollectToken() == rewardToken, "illegal vault");
         vault = _vault;
     }
 

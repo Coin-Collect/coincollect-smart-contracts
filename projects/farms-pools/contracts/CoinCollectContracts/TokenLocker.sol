@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.5.16;
+pragma solidity ^0.8.0;
 
-import '../interfaces/IBabyERC20.sol';
-import '../libraries/SafeMath.sol';
-import './SafeBEP20.sol';
-import './BEP20.sol';
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 
 contract TokenLocker {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     ///@notice every block cast 3 seconds
     uint256 public constant SECONDS_PER_BLOCK = 3;
 
     ///@notice the token to lock
-    IBEP20 public immutable token;
+    IERC20 public immutable token;
 
     ///@notice who will receive this token
     address public immutable receiver;
@@ -32,10 +33,10 @@ contract TokenLocker {
     uint256 public totalReleasedAmount;
 
     constructor(
-        address _token, address _receiver, uint256 _intervalSeconds, uint256 _releaseAmount
+        IERC20 _token, address _receiver, uint256 _intervalSeconds, uint256 _releaseAmount
     ) {
-        require(_token != address(0), "illegal token");
-        token = IBEP20(_token);
+        require(_token != IERC20(address(0)), "illegal token");
+        token = _token;
         receiver = _receiver; 
         //lastReleaseAt = block.number;
         require(_intervalSeconds > SECONDS_PER_BLOCK, 'illegal interval');
@@ -68,7 +69,7 @@ contract TokenLocker {
         }
         lastReleaseAt = lastReleaseAt.add(interval.mul(times));
         totalReleasedAmount = totalReleasedAmount.add(amount);
-        SafeBEP20.safeTransfer(token, receiver, amount);
+        token.safeTransfer(receiver, amount);
     }
 
     ///@notice return the amount we can claim now, and the next timestamp we can claim next time

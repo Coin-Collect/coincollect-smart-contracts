@@ -15,5 +15,7 @@
     - rewardPerBlock
     - startBlock
     - owner address
+7. Add CoinCollectPool as Minter on CoinCollectVault
+    - addMinter(address _minter, uint _amount)
 
 

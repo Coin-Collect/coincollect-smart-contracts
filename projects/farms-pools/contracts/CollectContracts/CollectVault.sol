@@ -12,18 +12,18 @@ interface IMintable {
     function mintFor(address _to, uint256 _amount) external;
 }
 
-contract BabyVault is SafeOwnable {
+contract CoinCollectVault is SafeOwnable {
     using SafeERC20 for IERC20;
 
     event MinterChanged(address minter, bool available);
 
     uint256 public constant maxSupply = 10 ** 27;
-    IERC20 public immutable babyToken;
+    IERC20 public immutable coinCollectToken;
 
     mapping(address => uint) public minters;
 
-    constructor(IERC20 _babyToken, address _owner) {
-        babyToken = _babyToken;
+    constructor(IERC20 _coinCollectToken, address _owner) {
+        coinCollectToken = _coinCollectToken;
         if (_owner != address(0)) {
             _transferOwnership(_owner);
         }
@@ -56,19 +56,19 @@ contract BabyVault is SafeOwnable {
         uint remained = _amount;
         //first from balance
         if (remained != 0) {
-            uint currentBalance = babyToken.balanceOf(address(this)); 
+            uint currentBalance = coinCollectTokenToken.balanceOf(address(this)); 
             uint amount = Math.min(currentBalance, remained);
             if (amount > 0) {
-                babyToken.safeTransfer(_to, amount);
+                coinCollectTokenToken.safeTransfer(_to, amount);
                 //sub is safe
                 remained -= amount;
             }
         }
         //then mint
         if (remained != 0) {
-            uint amount = Math.min(maxSupply - babyToken.totalSupply(), remained);
+            uint amount = Math.min(maxSupply - coinCollectTokenToken.totalSupply(), remained);
             if (amount > 0) {
-                IMintable(address(babyToken)).mintFor(_to, amount);
+                IMintable(address(coinCollectTokenToken)).mintFor(_to, amount);
                 remained -= amount;
             }
         }
@@ -79,10 +79,10 @@ contract BabyVault is SafeOwnable {
         uint remained = _amount;
         //first from balance
         if (remained != 0) {
-            uint currentBalance = babyToken.balanceOf(address(this)); 
+            uint currentBalance = coinCollectToken.balanceOf(address(this)); 
             uint amount = Math.min(currentBalance, remained);
             if (amount > 0) {
-                babyToken.safeTransfer(_to, amount);
+                coinCollectToken.safeTransfer(_to, amount);
                 //sub is safe
                 remained -= amount;
             }
@@ -93,9 +93,9 @@ contract BabyVault is SafeOwnable {
     function mintOnlyFromToken(address _to, uint _amount) external onlyMinter(_amount) returns (uint) {
         uint remained = _amount;
         if (remained != 0) {
-            uint amount = Math.min(maxSupply - babyToken.totalSupply(), remained);
+            uint amount = Math.min(maxSupply - coinCollectToken.totalSupply(), remained);
             if (amount > 0) {
-                IMintable(address(babyToken)).mintFor(_to, amount);
+                IMintable(address(coinCollectToken)).mintFor(_to, amount);
                 remained -= amount;
             }
         }

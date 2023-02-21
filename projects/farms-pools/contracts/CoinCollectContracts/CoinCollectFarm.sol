@@ -5,8 +5,8 @@ pragma solidity ^0.7.4;
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-import '../core/SafeOwnable.sol';
-import '../token/CoinCollectVault.sol';
+import './core/SafeOwnable.sol';
+import './CoinCollectVault.sol';
 
 contract CoinCollectFarm is SafeOwnable {
     using SafeMath for uint256;

@@ -6,8 +6,8 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-import '../core/SafeOwnable.sol';
-import '../token/CoinCollectVault.sol';
+import './core/SafeOwnable.sol';
+import './CoinCollectVault.sol';
 
 contract CoinCollectPool is SafeOwnable, ReentrancyGuard {
     using SafeMath for uint256;

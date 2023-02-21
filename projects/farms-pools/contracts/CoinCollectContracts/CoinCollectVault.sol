@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/math/Math.sol';
-import '../core/SafeOwnable.sol';
+import './core/SafeOwnable.sol';
 
 interface IMintable {
     function mintFor(address _to, uint256 _amount) external;

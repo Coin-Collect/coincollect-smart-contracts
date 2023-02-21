@@ -9,7 +9,7 @@ import '@openzeppelin/contracts/math/Math.sol';
 import './core/SafeOwnable.sol';
 
 interface IMintable {
-    function mintFor(address _to, uint256 _amount) external;
+    function mint(address _to, uint256 _amount) external;
 }
 
 contract CoinCollectVault is SafeOwnable {
@@ -56,19 +56,19 @@ contract CoinCollectVault is SafeOwnable {
         uint remained = _amount;
         //first from balance
         if (remained != 0) {
-            uint currentBalance = coinCollectTokenToken.balanceOf(address(this)); 
+            uint currentBalance = coinCollectToken.balanceOf(address(this)); 
             uint amount = Math.min(currentBalance, remained);
             if (amount > 0) {
-                coinCollectTokenToken.safeTransfer(_to, amount);
+                coinCollectToken.safeTransfer(_to, amount);
                 //sub is safe
                 remained -= amount;
             }
         }
         //then mint
         if (remained != 0) {
-            uint amount = Math.min(maxSupply - coinCollectTokenToken.totalSupply(), remained);
+            uint amount = Math.min(maxSupply - coinCollectToken.totalSupply(), remained);
             if (amount > 0) {
-                IMintable(address(coinCollectTokenToken)).mintFor(_to, amount);
+                IMintable(address(coinCollectToken)).mint(_to, amount);
                 remained -= amount;
             }
         }
@@ -95,7 +95,7 @@ contract CoinCollectVault is SafeOwnable {
         if (remained != 0) {
             uint amount = Math.min(maxSupply - coinCollectToken.totalSupply(), remained);
             if (amount > 0) {
-                IMintable(address(coinCollectToken)).mintFor(_to, amount);
+                IMintable(address(coinCollectToken)).mint(_to, amount);
                 remained -= amount;
             }
         }

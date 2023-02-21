@@ -17,7 +17,7 @@ contract CoinCollectVault is SafeOwnable {
 
     event MinterChanged(address minter, bool available);
 
-    uint256 public constant maxSupply = 10 ** 27;
+    uint256 public constant maxSupply = 500000000 * 1e18;
     IERC20 public immutable coinCollectToken;
 
     mapping(address => uint) public minters;

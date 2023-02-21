@@ -1,5 +1,8 @@
 # Coincollect Farms and Pools
 
-## Description
+## Setup Instructions
 
-This repo includes various contracts like MasterChef (COLLECT farms), SmartChef (single-asset pool), and the COLLECT token contract.
+1. Deploy CollectTokenERC20 Contract
+2. Deploy Token Lockers
+3. Mint, According to Tokenomics
+4. Give Ownership(Mint permission) to CoinCollectVault

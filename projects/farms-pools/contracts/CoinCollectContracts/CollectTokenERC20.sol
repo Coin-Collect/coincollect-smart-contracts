@@ -11,7 +11,7 @@ contract CollectToken is ERC20, Ownable, ERC20Permit, ERC20Votes {
     uint256 public constant maxSupply = 500000000 * 1e18; 
     
     constructor() ERC20("CoinCollect Token", "COLLECT") ERC20Permit("CoinCollect Token") {
-        _mint(msg.sender, 50 * 10 ** decimals());
+        _mint(msg.sender, 300000000 * 10 ** decimals());
     }
 
     function mint(address to, uint256 amount) public onlyOwner {

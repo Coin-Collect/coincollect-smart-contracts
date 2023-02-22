@@ -47,7 +47,7 @@ contract CoinCollectVault is SafeOwnable {
     }
 
     modifier onlyMinter(uint _amount) {
-        require(minters[msg.sender] > _amount, "only minter can do this");
+        require(minters[msg.sender] >= _amount, "only minter can do this");
         _;
         minters[msg.sender] -= _amount;
     }

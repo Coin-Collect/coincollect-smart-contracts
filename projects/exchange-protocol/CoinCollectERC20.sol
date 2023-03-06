@@ -2,8 +2,8 @@
 
 pragma solidity >=0.5.16;
 
-import '../interfaces/ICoinCollectERC20.sol';
-import '../libraries/SafeMath.sol';
+import './interfaces/ICoinCollectERC20.sol';
+import './libraries/SafeMath.sol';
 
 contract CoinCollectERC20 is ICoinCollectERC20 {
     using SafeMath for uint256;

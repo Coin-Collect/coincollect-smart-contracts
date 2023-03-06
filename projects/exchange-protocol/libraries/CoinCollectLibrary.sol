@@ -22,7 +22,7 @@ library CoinCollectLibrary {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'48c8bec5512d397a5d512fbb7d83d515e7b6d91e9838730bd1aa1b16575da7f5'
+                hex'fac5e31f1f74a03672eaa4b64b4aa0869fff443e0b0b5f37e819e71e7b66b157'
             ))));
     }
 

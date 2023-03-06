@@ -3,7 +3,7 @@
 pragma solidity >=0.5.16;
 
 import './CoinCollectPair.sol';
-import '../libraries/CoinCollectLibrary.sol';
+import './libraries/CoinCollectLibrary.sol';
 
 contract CoinCollectFactory {
     bytes32 public constant INIT_CODE_PAIR_HASH = keccak256(abi.encodePacked(type(CoinCollectPair).creationCode));

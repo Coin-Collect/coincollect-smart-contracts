@@ -2,13 +2,13 @@
 
 pragma solidity >=0.5.16;
 
-import '../interfaces/ICoinCollectPair.sol';
-import '../token/CoinCollectERC20.sol';
-import '../libraries/Math.sol';
-import '../libraries/UQ112x112.sol';
-import '../interfaces/IERC20.sol';
-import '../interfaces/ICoinCollectFactory.sol';
-import '../interfaces/ICoinCollectCallee.sol';
+import './interfaces/ICoinCollectPair.sol';
+import './CoinCollectERC20.sol';
+import './libraries/Math.sol';
+import './libraries/UQ112x112.sol';
+import './interfaces/IERC20.sol';
+import './interfaces/ICoinCollectFactory.sol';
+import './interfaces/ICoinCollectCallee.sol';
 
 contract CoinCollectPair is CoinCollectERC20 {
     using SafeMath  for uint;

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.6;
 
-import '../libraries/TransferHelper.sol';
-import '../interfaces/ICoinCollectRouter02.sol';
-import '../interfaces/ICoinCollectFactory.sol';
-import '../libraries/CoinCollectLibrary.sol';
-import '../libraries/SafeMath.sol';
-import '../interfaces/IERC20.sol';
-import '../interfaces/IWETH.sol';
+import './libraries/TransferHelper.sol';
+import './interfaces/ICoinCollectRouter02.sol';
+import './interfaces/ICoinCollectFactory.sol';
+import './libraries/CoinCollectLibrary.sol';
+import './libraries/SafeMath.sol';
+import './interfaces/IERC20.sol';
+import './interfaces/IWETH.sol';
 
 contract CoinCollectRouter is ICoinCollectRouter02 {
     using SafeMath for uint;

@@ -3,7 +3,7 @@
 pragma solidity >=0.5.0;
 
 import '../interfaces/ICoinCollectPair.sol';
-import '../libraries/SafeMath.sol';
+import './SafeMath.sol';
 
 library CoinCollectLibrary {
     using SafeMath for uint;

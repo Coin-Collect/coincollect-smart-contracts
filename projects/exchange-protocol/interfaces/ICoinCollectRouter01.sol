@@ -3,8 +3,8 @@
 pragma solidity >=0.6.2;
 
 interface ICoinCollectRouter01 {
-    function factory() external pure returns (address);
-    function WETH() external pure returns (address);
+    function factory() external view returns (address);
+    function WETH() external view returns (address);
 
     function addLiquidity(
         address tokenA,

@@ -8,7 +8,6 @@ import "@openzeppelin/contracts@3.4.2/utils/Pausable.sol";
 import "@openzeppelin/contracts@3.4.2/math/SafeMath.sol";
 import "./core/SafeOwnable.sol";
 import "./CoinCollectPool.sol";
-import 'hardhat/console.sol';
 
 contract CoinCollectAutoPool is SafeOwnable, Pausable {
     using SafeERC20 for IERC20;

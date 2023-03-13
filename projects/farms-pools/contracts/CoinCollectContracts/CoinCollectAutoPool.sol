@@ -154,12 +154,10 @@ contract CoinCollectAutoPool is SafeOwnable, Pausable {
                 currentAmount = bal.add(diff);
             }
         }
-        if (block.timestamp < user.lastDepositedTime.add(withdrawFeePeriod)) {
-            console.log('currentAmount: ', currentAmount); 
+        if (block.timestamp < user.lastDepositedTime.add(withdrawFeePeriod)) { 
             uint256 currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
             token.safeTransfer(treasury, currentWithdrawFee);
             currentAmount = currentAmount.sub(currentWithdrawFee);
-            console.log('currentAmount: ', currentAmount); 
         }
         user.lastUserActionTime = block.timestamp;
         token.safeTransfer(msg.sender, currentAmount);

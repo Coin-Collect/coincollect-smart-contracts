@@ -80,7 +80,8 @@ contract CoinCollectNftStake is SafeOwnable {
             lpToken: IERC20(address(0)),
             allocPoint: 0,
             lastRewardBlock: block.number,
-            accRewardPerShare: 0
+            accRewardPerShare: 0,
+            poolCapacity: 0
         }));
         require(_allocPoints.length > 0 && _allocPoints.length == _lpTokens.length, "illegal data");
         for (uint i = 0; i < _allocPoints.length; i ++) {

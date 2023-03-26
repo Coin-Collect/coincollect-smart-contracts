@@ -22,6 +22,7 @@ contract CoinCollectNftStake is SafeOwnable {
         uint256 allocPoint;       // How many allocation points assigned to this pool. CAKEs to distribute per block.
         uint256 lastRewardBlock;  // Last block number that CAKEs distribution occurs.
         uint256 accRewardPerShare; // Accumulated CAKEs per share, times 1e12. See below.
+        uint256 poolCapacity; // User capacity to stake simultaneously
     }
 
     enum FETCH_VAULT_TYPE {

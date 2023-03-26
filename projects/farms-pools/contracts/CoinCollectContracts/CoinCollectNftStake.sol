@@ -8,7 +8,7 @@ import '@openzeppelin/contracts@3.4.2/math/SafeMath.sol';
 import './core/SafeOwnable.sol';
 import './CoinCollectVault.sol';
 
-contract CoinCollectFarm is SafeOwnable {
+contract CoinCollectNftStake is SafeOwnable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 

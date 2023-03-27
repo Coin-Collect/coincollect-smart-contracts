@@ -2,15 +2,21 @@
 
 pragma solidity ^0.7.4;
 
+import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts@3.4.2/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts@3.4.2/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts@3.4.2/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/EnumerableMap.sol';
+import '@openzeppelin/contracts/utils/EnumerableSet.sol';
 import './core/SafeOwnable.sol';
 import './CoinCollectVault.sol';
 
-contract CoinCollectNftStake is SafeOwnable {
+contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     struct UserInfo {
         uint256 amount;     // How many LP tokens the user has provided.
@@ -19,6 +25,7 @@ contract CoinCollectNftStake is SafeOwnable {
 
     struct PoolInfo {
         IERC20 lpToken;           // Address of LP token contract.
+        ERC721 nftToken;          // Address of staking nft contract.
         uint256 allocPoint;       // How many allocation points assigned to this pool. CAKEs to distribute per block.
         uint256 lastRewardBlock;  // Last block number that CAKEs distribution occurs.
         uint256 accRewardPerShare; // Accumulated CAKEs per share, times 1e12. See below.
@@ -43,6 +50,12 @@ contract CoinCollectNftStake is SafeOwnable {
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
     uint256 public totalAllocPoint = 0;
     FETCH_VAULT_TYPE public fetchVaultType;
+
+    // Variables for NFT Stake
+    mapping(address => EnumerableSet.UintSet) holderTokens;
+    EnumerableMap.UintToAddressMap tokenOwners;
+    mapping(uint256 => uint256) public tokenWeight;
+    address public pegVault; // Vault for NFT pegging ERC-20 tokens
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -69,12 +82,15 @@ contract CoinCollectNftStake is SafeOwnable {
         return 0;
     }
     
-    constructor(CoinCollectVault _vault, uint256 _rewardPerBlock, uint256 _startBlock, address _owner, uint[] memory _allocPoints, IERC20[] memory _lpTokens) {
-        rewardToken = _vault.coinCollectToken();
+    constructor(CoinCollectVault _vault, uint256 _rewardPerBlock, uint256 _startBlock, address _owner, address _pegVault, uint[] memory _allocPoints, IERC20[] memory _lpTokens, ERC721[] memory _nftTokens) {
+        require(address(_vault) != address(0), "_vault address cannot be 0");
+        require(_pegVault != address(0), "_pegVault address cannot be 0");
         require(_startBlock >= block.number, "illegal startBlock");
+        rewardToken = _vault.coinCollectToken();
         startBlock = _startBlock;
         vault = _vault;
         rewardPerBlock = _rewardPerBlock;
+        pegVault = _pegVault;
         //we skip the zero index pool, and start at index 1
         poolInfo.push(PoolInfo({
             lpToken: IERC20(address(0)),
@@ -89,6 +105,7 @@ contract CoinCollectNftStake is SafeOwnable {
             totalAllocPoint = totalAllocPoint.add(_allocPoints[i]);
             poolInfo.push(PoolInfo({
                 lpToken: _lpTokens[i],
+                nftToken: _nftTokens[i],
                 allocPoint: _allocPoints[i],
                 lastRewardBlock: _startBlock,
                 accRewardPerShare: 0,
@@ -161,7 +178,7 @@ contract CoinCollectNftStake is SafeOwnable {
         }
     }
 
-    function add(uint256 _allocPoint, uint256 _poolCapacity, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
+    function add(uint256 _allocPoint, uint256 _poolCapacity, IERC20 _lpToken, ERC721 _nftToken, bool _withUpdate) public onlyOwner {
         require(!pairExist[_lpToken], "already exist");
         if (_withUpdate) {
             massUpdatePools();
@@ -170,6 +187,7 @@ contract CoinCollectNftStake is SafeOwnable {
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
             lpToken: _lpToken,
+            nftToken: _nftToken,
             allocPoint: _allocPoint,
             lastRewardBlock: lastRewardBlock,
             accRewardPerShare: 0,
@@ -210,7 +228,7 @@ contract CoinCollectNftStake is SafeOwnable {
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
     }
 
-    function deposit(uint256 _pid, uint256 _amount) external legalPid(_pid) availablePid(_pid) {
+    function deposit(uint256 _pid, uint256 _amount) external legalPid(_pid) availablePid(_pid) nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -234,7 +252,7 @@ contract CoinCollectNftStake is SafeOwnable {
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    function withdraw(uint256 _pid, uint256 _amount) external legalPid(_pid) {
+    function withdraw(uint256 _pid, uint256 _amount) external legalPid(_pid) nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not enough");

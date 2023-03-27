@@ -228,7 +228,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
     }
 
-    function deposit(uint256 _pid, uint256 _amount) external legalPid(_pid) availablePid(_pid) nonReentrant {
+    function deposit(uint256 _pid, uint256 _tokenId) external legalPid(_pid) availablePid(_pid) nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -252,7 +252,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    function withdraw(uint256 _pid, uint256 _amount) external legalPid(_pid) nonReentrant {
+    function withdraw(uint256 _pid, uint256 _tokenId) external legalPid(_pid) nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not enough");

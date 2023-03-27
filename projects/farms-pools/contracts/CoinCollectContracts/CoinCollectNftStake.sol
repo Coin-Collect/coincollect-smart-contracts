@@ -91,7 +91,8 @@ contract CoinCollectNftStake is SafeOwnable {
                 lpToken: _lpTokens[i],
                 allocPoint: _allocPoints[i],
                 lastRewardBlock: _startBlock,
-                accRewardPerShare: 0
+                accRewardPerShare: 0,
+                poolCapacity: 1000
             }));
             pairExist[_lpTokens[i]] = true;
         }
@@ -160,7 +161,7 @@ contract CoinCollectNftStake is SafeOwnable {
         }
     }
 
-    function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
+    function add(uint256 _allocPoint, uint256 _poolCapacity, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
         require(!pairExist[_lpToken], "already exist");
         if (_withUpdate) {
             massUpdatePools();
@@ -171,7 +172,8 @@ contract CoinCollectNftStake is SafeOwnable {
             lpToken: _lpToken,
             allocPoint: _allocPoint,
             lastRewardBlock: lastRewardBlock,
-            accRewardPerShare: 0
+            accRewardPerShare: 0,
+            poolCapacity: _poolCapacity
         }));
         pairExist[_lpToken] = true;
     }
@@ -185,6 +187,14 @@ contract CoinCollectNftStake is SafeOwnable {
         if (prevAllocPoint != _allocPoint) {
             totalAllocPoint = totalAllocPoint.sub(prevAllocPoint).add(_allocPoint);
         }
+    }
+
+    function setPoolCapacity(uint256 _pid, uint256 _poolCapacity) public onlyOwner legalPid(_pid) {
+        poolInfo[_pid].poolCapacity = _poolCapacity;
+    }
+
+    function getPoolCapacity(uint256 _pid) external view legalPid(_pid) returns (uint256) {
+        return poolInfo[_pid].poolCapacity;
     }
 
     function pendingReward(uint256 _pid, address _user) external view legalPid(_pid) returns (uint256) {
@@ -210,7 +220,13 @@ contract CoinCollectNftStake is SafeOwnable {
                 require(fetch(msg.sender, pending) == pending, "out of token");
             }
         }
+
         if (_amount > 0) {
+            // User deposit first time, new staker
+            if (user.amount == 0) {
+                require(pool.poolCapacity > 0, "pool is out of capacity");
+                pool.poolCapacity = pool.poolCapacity.sub(1);
+            }
             pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
         }
@@ -230,6 +246,10 @@ contract CoinCollectNftStake is SafeOwnable {
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
+            // User leaves the pool, add capacity
+            if(user.amount == 0) {
+                pool.poolCapacity = pool.poolCapacity.add(1);
+            }
         }
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _amount);

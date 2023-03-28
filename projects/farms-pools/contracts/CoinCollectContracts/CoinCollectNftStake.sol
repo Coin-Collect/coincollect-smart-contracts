@@ -232,6 +232,9 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
+
+        uint _amount = 1e18; // 1 NFT = 1 ERC-20 Token
+
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(pool.accRewardPerShare).div(1e12).sub(user.rewardDebt);
             if(pending > 0) {
@@ -245,8 +248,12 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
                 require(pool.poolCapacity > 0, "pool is out of capacity");
                 pool.poolCapacity = pool.poolCapacity.sub(1);
             }
-            pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+            pool.lpToken.safeTransferFrom(pegVault, address(this), _amount);
+            nftToken.transferFrom(msg.sender, address(this), _tokenId);
             user.amount = user.amount.add(_amount);
+            holderTokens[msg.sender].add(_tokenId);
+            tokenOwners.set(_tokenId, msg.sender);
+            tokenWeight[_tokenId] = _amount;
         }
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);

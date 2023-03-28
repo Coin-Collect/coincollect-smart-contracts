@@ -57,9 +57,9 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     mapping(uint256 => uint256) public tokenWeight;
     address public pegVault; // Vault for NFT pegging ERC-20 tokens
 
-    event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
+    event Deposit(address indexed user, uint256 indexed pid, uint256 tokenId);
     event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
-    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 tokenId);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     modifier legalPid(uint _pid) {
@@ -243,7 +243,6 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             }
         }
 
-        if (_amount > 0) {
             // User deposit first time, new staker
             if (user.amount == 0) {
                 require(pool.poolCapacity > 0, "pool is out of capacity");
@@ -255,9 +254,8 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             holderTokens[msg.sender].add(_tokenId);
             tokenOwners.set(_tokenId, msg.sender);
             tokenWeight[_tokenId] = _amount;
-        }
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
-        emit Deposit(msg.sender, _pid, _amount);
+        emit Deposit(msg.sender, _pid, _tokenId);
     }
 
     function harvest(uint256 _pid) external legalPid(_pid) availablePid(_pid) nonReentrant {
@@ -280,22 +278,28 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     function withdraw(uint256 _pid, uint256 _tokenId) external legalPid(_pid) nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        require(user.amount >= _amount, "withdraw: not enough");
         updatePool(_pid);
         uint256 pending = user.amount.mul(pool.accRewardPerShare).div(1e12).sub(user.rewardDebt);
         if(pending > 0) {
             require(fetch(msg.sender, pending) == pending, "out of token");
         }
+
+        uint _amount = tokenWeight[_tokenId];
+
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
-            pool.lpToken.safeTransfer(address(msg.sender), _amount);
+            pool.lpToken.safeTransfer(pegVault, _amount);
+            tokenOwners.remove(_tokenId);
+            holderTokens[msg.sender].remove(_tokenId);
+            nftToken.transferFrom(address(this), msg.sender, _tokenId);
+            delete tokenWeight[_tokenId];
             // User leaves the pool, add capacity
             if(user.amount == 0) {
                 pool.poolCapacity = pool.poolCapacity.add(1);
             }
         }
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
-        emit Withdraw(msg.sender, _pid, _amount);
+        emit Withdraw(msg.sender, _pid, _tokenId);
     }
 
     function emergencyWithdraw(uint256 _pid) public legalPid(_pid) {

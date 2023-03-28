@@ -58,7 +58,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     address public pegVault; // Vault for NFT pegging ERC-20 tokens
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
-    event Harvest(address indexed user, uint256 indexed pid);
+    event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
@@ -265,15 +265,16 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
 
+        uint256 pending = 0;
         if (user.amount > 0) {
-            uint256 pending = user.amount.mul(pool.accRewardPerShare).div(1e12).sub(user.rewardDebt);
+            pending = user.amount.mul(pool.accRewardPerShare).div(1e12).sub(user.rewardDebt);
             if(pending > 0) {
                 require(fetch(msg.sender, pending) == pending, "out of token");
             }
         }
 
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
-        emit Harvest(msg.sender, _pid);
+        emit Harvest(msg.sender, _pid, pending);
     }
 
     function withdraw(uint256 _pid, uint256 _tokenId) external legalPid(_pid) nonReentrant {

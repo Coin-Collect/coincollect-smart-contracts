@@ -60,7 +60,6 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     event Deposit(address indexed user, uint256 indexed pid, uint256 tokenId);
     event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 tokenId);
-    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     modifier legalPid(uint _pid) {
         require(_pid > 0 && _pid < poolInfo.length, "illegal farm pid"); 

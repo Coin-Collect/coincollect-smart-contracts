@@ -275,6 +275,8 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     }
 
     function withdraw(uint256 _pid, uint256 _tokenId) external legalPid(_pid) nonReentrant {
+        require(tokenOwners.get(_tokenId) == msg.sender, "illegal tokenId");
+
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -299,6 +301,12 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         }
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _tokenId);
+    }
+
+    function stakeAll(uint256 _pid, uint256[] memory _tokenIds) external {
+        for (uint i = 0; i < _tokenIds.length; i ++) {
+            deposit(_pid, _tokenIds[i]);
+        }
     }
 
     function balanceOf(address owner) external view returns (uint256) {

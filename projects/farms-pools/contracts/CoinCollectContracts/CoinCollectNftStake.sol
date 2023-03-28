@@ -302,13 +302,4 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         emit Withdraw(msg.sender, _pid, _tokenId);
     }
 
-    function emergencyWithdraw(uint256 _pid) public legalPid(_pid) {
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][msg.sender];
-        uint amount = user.amount;
-        user.amount = 0;
-        user.rewardDebt = 0;
-        pool.lpToken.safeTransfer(address(msg.sender), amount);
-        emit EmergencyWithdraw(msg.sender, _pid, amount);
-    }
 }

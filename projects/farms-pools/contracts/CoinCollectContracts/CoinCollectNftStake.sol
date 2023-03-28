@@ -309,6 +309,12 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         }
     }
 
+    function unstakeAll(uint256 _pid, uint256[] memory _tokenIds) external {
+        for (uint i = 0; i < _tokenIds.length; i ++) {
+            withdraw(_pid, _tokenIds[i]);
+        }
+    }
+
     function balanceOf(address owner) external view returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
         return holderTokens[owner].length();

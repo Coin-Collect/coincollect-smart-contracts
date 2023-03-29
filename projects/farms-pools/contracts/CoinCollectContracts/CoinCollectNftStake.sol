@@ -228,7 +228,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         return user.amount.mul(accRewardPerShare).div(1e12).sub(user.rewardDebt);
     }
 
-    function deposit(uint256 _pid, uint256 _tokenId) external legalPid(_pid) availablePid(_pid) nonReentrant {
+    function deposit(uint256 _pid, uint256 _tokenId) public legalPid(_pid) availablePid(_pid) nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -248,7 +248,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             pool.poolCapacity = pool.poolCapacity.sub(1);
         }
         pool.lpToken.safeTransferFrom(pegVault, address(this), _amount);
-        nftToken.transferFrom(msg.sender, address(this), _tokenId);
+        pool.nftToken.transferFrom(msg.sender, address(this), _tokenId);
         user.amount = user.amount.add(_amount);
         holderTokens[msg.sender].add(_tokenId);
         tokenOwners.set(_tokenId, msg.sender);
@@ -274,7 +274,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         emit Harvest(msg.sender, _pid, pending);
     }
 
-    function withdraw(uint256 _pid, uint256 _tokenId) external legalPid(_pid) nonReentrant {
+    function withdraw(uint256 _pid, uint256 _tokenId) public legalPid(_pid) nonReentrant {
         require(tokenOwners.get(_tokenId) == msg.sender, "illegal tokenId");
 
         PoolInfo storage pool = poolInfo[_pid];
@@ -292,7 +292,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             pool.lpToken.safeTransfer(pegVault, _amount);
             tokenOwners.remove(_tokenId);
             holderTokens[msg.sender].remove(_tokenId);
-            nftToken.transferFrom(address(this), msg.sender, _tokenId);
+            pool.nftToken.transferFrom(address(this), msg.sender, _tokenId);
             delete tokenWeight[_tokenId];
             // User leaves the pool, add capacity
             if(user.amount == 0) {

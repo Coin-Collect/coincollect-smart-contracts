@@ -94,6 +94,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         //we skip the zero index pool, and start at index 1
         poolInfo.push(PoolInfo({
             lpToken: IERC20(address(0)),
+            nftToken: ERC721(address(0)),
             allocPoint: 0,
             lastRewardBlock: block.number,
             accRewardPerShare: 0,

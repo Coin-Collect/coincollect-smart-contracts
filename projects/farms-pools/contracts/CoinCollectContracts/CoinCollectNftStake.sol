@@ -3,12 +3,12 @@
 pragma solidity ^0.7.4;
 
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts@3.4.2/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts@3.4.2/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts@3.4.2/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts@3.4.2/math/SafeMath.sol';
-import '@openzeppelin/contracts/utils/EnumerableMap.sol';
-import '@openzeppelin/contracts/utils/EnumerableSet.sol';
+import '@openzeppelin/contracts@3.4.2/utils/EnumerableMap.sol';
+import '@openzeppelin/contracts@3.4.2/utils/EnumerableSet.sol';
 import './core/SafeOwnable.sol';
 import './CoinCollectVault.sol';
 

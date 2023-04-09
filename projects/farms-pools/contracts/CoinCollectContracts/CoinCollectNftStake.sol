@@ -54,7 +54,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     // Variables for NFT Stake
     mapping(uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
     mapping(uint256 => EnumerableMap.UintToAddressMap) tokenOwners;
-    mapping(uint256 => uint256) public tokenWeight;
+    mapping(uint256 => mapping(uint256 => uint256)) public tokenWeight;
     address public pegVault; // Vault for NFT pegging ERC-20 tokens
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 tokenId);
@@ -253,7 +253,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         user.amount = user.amount.add(_amount);
         holderTokens[_pid][msg.sender].add(_tokenId);
         tokenOwners[_pid].set(_tokenId, msg.sender);
-        tokenWeight[_tokenId] = _amount;
+        tokenWeight[_pid][_tokenId] = _amount;
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _tokenId);
     }
@@ -286,7 +286,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             require(fetch(msg.sender, pending) == pending, "out of token");
         }
 
-        uint _amount = tokenWeight[_tokenId];
+        uint _amount = tokenWeight[_pid][_tokenId];
 
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
@@ -294,7 +294,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             tokenOwners[_pid].remove(_tokenId);
             holderTokens[_pid][msg.sender].remove(_tokenId);
             pool.nftToken.transferFrom(address(this), msg.sender, _tokenId);
-            delete tokenWeight[_tokenId];
+            delete tokenWeight[_pid][_tokenId];
             // User leaves the pool, add capacity
             if(user.amount == 0) {
                 pool.poolCapacity = pool.poolCapacity.add(1);

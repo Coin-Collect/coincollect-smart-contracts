@@ -47,13 +47,13 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     PoolInfo[] public poolInfo;
     mapping(IERC20 => bool) public pairExist;
     mapping(uint => bool) public pidInBlacklist;
-    mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     uint256 public totalAllocPoint = 0;
     FETCH_VAULT_TYPE public fetchVaultType;
 
     // Variables for NFT Stake
-    mapping (uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
-    EnumerableMap.UintToAddressMap tokenOwners;
+    mapping(uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
+    mapping(uint256 => EnumerableMap.UintToAddressMap) tokenOwners;
     mapping(uint256 => uint256) public tokenWeight;
     address public pegVault; // Vault for NFT pegging ERC-20 tokens
 
@@ -252,7 +252,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         pool.nftToken.transferFrom(msg.sender, address(this), _tokenId);
         user.amount = user.amount.add(_amount);
         holderTokens[_pid][msg.sender].add(_tokenId);
-        tokenOwners.set(_tokenId, msg.sender);
+        tokenOwners[_pid].set(_tokenId, msg.sender);
         tokenWeight[_tokenId] = _amount;
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _tokenId);
@@ -276,7 +276,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     }
 
     function withdraw(uint256 _pid, uint256 _tokenId) public legalPid(_pid) nonReentrant {
-        require(tokenOwners.get(_tokenId) == msg.sender, "illegal tokenId");
+        require(tokenOwners[_pid].get(_tokenId) == msg.sender, "illegal tokenId");
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -291,7 +291,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(pegVault, _amount);
-            tokenOwners.remove(_tokenId);
+            tokenOwners[_pid].remove(_tokenId);
             holderTokens[_pid][msg.sender].remove(_tokenId);
             pool.nftToken.transferFrom(address(this), msg.sender, _tokenId);
             delete tokenWeight[_tokenId];

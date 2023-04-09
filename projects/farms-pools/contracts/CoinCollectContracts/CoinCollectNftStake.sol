@@ -52,7 +52,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
     FETCH_VAULT_TYPE public fetchVaultType;
 
     // Variables for NFT Stake
-    mapping(address => EnumerableSet.UintSet) holderTokens;
+    mapping (uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
     EnumerableMap.UintToAddressMap tokenOwners;
     mapping(uint256 => uint256) public tokenWeight;
     address public pegVault; // Vault for NFT pegging ERC-20 tokens
@@ -251,7 +251,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
         pool.lpToken.safeTransferFrom(pegVault, address(this), _amount);
         pool.nftToken.transferFrom(msg.sender, address(this), _tokenId);
         user.amount = user.amount.add(_amount);
-        holderTokens[msg.sender].add(_tokenId);
+        holderTokens[_pid][msg.sender].add(_tokenId);
         tokenOwners.set(_tokenId, msg.sender);
         tokenWeight[_tokenId] = _amount;
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(1e12);
@@ -292,7 +292,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(pegVault, _amount);
             tokenOwners.remove(_tokenId);
-            holderTokens[msg.sender].remove(_tokenId);
+            holderTokens[_pid][msg.sender].remove(_tokenId);
             pool.nftToken.transferFrom(address(this), msg.sender, _tokenId);
             delete tokenWeight[_tokenId];
             // User leaves the pool, add capacity
@@ -318,11 +318,11 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
 
     function balanceOf(address owner) external view returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
-        return holderTokens[owner].length();
+        return holderTokens[_pid][owner].length();
     }
 
     function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256) {
-        return holderTokens[owner].at(index);
+        return holderTokens[_pid][owner].at(index);
     }
 
 }

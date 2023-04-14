@@ -110,7 +110,7 @@ contract CoinCollectNftStake is SafeOwnable, ReentrancyGuard {
                 allocPoint: _allocPoints[i],
                 lastRewardBlock: _startBlock,
                 accRewardPerShare: 0,
-                poolCapacity: 1000
+                poolCapacity: 5000
             }));
             pairExist[_lpTokens[i]] = true;
         }

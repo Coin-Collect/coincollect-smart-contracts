@@ -25,14 +25,14 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
     //token => weight
     mapping(address => uint) public communityCollectionWeights;
-    address[] public communityCollections = [address(0x11DdF94710AD390063357D532042Bd5f23A3fBd6), address(0x0a846Dd40152d6fE8CB4DE4107E0b063B6D6b3F9), address(0x117D6870e6dE9faBcB40C34CceDD5228C63e3a1e)];
+    address[] public communityCollections = [address(0x11DdF94710AD390063357D532042Bd5f23A3fBd6), address(0x0a846Dd40152d6fE8CB4DE4107E0b063B6D6b3F9)];
 
     uint256 public MAX_TOKEN_WEIGHT = 100; 
 
     struct Claim {
         IERC20 rewardToken; 
         uint256 baseAmount;
-        uint256 amountLimit; //unused!
+        uint256 amountLimit; //unused!!!
         address targetCollectionAddress;
         uint256 targetCollectionWeight;
     }
@@ -47,21 +47,21 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         _;
     }
     
-    constructor(IERC20[] memory _rewardToken, uint256[] memory _baseAmount, uint256[] memory _amountLimit) {
+    constructor(IERC20[] memory _rewardToken, uint256[] memory _baseAmount, uint256[] memory _amountLimit, address[] memory _targetCollectionAddress, uint256[] memory _targetCollectionWeight) {
         require(_rewardToken.length > 0 && _rewardToken.length == _baseAmount.length, "illegal data");
         for (uint i = 0; i < _rewardToken.length; i ++) {
             claims.push(Claim({
             rewardToken: _rewardToken[i],
             baseAmount: _baseAmount[i],
             amountLimit: _amountLimit[i],
-            targetCollectionAddress: address(0),
-            targetCollectionWeight: 0
+            targetCollectionAddress: _targetCollectionAddress[i],
+            targetCollectionWeight: _targetCollectionWeight[i]
         }));
         }
 
-        communityCollectionWeights[address(0x11DdF94710AD390063357D532042Bd5f23A3fBd6)] = 3; // Remove all of them
-        communityCollectionWeights[address(0x0a846Dd40152d6fE8CB4DE4107E0b063B6D6b3F9)] = 3; // Remove all of them
-        communityCollectionWeights[address(0x117D6870e6dE9faBcB40C34CceDD5228C63e3a1e)] = 3; // Remove all of them
+        communityCollectionWeights[address(0x11DdF94710AD390063357D532042Bd5f23A3fBd6)] = 1; // Remove all of them
+        communityCollectionWeights[address(0x0a846Dd40152d6fE8CB4DE4107E0b063B6D6b3F9)] = 2; // Remove all of them
+
     }
 
     function setMaxWeight(uint256 _newMaxWeight) public onlyOwner {
@@ -95,6 +95,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     function setClaim(uint256 _claimId, IERC20 _rewardToken, uint256 _baseAmount, uint256 _amountLimit, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
        claims[_claimId].rewardToken = _rewardToken;
        claims[_claimId].baseAmount = _baseAmount;
+       claims[_claimId].amountLimit = _amountLimit;
        claims[_claimId].targetCollectionAddress = _targetCollectionAddress;
        claims[_claimId].targetCollectionWeight = _targetCollectionWeight;
     }
@@ -159,14 +160,20 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
 
 
-function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds) internal view returns (uint256) {
+function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds, uint targetCollectionWeight) internal view returns (uint256) {
     uint256 totalWeights = 0;
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
             
             uint256 tokenId = tokenIds[i];
             if (!isNFTClaimed(_claimId, _collectionAddress, tokenId)) {
-                totalWeights += communityCollectionWeights[_collectionAddress];
+                if(targetCollectionWeight > 0) {
+                    // Add weights for target collection
+                    totalWeights += targetCollectionWeight;
+                } else {
+                    // Add weights for community collection
+                    totalWeights += communityCollectionWeights[_collectionAddress];
+                }
             }
             
         }
@@ -212,14 +219,14 @@ function getInfo(address _owner) external view returns (CollectionInfo[] memory,
             address collectionAddress = communityNfts[y].collectionAddress;
             uint256[] memory tokenIds = communityNfts[y].nftIds;
 
-            totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds);
+            totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, 0);
         }
 
         // Add weight for target nft
         if(claim.targetCollectionWeight != 0) {
             address collectionAddress = targetNfts[claimIndex].collectionAddress;
             uint256[] memory tokenIds = targetNfts[claimIndex].nftIds;
-            totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds);
+            totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, claim.targetCollectionWeight);
         }
 
     }

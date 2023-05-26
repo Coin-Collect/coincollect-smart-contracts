@@ -59,8 +59,6 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         }));
         }
 
-        communityCollectionWeights[address(0x11DdF94710AD390063357D532042Bd5f23A3fBd6)] = 1; // Remove all of them
-        communityCollectionWeights[address(0x0a846Dd40152d6fE8CB4DE4107E0b063B6D6b3F9)] = 2; // Remove all of them
 
     }
 
@@ -68,9 +66,12 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         MAX_TOKEN_WEIGHT = _newMaxWeight;
     }
 
-    function addCommunityCollection(address _collectionAddress, uint256 _weight) public onlyOwner {
-        communityCollections.push(_collectionAddress);
-        communityCollectionWeights[_collectionAddress] = _weight;
+    function addCommunityCollection(address[] memory _collectionAddress, uint256[] memory _weight) public onlyOwner {
+        require(_collectionAddress.length == _weight.length, "wrong data length");
+        for (uint i = 0; i < _collectionAddress.length; i ++) {
+            communityCollections.push(_collectionAddress[i]);
+            communityCollectionWeights[_collectionAddress[i]] = _weight[i];
+        }
     }
 
     function setCommunityCollection(uint256 _index, address _collectionAddress, uint256 _weight) public onlyOwner {
@@ -236,4 +237,5 @@ function getInfo(address _owner) external view returns (CollectionInfo[] memory,
 }
 
 
+    
 }

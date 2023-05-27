@@ -27,7 +27,6 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     mapping(address => uint) public communityCollectionWeights;
     address[] public communityCollections;
 
-    uint256 public MAX_TOKEN_WEIGHT = 100; 
 
     struct Claim {
         IERC20 rewardToken; 

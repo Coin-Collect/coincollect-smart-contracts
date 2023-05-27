@@ -66,12 +66,12 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         MAX_TOKEN_WEIGHT = _newMaxWeight;
     }
 
-    function addCommunityCollection(address[] memory _collectionAddress, uint256[] memory _weight) public onlyOwner {
+    function addCommunityCollections(address[] memory _collectionAddress, uint256[] memory _weight) public onlyOwner {
         require(_collectionAddress.length == _weight.length, "wrong data length");
         for (uint i = 0; i < _collectionAddress.length; i ++) {
-            communityCollections.push(_collectionAddress[i]);
             communityCollectionWeights[_collectionAddress[i]] = _weight[i];
         }
+        communityCollections = _collectionAddress;
     }
 
     function setCommunityCollection(uint256 _index, address _collectionAddress, uint256 _weight) public onlyOwner {

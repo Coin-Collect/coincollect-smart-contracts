@@ -121,7 +121,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         
     }
 
-    function calculateTotalAmount(uint256 _claimId, IERC721[] memory nftTokens, uint256[] memory tokenIds) internal view returns (uint256) {
+    function calculateTotalAmount(uint256 _claimId, IERC721[] memory nftTokens, uint256[] memory tokenIds) internal returns (uint256) {
         Claim memory claim = claims[_claimId];
         uint256 totalWeights = 0;
         
@@ -139,7 +139,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                     totalWeights += communityCollectionWeights[address(collectionToken)];
                 }
 
-                nftRewardsClaimed[loop][_claimId][address(collectionToken)][tokenId] == true;
+                nftRewardsClaimed[loop][_claimId][address(collectionToken)][tokenId] = true;
                 
                 //If you have 5 nft, you will get max weight
                 /*if (totalWeights >= MAX_TOKEN_WEIGHT) {

@@ -32,7 +32,6 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     struct Claim {
         IERC20 rewardToken; 
         uint256 baseAmount;
-        uint256 amountLimit; //unused!!!
         address targetCollectionAddress;
         uint256 targetCollectionWeight;
     }
@@ -47,13 +46,12 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         _;
     }
     
-    constructor(IERC20[] memory _rewardToken, uint256[] memory _baseAmount, uint256[] memory _amountLimit, address[] memory _targetCollectionAddress, uint256[] memory _targetCollectionWeight) {
+    constructor(IERC20[] memory _rewardToken, uint256[] memory _baseAmount, address[] memory _targetCollectionAddress, uint256[] memory _targetCollectionWeight) {
         require(_rewardToken.length > 0 && _rewardToken.length == _baseAmount.length, "illegal data");
         for (uint i = 0; i < _rewardToken.length; i ++) {
             claims.push(Claim({
             rewardToken: _rewardToken[i],
             baseAmount: _baseAmount[i],
-            amountLimit: _amountLimit[i],
             targetCollectionAddress: _targetCollectionAddress[i],
             targetCollectionWeight: _targetCollectionWeight[i]
         }));
@@ -62,9 +60,6 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
     }
 
-    function setMaxWeight(uint256 _newMaxWeight) public onlyOwner {
-        MAX_TOKEN_WEIGHT = _newMaxWeight;
-    }
 
     function addCommunityCollections(address[] memory _collectionAddress, uint256[] memory _weight) public onlyOwner {
         require(_collectionAddress.length == _weight.length, "wrong data length");
@@ -83,20 +78,18 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         delete communityCollections[_index];
     }
 
-    function addClaim(IERC20 _rewardToken, uint256 _baseAmount, uint256 _amountLimit, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
+    function addClaim(IERC20 _rewardToken, uint256 _baseAmount, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
         claims.push(Claim({
             rewardToken: _rewardToken,
             baseAmount: _baseAmount,
-            amountLimit: _amountLimit,
             targetCollectionAddress: _targetCollectionAddress,
             targetCollectionWeight: _targetCollectionWeight
         }));
     }
 
-    function setClaim(uint256 _claimId, IERC20 _rewardToken, uint256 _baseAmount, uint256 _amountLimit, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
+    function setClaim(uint256 _claimId, IERC20 _rewardToken, uint256 _baseAmount, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
        claims[_claimId].rewardToken = _rewardToken;
        claims[_claimId].baseAmount = _baseAmount;
-       claims[_claimId].amountLimit = _amountLimit;
        claims[_claimId].targetCollectionAddress = _targetCollectionAddress;
        claims[_claimId].targetCollectionWeight = _targetCollectionWeight;
     }
@@ -141,11 +134,6 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
                 nftRewardsClaimed[loop][_claimId][address(collectionToken)][tokenId] = true;
                 
-                //If you have 5 nft, you will get max weight
-                /*if (totalWeights >= MAX_TOKEN_WEIGHT) {
-                    totalWeights = MAX_TOKEN_WEIGHT; //double amount
-                    break;
-                }*/
             }
             
         }

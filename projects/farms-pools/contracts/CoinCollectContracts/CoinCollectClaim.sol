@@ -73,9 +73,6 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         communityCollectionWeights[_collectionAddress] = _weight;
     }
 
-    function delCommunityCollection(uint256 _index) public onlyOwner {
-        delete communityCollections[_index];
-    }
 
     function addClaim(IERC20 _rewardToken, uint256 _baseAmount, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
         claims.push(Claim({
@@ -100,17 +97,8 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         uint256 totalAmount = calculateTotalAmount(_claimId, nftTokens, tokenIds);
         require(totalAmount > 0, "Not eligible: Not enough nft balance");
 
-        //Check balance and send amount according to amountLimit and balance
-        uint rewardBalance = claim.rewardToken.balanceOf(address(this));
-        if(rewardBalance > 0) {
-            if(rewardBalance >= totalAmount) {
-                // Transfer the reward to the user.
-                claim.rewardToken.safeTransfer(msg.sender, totalAmount * 10**18);
-            } else {
-                claim.rewardToken.safeTransfer(msg.sender, rewardBalance * 10**18);
-            }
-        }
-        
+        // Transfer the reward to the user.
+        claim.rewardToken.safeTransfer(msg.sender, totalAmount * 10**18);  
     }
 
     function calculateTotalAmount(uint256 _claimId, IERC721[] memory nftTokens, uint256[] memory tokenIds) internal returns (uint256) {

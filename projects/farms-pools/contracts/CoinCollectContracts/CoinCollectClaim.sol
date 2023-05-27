@@ -140,90 +140,93 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
 
 
-function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds, uint targetCollectionWeight) internal view returns (uint256) {
-    uint256 totalWeights = 0;
+    function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds, uint targetCollectionWeight) internal view returns (uint256) {
+        uint256 totalWeights = 0;
 
-    for (uint256 i = 0; i < tokenIds.length; i++) {
-            
-            uint256 tokenId = tokenIds[i];
-            if (!isNFTClaimed(_claimId, _collectionAddress, tokenId)) {
-                if(targetCollectionWeight > 0) {
-                    // Add weights for target collection
-                    totalWeights += targetCollectionWeight;
-                } else {
-                    // Add weights for community collection
-                    totalWeights += communityCollectionWeights[_collectionAddress];
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+                
+                uint256 tokenId = tokenIds[i];
+                if (!isNFTClaimed(_claimId, _collectionAddress, tokenId)) {
+                    if(targetCollectionWeight > 0) {
+                        // Add weights for target collection
+                        totalWeights += targetCollectionWeight;
+                    } else {
+                        // Add weights for community collection
+                        totalWeights += communityCollectionWeights[_collectionAddress];
+                    }
                 }
+                
             }
-            
-        }
 
-        return totalWeights;
-}
-    
-
-
-function getInfo(address _owner) external view returns (CollectionInfo[] memory, CollectionInfo[] memory, uint[] memory,  uint[] memory) {
-    CollectionInfo[] memory communityNfts = new CollectionInfo[](communityCollections.length);
-    CollectionInfo[] memory targetNfts = new CollectionInfo[](claims.length);
-    uint[] memory totalWeights = new uint[](claims.length);
-    uint[] memory rewardBalances = new uint[](claims.length);
-    
-    
-
-    // Get all community collections and token ids to generate weights
-    for (uint256 i = 0; i < communityCollections.length; i++) {
-        address collectionAddress = communityCollections[i];
-        IWalletOfOwner w = IWalletOfOwner(collectionAddress);
-        uint256[] memory nftIds = w.walletOfOwner(_owner);
-        communityNfts[i] = CollectionInfo(collectionAddress, nftIds);
+            return totalWeights;
     }
+    
 
 
-    // Work for each claim
-    for (uint256 claimIndex = 0; claimIndex < claims.length; claimIndex++) {
-        Claim memory claim = claims[claimIndex];
+    function getInfo(address _owner) external view returns (CollectionInfo[] memory, CollectionInfo[] memory, uint[] memory,  uint[] memory) {
+        CollectionInfo[] memory communityNfts = new CollectionInfo[](communityCollections.length);
+        CollectionInfo[] memory targetNfts = new CollectionInfo[](claims.length);
+        uint[] memory totalWeights = new uint[](claims.length);
+        uint[] memory rewardBalances = new uint[](claims.length);
+        
+        
 
-        rewardBalances[claimIndex] = claim.rewardToken.balanceOf(address(this));
-
-        // Get target nfts according to claim id
-        address targetCollectionAddress = claim.targetCollectionAddress;
-        if(targetCollectionAddress != address(0)) {
-            IWalletOfOwner w = IWalletOfOwner(targetCollectionAddress);
+        // Get all community collections and token ids to generate weights
+        for (uint256 i = 0; i < communityCollections.length; i++) {
+            address collectionAddress = communityCollections[i];
+            IWalletOfOwner w = IWalletOfOwner(collectionAddress);
             uint256[] memory nftIds = w.walletOfOwner(_owner);
-            targetNfts[claimIndex] = CollectionInfo(targetCollectionAddress, nftIds);
+            communityNfts[i] = CollectionInfo(collectionAddress, nftIds);
         }
 
-        // Calculate weights for each community token id
-        for (uint256 y = 0; y < communityNfts.length; y++) {
-            address collectionAddress = communityNfts[y].collectionAddress;
-            uint256[] memory tokenIds = communityNfts[y].nftIds;
 
-            totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, 0);
+        // Work for each claim
+        for (uint256 claimIndex = 0; claimIndex < claims.length; claimIndex++) {
+            Claim memory claim = claims[claimIndex];
+
+            rewardBalances[claimIndex] = claim.rewardToken.balanceOf(address(this));
+
+            // Get target nfts according to claim id
+            address targetCollectionAddress = claim.targetCollectionAddress;
+            if(targetCollectionAddress != address(0)) {
+                IWalletOfOwner w = IWalletOfOwner(targetCollectionAddress);
+                uint256[] memory nftIds = w.walletOfOwner(_owner);
+                targetNfts[claimIndex] = CollectionInfo(targetCollectionAddress, nftIds);
+            }
+
+            // Calculate weights for each community token id
+            for (uint256 y = 0; y < communityNfts.length; y++) {
+                address collectionAddress = communityNfts[y].collectionAddress;
+                uint256[] memory tokenIds = communityNfts[y].nftIds;
+
+                totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, 0);
+            }
+
+            // Add weight for target nft
+            if(claim.targetCollectionWeight != 0) {
+                address collectionAddress = targetNfts[claimIndex].collectionAddress;
+                uint256[] memory tokenIds = targetNfts[claimIndex].nftIds;
+                totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, claim.targetCollectionWeight);
+            }
+
         }
 
-        // Add weight for target nft
-        if(claim.targetCollectionWeight != 0) {
-            address collectionAddress = targetNfts[claimIndex].collectionAddress;
-            uint256[] memory tokenIds = targetNfts[claimIndex].nftIds;
-            totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, claim.targetCollectionWeight);
-        }
-
+        
+        return (communityNfts, targetNfts, totalWeights, rewardBalances);
     }
 
-    
-    return (communityNfts, targetNfts, totalWeights, rewardBalances);
-}
 
 
-
-function transferTokens(IERC20[] memory _tokens) external onlyOwner {
-    for (uint256 i = 0; i < _tokens.length; i++) {
-        IERC20 token = _tokens[i];
-        token.safeTransfer(msg.sender, token.balanceOf(address(this)));
+    function transferTokens(IERC20[] memory _tokens) external onlyOwner {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token = _tokens[i];
+            token.safeTransfer(msg.sender, token.balanceOf(address(this)));
+        }
     }
-}
 
+    function increaseLoop() public onlyOwner {
+        loop = loop + 1;
+    }
 
     
 }

@@ -25,7 +25,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
     //token => weight
     mapping(address => uint) public communityCollectionWeights;
-    address[] public communityCollections = [address(0x11DdF94710AD390063357D532042Bd5f23A3fBd6), address(0x0a846Dd40152d6fE8CB4DE4107E0b063B6D6b3F9)];
+    address[] public communityCollections;
 
     uint256 public MAX_TOKEN_WEIGHT = 100; 
 
@@ -234,6 +234,15 @@ function getInfo(address _owner) external view returns (CollectionInfo[] memory,
 
     
     return (communityNfts, targetNfts, totalWeights, rewardBalances);
+}
+
+
+
+function transferTokens(IERC20[] calldata _tokens) external onlyOwner {
+    for (uint256 i = 0; i < _tokens.length; i++) {
+        IERC20 token = _tokens[i];
+        token.safeTransfer(msg.sender, token.balanceOf(address(this)));
+    }
 }
 
 

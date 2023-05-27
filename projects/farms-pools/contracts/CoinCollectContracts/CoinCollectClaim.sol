@@ -41,7 +41,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     }
 
     modifier isClaimAvailable(uint _claimId) {
-        require(!claimDisabled[loop], "loop already finish");
+        require(!claimDisabled[_claimId], "loop already finish");
         _;
     }
     
@@ -57,6 +57,10 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         }
 
 
+    }
+
+    function toggleClaim(uint256 _claimIndex) public onlyOwner {
+        claimDisabled[_claimIndex] = !claimDisabled[_claimIndex];
     }
 
 

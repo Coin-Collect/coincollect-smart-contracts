@@ -238,7 +238,7 @@ function getInfo(address _owner) external view returns (CollectionInfo[] memory,
 
 
 
-function transferTokens(IERC20[] calldata _tokens) external onlyOwner {
+function transferTokens(IERC20[] memory _tokens) external onlyOwner {
     for (uint256 i = 0; i < _tokens.length; i++) {
         IERC20 token = _tokens[i];
         token.safeTransfer(msg.sender, token.balanceOf(address(this)));

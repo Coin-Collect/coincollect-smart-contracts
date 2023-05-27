@@ -41,7 +41,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     }
 
     modifier isClaimAvailable(uint _claimId) {
-        require(!claimDisabled[_claimId], "loop already finish");
+        require(!claimDisabled[_claimId], "Claim disabled!");
         _;
     }
     

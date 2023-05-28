@@ -103,6 +103,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
     function claimReward(uint256 _claimId, IERC721[] memory nftTokens, uint256[] memory tokenIds) public isClaimAvailable(_claimId) nonReentrant {
         Claim memory claim = claims[_claimId];
+        require(walletClaimedCount[loop][_claimId][msg.sender] < claim.nftLimit, "Claim limit reached");
 
         // Check balances of all nftTokens.
         uint256 totalAmount = calculateTotalAmount(_claimId, nftTokens, tokenIds);
@@ -161,6 +162,11 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds, uint targetCollectionWeight, uint nftLimit) internal view returns (uint256) {
         uint256 totalWeights = 0;
         uint256 claimCount = 0;
+
+        // If limit already reached, weight will be zero
+        if(walletClaimedCount[loop][_claimId][msg.sender] >= nftLimit) {
+            return 0;
+        }
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
                 

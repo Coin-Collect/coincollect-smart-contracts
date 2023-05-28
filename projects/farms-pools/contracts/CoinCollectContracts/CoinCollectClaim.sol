@@ -23,6 +23,9 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     //loop -> claimId -> token => tokenId => amount
     mapping(uint => mapping(uint => mapping(address => mapping(uint => bool)))) public nftRewardsClaimed;
 
+    //loop -> claimId -> wallet address
+    mapping(uint => mapping(uint => mapping(address => uint))) public walletClaimedCount;
+
     //token => weight
     mapping(address => uint) public communityCollectionWeights;
     address[] public communityCollections;
@@ -31,6 +34,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     struct Claim {
         IERC20 rewardToken; 
         uint256 baseAmount;
+        uint256 nftLimit;
         address targetCollectionAddress;
         uint256 targetCollectionWeight;
     }
@@ -45,12 +49,13 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         _;
     }
     
-    constructor(IERC20[] memory _rewardToken, uint256[] memory _baseAmount, address[] memory _targetCollectionAddress, uint256[] memory _targetCollectionWeight) {
+    constructor(IERC20[] memory _rewardToken, uint256[] memory _baseAmount, uint256[] memory _nftLimit, address[] memory _targetCollectionAddress, uint256[] memory _targetCollectionWeight) {
         require(_rewardToken.length > 0 && _rewardToken.length == _baseAmount.length, "illegal data");
         for (uint i = 0; i < _rewardToken.length; i ++) {
             claims.push(Claim({
             rewardToken: _rewardToken[i],
             baseAmount: _baseAmount[i],
+            nftLimit: _nftLimit[i],
             targetCollectionAddress: _targetCollectionAddress[i],
             targetCollectionWeight: _targetCollectionWeight[i]
         }));
@@ -78,18 +83,20 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     }
 
 
-    function addClaim(IERC20 _rewardToken, uint256 _baseAmount, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
+    function addClaim(IERC20 _rewardToken, uint256 _baseAmount, uint256 _nftLimit, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
         claims.push(Claim({
             rewardToken: _rewardToken,
             baseAmount: _baseAmount,
+            nftLimit: _nftLimit,
             targetCollectionAddress: _targetCollectionAddress,
             targetCollectionWeight: _targetCollectionWeight
         }));
     }
 
-    function setClaim(uint256 _claimId, IERC20 _rewardToken, uint256 _baseAmount, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
+    function setClaim(uint256 _claimId, IERC20 _rewardToken, uint256 _baseAmount, uint256 _nftLimit, address _targetCollectionAddress, uint256 _targetCollectionWeight) public onlyOwner {
        claims[_claimId].rewardToken = _rewardToken;
        claims[_claimId].baseAmount = _baseAmount;
+       claims[_claimId].nftLimit = _nftLimit;
        claims[_claimId].targetCollectionAddress = _targetCollectionAddress;
        claims[_claimId].targetCollectionWeight = _targetCollectionWeight;
     }
@@ -108,6 +115,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     function calculateTotalAmount(uint256 _claimId, IERC721[] memory nftTokens, uint256[] memory tokenIds) internal returns (uint256) {
         Claim memory claim = claims[_claimId];
         uint256 totalWeights = 0;
+        uint256 claimCount = 0;
         
         for (uint256 i = 0; i < nftTokens.length; i++) {
             IERC721 collectionToken = nftTokens[i];
@@ -124,11 +132,21 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                 }
 
                 nftRewardsClaimed[loop][_claimId][address(collectionToken)][tokenId] = true;
+                claimCount += 1;
+
+                // NFT claim limit
+                if (claimCount >= claim.nftLimit - walletClaimedCount[loop][_claimId][msg.sender]) {
+                    // Limit claim process
+                    break;
+                }
                 
             }
             
         }
 
+        if(claimCount > 0) {
+            walletClaimedCount[loop][_claimId][msg.sender] += claimCount;
+        }
         uint amount = claim.baseAmount * totalWeights;
     
         return amount;
@@ -140,8 +158,9 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
 
 
-    function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds, uint targetCollectionWeight) internal view returns (uint256) {
+    function getWeightForCollection(uint _claimId, address _collectionAddress, uint[] memory tokenIds, uint targetCollectionWeight, uint nftLimit) internal view returns (uint256) {
         uint256 totalWeights = 0;
+        uint256 claimCount = 0;
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
                 
@@ -153,6 +172,12 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                     } else {
                         // Add weights for community collection
                         totalWeights += communityCollectionWeights[_collectionAddress];
+                    }
+                    claimCount += 1;
+                    // NFT claim limit
+                    if (claimCount >= nftLimit - walletClaimedCount[loop][_claimId][msg.sender]) {
+                        // Limit claim process
+                        break;
                     }
                 }
                 
@@ -199,14 +224,14 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                 address collectionAddress = communityNfts[y].collectionAddress;
                 uint256[] memory tokenIds = communityNfts[y].nftIds;
 
-                totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, 0);
+                totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, 0, claim.nftLimit);
             }
 
             // Add weight for target nft
             if(claim.targetCollectionWeight != 0) {
                 address collectionAddress = targetNfts[claimIndex].collectionAddress;
                 uint256[] memory tokenIds = targetNfts[claimIndex].nftIds;
-                totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, claim.targetCollectionWeight);
+                totalWeights[claimIndex] += getWeightForCollection(claimIndex, collectionAddress, tokenIds, claim.targetCollectionWeight, claim.nftLimit);
             }
 
         }

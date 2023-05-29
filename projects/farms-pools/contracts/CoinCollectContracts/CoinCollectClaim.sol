@@ -44,6 +44,11 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         uint256[] nftIds;
     }
 
+    struct UserClaimInfo {
+        uint256 totalWeights;
+        uint256 remainingClaims;
+    }
+
     modifier isClaimAvailable(uint _claimId) {
         require(!claimDisabled[_claimId], "Claim disabled!");
         _;
@@ -190,11 +195,11 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
     
 
 
-    function getInfo(address _owner) external view returns (CollectionInfo[] memory, CollectionInfo[] memory, uint[] memory,  uint[] memory) {
+    function getInfo(address _owner) external view returns (CollectionInfo[] memory, CollectionInfo[] memory, UserClaimInfo[] memory,  uint[] memory) {
         CollectionInfo[] memory communityNfts = new CollectionInfo[](communityCollections.length);
         CollectionInfo[] memory targetNfts = new CollectionInfo[](claims.length);
-        uint[] memory totalWeights = new uint[](claims.length);
         uint[] memory rewardBalances = new uint[](claims.length);
+        UserClaimInfo[] memory userClaimInfo = new UserClaimInfo[](claims.length);
         
         
 
@@ -226,13 +231,14 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                 break;
             }
             uint256 remainingClaimCount = claim.nftLimit - walletClaimedCount[loop][claimIndex][msg.sender];
+            userClaimInfo[claimIndex].remainingClaims = remainingClaimCount;
 
             // Add weight for target nfts(priority)
             if(claim.targetCollectionWeight != 0) {
                 address collectionAddress = targetNfts[claimIndex].collectionAddress;
                 uint256[] memory tokenIds = targetNfts[claimIndex].nftIds;
                 (uint weight, uint claimedCount) = getWeightForCollection(claimIndex, collectionAddress, tokenIds, claim.targetCollectionWeight, remainingClaimCount);
-                totalWeights[claimIndex] += weight;
+                userClaimInfo[claimIndex].totalWeights += weight;
                 remainingClaimCount -= claimedCount;
                 if(remainingClaimCount <= 0) {
                     break;
@@ -245,7 +251,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                 uint256[] memory tokenIds = communityNfts[y].nftIds;
 
                 (uint weight, uint claimedCount) = getWeightForCollection(claimIndex, collectionAddress, tokenIds, 0, remainingClaimCount);
-                totalWeights[claimIndex] += weight;
+                userClaimInfo[claimIndex].totalWeights += weight;
                 remainingClaimCount -= claimedCount;
                 if(remainingClaimCount <= 0) {
                     break;
@@ -256,7 +262,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         }
 
         
-        return (communityNfts, targetNfts, totalWeights, rewardBalances);
+        return (communityNfts, targetNfts, userClaimInfo, rewardBalances);
     }
 
 

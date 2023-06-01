@@ -23,10 +23,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // Accrued token per share
     uint256 public accTokenPerShare;
 
-    // The block number when CAKE mining ends.
+    // The block number at which the staking period ends
     uint256 public bonusEndBlock;
 
-    // The block number when CAKE mining starts.
+    // The block number at which the staking period starts
     uint256 public startBlock;
 
     // The block number of the last pool update
@@ -38,7 +38,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // Block numbers available for user limit (after start block)
     uint256 public numberBlocksForUserLimit;
 
-    // CAKE tokens created per block.
+    // Reward tokens created per block.
     uint256 public rewardPerBlock;
 
     // The precision factor

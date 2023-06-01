@@ -23,9 +23,6 @@ contract SmartChefFactory is Ownable {
      * @param _endBlock: end block
      * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
      * @param _numberBlocksForUserLimit: block numbers available for user limit (after start block)
-     * @param _pancakeProfile: Pancake Profile address
-     * @param _pancakeProfileIsRequested: Pancake Profile is requested
-     * @param _pancakeProfileThresholdPoints: Pancake Profile need threshold points
      * @param _admin: admin address with ownership
      * @return address of new smart chef contract
      */
@@ -37,9 +34,6 @@ contract SmartChefFactory is Ownable {
         uint256 _bonusEndBlock,
         uint256 _poolLimitPerUser,
         uint256 _numberBlocksForUserLimit,
-        address _pancakeProfile,
-        bool _pancakeProfileIsRequested,
-        uint256 _pancakeProfileThresholdPoints,
         address _admin
     ) external onlyOwner {
         require(_stakedToken.totalSupply() >= 0);
@@ -47,11 +41,6 @@ contract SmartChefFactory is Ownable {
         require(_stakedToken != _rewardToken, "Tokens must be be different");
 
         bytes memory bytecode = type(SmartChefInitializable).creationCode;
-        // pass constructor argument
-        bytecode = abi.encodePacked(
-            bytecode,
-            abi.encode(_pancakeProfile, _pancakeProfileIsRequested, _pancakeProfileThresholdPoints)
-        );
         bytes32 salt = keccak256(abi.encodePacked(_stakedToken, _rewardToken, _startBlock));
         address smartChefAddress;
 

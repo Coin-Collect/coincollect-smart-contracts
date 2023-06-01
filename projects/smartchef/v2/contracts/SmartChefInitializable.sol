@@ -40,15 +40,6 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // Block numbers available for user limit (after start block)
     uint256 public numberBlocksForUserLimit;
 
-    // Pancake profile
-    IPancakeProfile public immutable pancakeProfile;
-
-    // Pancake Profile is requested
-    bool public pancakeProfileIsRequested;
-
-    // Pancake Profile points threshold
-    uint256 public pancakeProfileThresholdPoints;
-
     // CAKE tokens created per block.
     uint256 public rewardPerBlock;
 
@@ -77,30 +68,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     event RewardsStop(uint256 blockNumber);
     event TokenRecovery(address indexed token, uint256 amount);
     event Withdraw(address indexed user, uint256 amount);
-    event UpdateProfileAndThresholdPointsRequirement(bool isProfileRequested, uint256 thresholdPoints);
+    
 
-    /**
-     * @notice Constructor
-     * @param _pancakeProfile: Pancake Profile address
-     * @param _pancakeProfileIsRequested: Pancake Profile is requested
-     * @param _pancakeProfileThresholdPoints: Pancake Profile need threshold points
-     */
-    constructor(
-        address _pancakeProfile,
-        bool _pancakeProfileIsRequested,
-        uint256 _pancakeProfileThresholdPoints
-    ) {
+    constructor() {
         SMART_CHEF_FACTORY = msg.sender;
-
-        // Call to verify the address is correct
-        IPancakeProfile(_pancakeProfile).getTeamProfile(1);
-        pancakeProfile = IPancakeProfile(_pancakeProfile);
-
-        // if pancakeProfile is requested
-        pancakeProfileIsRequested = _pancakeProfileIsRequested;
-
-        // pancakeProfile threshold points when profile & points are requested
-        pancakeProfileThresholdPoints = _pancakeProfileThresholdPoints;
     }
 
     /*
@@ -160,24 +131,6 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      */
     function deposit(uint256 _amount) external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
-
-        // Checks whether the user has an active profile
-        require(
-            (!pancakeProfileIsRequested && pancakeProfileThresholdPoints == 0) ||
-                pancakeProfile.getUserStatus(msg.sender),
-            "Deposit: Must have an active profile"
-        );
-
-        uint256 numberUserPoints = 0;
-
-        if (pancakeProfileThresholdPoints > 0) {
-            (, numberUserPoints, , , , ) = pancakeProfile.getUserProfile(msg.sender);
-        }
-
-        require(
-            pancakeProfileThresholdPoints == 0 || numberUserPoints >= pancakeProfileThresholdPoints,
-            "Deposit: User is not get enough user points"
-        );
 
         userLimit = hasUserLimit();
 
@@ -325,22 +278,6 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         lastRewardBlock = startBlock;
 
         emit NewStartAndEndBlocks(_startBlock, _bonusEndBlock);
-    }
-
-    /**
-     * @notice It allows the admin to update profile and thresholdPoints' requirement.
-     * @dev This function is only callable by owner.
-     * @param _isRequested: the profile is requested
-     * @param _thresholdPoints: the threshold points
-     */
-    function updateProfileAndThresholdPointsRequirement(bool _isRequested, uint256 _thresholdPoints)
-        external
-        onlyOwner
-    {
-        require(_thresholdPoints >= 0, "Threshold points need to exceed 0");
-        pancakeProfileIsRequested = _isRequested;
-        pancakeProfileThresholdPoints = _thresholdPoints;
-        emit UpdateProfileAndThresholdPointsRequirement(_isRequested, _thresholdPoints);
     }
 
     /*

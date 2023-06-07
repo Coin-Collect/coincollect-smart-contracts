@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -48,7 +48,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     IERC20Metadata public rewardToken;
 
     // The staked token
-    IERC20Metadata public stakedToken;
+    IERC721 public stakedToken;
 
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;
@@ -84,7 +84,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _admin: admin address with ownership
      */
     function initialize(
-        IERC20Metadata _stakedToken,
+        IERC721 _stakedToken,
         IERC20Metadata _rewardToken,
         uint256 _rewardPerBlock,
         uint256 _startBlock,

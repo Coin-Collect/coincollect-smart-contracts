@@ -254,6 +254,16 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     }
 
     /*
+     * @notice Update pool capacity
+     * @dev Only callable by owner.
+     * @param _poolCapacity: new pool capacity
+     */
+    function updatePoolCapacity(uint256 _poolCapacity) external onlyOwner {
+        require(poolCapacity != _poolCapacity, "New value must be different");
+        poolCapacity = _poolCapacity;
+    }
+
+    /*
      * @notice Update reward per block
      * @dev Only callable by owner.
      * @param _rewardPerBlock: the reward per block

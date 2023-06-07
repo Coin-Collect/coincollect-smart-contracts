@@ -50,6 +50,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // The staked token
     IERC721 public stakedToken;
 
+    // User capacity to stake simultaneously
+    uint256 poolCapacity;
+
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;
 
@@ -81,6 +84,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _bonusEndBlock: end block
      * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
      * @param _numberBlocksForUserLimit: block numbers available for user limit (after start block)
+     * @param _poolCapacity: user capacity to stake simultaneously
      * @param _admin: admin address with ownership
      */
     function initialize(
@@ -91,6 +95,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 _bonusEndBlock,
         uint256 _poolLimitPerUser,
         uint256 _numberBlocksForUserLimit,
+        uint256 _poolCapacity,
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
@@ -104,6 +109,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         rewardPerBlock = _rewardPerBlock;
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
+        poolCapacity = _poolCapacity;
 
         if (_poolLimitPerUser > 0) {
             userLimit = true;

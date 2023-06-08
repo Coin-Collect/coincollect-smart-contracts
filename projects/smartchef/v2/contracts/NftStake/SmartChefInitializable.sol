@@ -61,7 +61,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 rewardDebt; // Reward debt
     }
 
-    event Deposit(address indexed user, uint256 amount);
+    event Deposit(address indexed user, uint256 tokenId);
     event EmergencyWithdraw(address indexed user, uint256 amount);
     event NewStartAndEndBlocks(uint256 startBlock, uint256 endBlock);
     event NewRewardPerBlock(uint256 rewardPerBlock);
@@ -133,12 +133,12 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @notice Deposit staked tokens and collect reward tokens (if any)
      * @param _amount: amount to withdraw (in rewardToken)
      */
-    function deposit(uint256 _amount) external nonReentrant {
+    function deposit(uint256 _tokenId) external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
 
         userLimit = hasUserLimit();
 
-        require(!userLimit || ((_amount + user.amount) <= poolLimitPerUser), "Deposit: Amount above limit");
+        require(!userLimit || ((user.amount + 1) <= poolLimitPerUser), "Deposit: Amount above limit");
 
         _updatePool();
 
@@ -149,14 +149,14 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             }
         }
 
-        if (_amount > 0) {
-            user.amount = user.amount + _amount;
-            stakedToken.safeTransferFrom(address(msg.sender), address(this), _amount);
-        }
+        
+        user.amount = user.amount + 1;
+        stakedToken.transferFrom(address(msg.sender), address(this), _tokenId);
+        
 
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
-        emit Deposit(msg.sender, _amount);
+        emit Deposit(msg.sender, _tokenId);
     }
 
     /*

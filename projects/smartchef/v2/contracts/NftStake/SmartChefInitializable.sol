@@ -152,7 +152,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         
         user.amount = user.amount + 1;
         stakedToken.transferFrom(address(msg.sender), address(this), _tokenId);
-        
+
+        holderTokens[msg.sender].add(_tokenId);
+        tokenOwners.set(_tokenId, msg.sender);
 
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 

@@ -68,6 +68,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     event NewPoolLimit(uint256 poolLimitPerUser);
     event RewardsStop(uint256 blockNumber);
     event TokenRecovery(address indexed token, uint256 amount);
+    event Harvest(address indexed user, uint256 amount);
     event Withdraw(address indexed user, uint256 amount);
     
 
@@ -131,7 +132,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
     /*
      * @notice Deposit staked tokens and collect reward tokens (if any)
-     * @param _amount: amount to withdraw (in rewardToken)
+     * @param _tokenId: id of nft to deposit
      */
     function deposit(uint256 _tokenId) external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
@@ -165,6 +166,25 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
         emit Deposit(msg.sender, _tokenId);
+    }
+
+    /*
+     * @notice Collect reward tokens (if any)
+     */
+    function harvest() external nonReentrant {
+        UserInfo storage user = userInfo[msg.sender];
+        _updatePool();
+
+        uint256 pending = 0;
+        if (user.amount > 0) {
+            pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
+            if (pending > 0) {
+                rewardToken.safeTransfer(address(msg.sender), pending);
+            }
+        }
+
+        user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
+        emit Harvest(msg.sender, pending);
     }
 
     /*

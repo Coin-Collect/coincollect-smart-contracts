@@ -149,6 +149,12 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             }
         }
 
+        // User deposit first time, new staker
+        if (user.amount == 0) {
+            require(pool.poolCapacity > 0, "pool is out of capacity");
+            pool.poolCapacity = pool.poolCapacity - 1;
+        }
+
         
         user.amount = user.amount + 1;
         stakedToken.transferFrom(address(msg.sender), address(this), _tokenId);

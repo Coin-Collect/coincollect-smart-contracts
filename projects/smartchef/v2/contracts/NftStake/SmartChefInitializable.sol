@@ -264,6 +264,16 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Returns the token ID owned by the specified address at the specified index
+     * @param owner: the address of the token owner
+     * @param index: the index of the token to retrieve
+     * @return The token ID at the specified index owned by the address
+     */
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256) {
+        return holderTokens[owner].at(index);
+    }
+
+    /**
      * @notice Withdraw staked tokens without caring about rewards rewards
      * @dev Needs to be for emergency.
      */

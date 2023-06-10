@@ -87,7 +87,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         SMART_CHEF_FACTORY = msg.sender;
     }
 
-    /*
+    /**
      * @notice Initialize the contract
      * @param _stakedToken: staked token address
      * @param _rewardToken: reward token address
@@ -143,11 +143,11 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         transferOwnership(_admin);
     }
 
-    /*
+    /**
      * @notice Deposit staked tokens and collect reward tokens (if any)
      * @param _tokenId: id of nft to deposit
      */
-    function deposit(uint256 _tokenId) external nonReentrant {
+    function deposit(uint256 _tokenId) public nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
 
         userLimit = hasUserLimit();
@@ -181,7 +181,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit Deposit(msg.sender, _tokenId);
     }
 
-    /*
+    /**
      * @notice Collect reward tokens (if any)
      */
     function harvest() external nonReentrant {
@@ -200,11 +200,11 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit Harvest(msg.sender, pending);
     }
 
-    /*
+    /**
      * @notice Withdraw staked tokens and collect reward tokens
      * @param _tokenId: id of nft to withdraw
      */
-    function withdraw(uint256 _tokenId) external nonReentrant {
+    function withdraw(uint256 _tokenId) public nonReentrant {
         require(tokenOwners.get(_tokenId) == msg.sender, "illegal tokenId");
 
         UserInfo storage user = userInfo[msg.sender];
@@ -231,7 +231,29 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit Withdraw(msg.sender, _tokenId);
     }
 
-    /*
+    /**
+     * @notice Stakes all the specified tokens
+     * @param _tokenIds: an array of token IDs to be staked
+     * @dev This function allows the user to stake multiple tokens at once
+     */
+    function stakeAll(uint256[] memory _tokenIds) external {
+        for (uint i = 0; i < _tokenIds.length; i ++) {
+            deposit(_tokenIds[i]);
+        }
+    }
+
+    /**
+     * @notice Unstakes all the specified tokens
+     * @param _tokenIds: an array of token IDs to be unstaked
+     * @dev This function allows the user to unstake multiple tokens at once
+     */
+    function unstakeAll(uint256[] memory _tokenIds) external {
+        for (uint i = 0; i < _tokenIds.length; i ++) {
+            withdraw(_tokenIds[i]);
+        }
+    }
+
+    /**
      * @notice Withdraw staked tokens without caring about rewards rewards
      * @dev Needs to be for emergency.
      */
@@ -248,7 +270,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit EmergencyWithdraw(msg.sender, user.amount);
     }
 
-    /*
+    /**
      * @notice Stop rewards
      * @dev Only callable by owner. Needs to be for emergency.
      */
@@ -273,7 +295,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit TokenRecovery(_token, balance);
     }
 
-    /*
+    /**
      * @notice Stop rewards
      * @dev Only callable by owner
      */
@@ -281,7 +303,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         bonusEndBlock = block.number;
     }
 
-    /*
+    /**
      * @notice Update pool limit per user
      * @dev Only callable by owner.
      * @param _userLimit: whether the limit remains forced
@@ -299,7 +321,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit NewPoolLimit(poolLimitPerUser);
     }
 
-    /*
+    /**
      * @notice Update pool capacity
      * @dev Only callable by owner.
      * @param _poolCapacity: new pool capacity
@@ -309,7 +331,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         poolCapacity = _poolCapacity;
     }
 
-    /*
+    /**
      * @notice Update participant threshold
      * @dev Only callable by owner.
      * @param _participantThreshold: new participant threshold value
@@ -319,7 +341,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         participantThreshold = _participantThreshold;
     }
 
-    /*
+    /**
      * @notice Update reward per block
      * @dev Only callable by owner.
      * @param _rewardPerBlock: the reward per block
@@ -350,7 +372,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit NewStartAndEndBlocks(_startBlock, _bonusEndBlock);
     }
 
-    /*
+    /**
      * @notice View function to see pending reward on frontend.
      * @param _user: user address
      * @return Pending reward for a given user
@@ -372,7 +394,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
     }
 
-    /*
+    /**
      * @notice Update reward variables of the given pool to be up-to-date.
      */
     function _updatePool() internal {
@@ -396,7 +418,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         lastRewardBlock = block.number;
     }
 
-    /*
+    /**
      * @notice Return reward multiplier over the given _from to _to block.
      * @param _from: block to start
      * @param _to: block to finish
@@ -411,7 +433,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
     }
 
-    /*
+    /**
      * @notice Return user limit is set or zero.
      */
     function hasUserLimit() public view returns (bool) {

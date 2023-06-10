@@ -69,7 +69,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     event RewardsStop(uint256 blockNumber);
     event TokenRecovery(address indexed token, uint256 amount);
     event Harvest(address indexed user, uint256 amount);
-    event Withdraw(address indexed user, uint256 amount);
+    event Withdraw(address indexed user, uint256 tokenId);
     
 
     constructor() {
@@ -189,28 +189,33 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
     /*
      * @notice Withdraw staked tokens and collect reward tokens
-     * @param _amount: amount to withdraw (in rewardToken)
+     * @param _tokenId: id of nft to withdraw
      */
-    function withdraw(uint256 _amount) external nonReentrant {
+    function withdraw(uint256 _tokenId) external nonReentrant {
+        require(tokenOwners.get(_tokenId) == msg.sender, "illegal tokenId");
+
         UserInfo storage user = userInfo[msg.sender];
-        require(user.amount >= _amount, "Amount to withdraw too high");
 
         _updatePool();
 
         uint256 pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
-
-        if (_amount > 0) {
-            user.amount = user.amount - _amount;
-            stakedToken.safeTransfer(address(msg.sender), _amount);
-        }
-
         if (pending > 0) {
             rewardToken.safeTransfer(address(msg.sender), pending);
         }
 
+        user.amount = user.amount - 1;
+        stakedToken.transferFrom(address(this), address(msg.sender), _tokenId);
+        tokenOwners.remove(_tokenId);
+        holderTokens[msg.sender].remove(_tokenId);
+        
+        // User leaves the pool, add capacity
+        if(user.amount == 0) {
+            pool.poolCapacity = pool.poolCapacity + 1;
+        }
+
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
-        emit Withdraw(msg.sender, _amount);
+        emit Withdraw(msg.sender, _tokenId);
     }
 
     /*

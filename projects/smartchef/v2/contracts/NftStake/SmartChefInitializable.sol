@@ -57,6 +57,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // User capacity to stake simultaneously
     uint256 poolCapacity;
 
+    // When participants are below this threshold, rewards are divided as if participant threshold were present
+    uint256 participantThreshold;
+
     // Variables for NFT Stake
     mapping(uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
     mapping(uint256 => EnumerableMap.UintToAddressMap) tokenOwners;
@@ -105,6 +108,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 _poolLimitPerUser,
         uint256 _numberBlocksForUserLimit,
         uint256 _poolCapacity,
+        uint256 _participantThreshold,
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
@@ -119,6 +123,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
         poolCapacity = _poolCapacity;
+        participantThreshold = _participantThreshold;
 
         if (_poolLimitPerUser > 0) {
             userLimit = true;

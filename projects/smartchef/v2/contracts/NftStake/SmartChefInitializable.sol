@@ -254,6 +254,16 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Returns the balance of tokens owned by the specified address
+     * @param owner: the address to query the token balance for
+     * @return The number of tokens owned by the address
+     */
+    function balanceOf(address owner) external view returns (uint256) {
+        require(owner != address(0), "ERC721: balance query for the zero address");
+        return holderTokens[owner].length();
+    }
+
+    /**
      * @notice Withdraw staked tokens without caring about rewards rewards
      * @dev Needs to be for emergency.
      */

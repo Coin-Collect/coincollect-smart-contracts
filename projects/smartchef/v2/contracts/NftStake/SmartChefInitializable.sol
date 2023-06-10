@@ -7,9 +7,13 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract SmartChefInitializable is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20Metadata;
+    using EnumerableMap for EnumerableMap.UintToAddressMap;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     // The address of the smart chef factory
     address public immutable SMART_CHEF_FACTORY;
@@ -52,6 +56,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
     // User capacity to stake simultaneously
     uint256 poolCapacity;
+
+    // Variables for NFT Stake
+    mapping(uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
+    mapping(uint256 => EnumerableMap.UintToAddressMap) tokenOwners;
 
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;

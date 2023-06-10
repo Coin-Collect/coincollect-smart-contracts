@@ -358,6 +358,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     function pendingReward(address _user) external view returns (uint256) {
         UserInfo storage user = userInfo[_user];
         uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
+        if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
+            stakedTokenSupply = participantThreshold;
+        }
+
         if (block.number > lastRewardBlock && stakedTokenSupply != 0) {
             uint256 multiplier = _getMultiplier(lastRewardBlock, block.number);
             uint256 tokenReward = multiplier * rewardPerBlock;
@@ -377,6 +381,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
+        if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
+            stakedTokenSupply = participantThreshold;
+        }
 
         if (stakedTokenSupply == 0) {
             lastRewardBlock = block.number;

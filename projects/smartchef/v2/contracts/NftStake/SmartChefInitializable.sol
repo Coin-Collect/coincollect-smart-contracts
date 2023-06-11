@@ -165,8 +165,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         // User deposit first time, new staker
         if (user.amount == 0) {
-            require(pool.poolCapacity > 0, "pool is out of capacity");
-            pool.poolCapacity = pool.poolCapacity - 1;
+            require(poolCapacity > 0, "pool is out of capacity");
+            poolCapacity = poolCapacity - 1;
         }
 
         
@@ -223,7 +223,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         
         // User leaves the pool, add capacity
         if(user.amount == 0) {
-            pool.poolCapacity = pool.poolCapacity + 1;
+            poolCapacity = poolCapacity + 1;
         }
 
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
@@ -284,7 +284,13 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         user.rewardDebt = 0;
 
         if (amountToTransfer > 0) {
-            stakedToken.safeTransfer(address(msg.sender), amountToTransfer);
+            for (uint i = 0; i < amountToTransfer; i ++) {
+                uint256 tokenId = holderTokens[msg.sender].at(i);
+                stakedToken.transferFrom(address(this), address(msg.sender), tokenId);
+                tokenOwners.remove(tokenId);
+                holderTokens[msg.sender].remove(tokenId);
+            }
+            poolCapacity = poolCapacity + 1;
         }
 
         emit EmergencyWithdraw(msg.sender, user.amount);

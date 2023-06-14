@@ -31,6 +31,8 @@ contract SmartChefFactory is Ownable {
     function deployPool(
         IERC721 _stakedToken,
         IERC20Metadata _rewardToken,
+        IERC20Metadata[] _sideRewardTokens,
+        uint256[] _sideRewardPercentage,
         uint256 _rewardPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock,
@@ -55,6 +57,8 @@ contract SmartChefFactory is Ownable {
         SmartChefInitializable(smartChefAddress).initialize(
             _stakedToken,
             _rewardToken,
+            _sideRewardTokens,
+            _sideRewardPercentage,
             _rewardPerBlock,
             _startBlock,
             _bonusEndBlock,

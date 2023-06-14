@@ -60,6 +60,11 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // When participants are below this threshold, rewards are divided as if participant threshold were present
     uint256 participantThreshold;
 
+    bool public isSideRewardActive;
+    IERC20Metadata[] public sideRewardTokens;
+    mapping(address => uint256) public sideRewardPercentage;
+    mapping(address => uint256) public rewardTokenDecimals;
+
     // Variables for NFT Stake
     mapping(uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
     mapping(uint256 => EnumerableMap.UintToAddressMap) tokenOwners;
@@ -102,6 +107,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     function initialize(
         IERC721 _stakedToken,
         IERC20Metadata _rewardToken,
+        IERC20Metadata[] _sideRewardTokens,
+        uint256[] _sideRewardPercentage,
         uint256 _rewardPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock,
@@ -134,6 +141,19 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 decimalsRewardToken = uint256(rewardToken.decimals());
         require(decimalsRewardToken < 30, "Must be inferior to 30");
 
+        rewardTokenDecimals[_rewardToken] = decimalsRewardToken;
+        if (_sideRewardTokens.length > 0) {
+            isSideRewardActive = true;
+            sideRewardTokens = _sideRewardTokens;
+            for (uint i = 0; i < sideRewardTokens.length; i ++) {
+                IERC20Metadata sideRewardToken = sideRewardTokens[i];
+                sideRewardPercentage[sideRewardToken] = _sideRewardPercentage[i];
+                uint256 decimalsSideRewardToken = uint256(sideRewardToken.decimals());
+                rewardTokenDecimals[sideRewardToken] = decimalsSideRewardToken;
+            }
+
+        }
+
         PRECISION_FACTOR = uint256(10**(uint256(30) - decimalsRewardToken));
 
         // Set the lastRewardBlock as the startBlock
@@ -160,6 +180,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             uint256 pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
             if (pending > 0) {
                 rewardToken.safeTransfer(address(msg.sender), pending);
+                distributeSideRewards(pending);
             }
         }
 
@@ -193,6 +214,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
             if (pending > 0) {
                 rewardToken.safeTransfer(address(msg.sender), pending);
+                distributeSideRewards(pending);
             }
         }
 
@@ -214,6 +236,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
         if (pending > 0) {
             rewardToken.safeTransfer(address(msg.sender), pending);
+            distributeSideRewards(pending);
         }
 
         user.amount = user.amount - 1;
@@ -229,6 +252,28 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
         emit Withdraw(msg.sender, _tokenId);
+    }
+
+    /**
+    * @notice Distribute side rewards to the caller based on the specified percentages
+    * @param _pending The pending amount to be distributed according to side reward percentage
+    */
+    function distributeSideRewards(uint256 _pending) internal {
+        if (isSideRewardActive) {
+            for (uint i = 0; i < sideRewardTokens.length; i ++) {
+                IERC20Metadata sideRewardToken = sideRewardTokens[i];
+                // Add sideReward with specific percentage of pending amount.
+                uint256 sideReward = (pending * sideRewardPercentage[sideRewardToken]) / 100;
+
+                if (rewardTokenDecimals[sideRewardToken] > rewardTokenDecimals[rewardToken]) {
+                    sideReward = sideReward * 10 ** (rewardTokenDecimals[sideRewardToken] - rewardTokenDecimals[rewardToken]);
+                } else if (rewardTokenDecimals[sideRewardToken] < rewardTokenDecimals[rewardToken]) {
+                    sideReward = sideReward / 10 ** (rewardTokenDecimals[rewardToken] - rewardTokenDecimals[sideRewardToken]);
+                }
+
+                sideRewardToken.safeTransfer(address(msg.sender), sideReward);
+            }
+        }
     }
 
     /**

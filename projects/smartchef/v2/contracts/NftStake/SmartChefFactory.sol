@@ -25,6 +25,7 @@ contract SmartChefFactory is Ownable {
      * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
      * @param _numberBlocksForUserLimit: block numbers available for user limit (after start block)
      * @param _poolCapacity: user capacity to stake simultaneously
+     * @param _participantThreshold: When participants are below this threshold, rewards are divided by participant threshold
      * @param _admin: admin address with ownership
      * @return address of new smart chef contract
      */

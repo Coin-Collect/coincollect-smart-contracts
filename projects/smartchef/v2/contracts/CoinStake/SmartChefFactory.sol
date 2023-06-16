@@ -23,6 +23,7 @@ contract SmartChefFactory is Ownable {
      * @param _endBlock: end block
      * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
      * @param _numberBlocksForUserLimit: block numbers available for user limit (after start block)
+     * @param _participantThreshold: When participants are below this threshold, rewards are divided by participant threshold
      * @param _admin: admin address with ownership
      * @return address of new smart chef contract
      */
@@ -34,6 +35,7 @@ contract SmartChefFactory is Ownable {
         uint256 _bonusEndBlock,
         uint256 _poolLimitPerUser,
         uint256 _numberBlocksForUserLimit,
+        uint256 _participantThreshold,
         address _admin
     ) external onlyOwner {
         require(_stakedToken.totalSupply() >= 0);
@@ -56,6 +58,7 @@ contract SmartChefFactory is Ownable {
             _bonusEndBlock,
             _poolLimitPerUser,
             _numberBlocksForUserLimit,
+            _participantThreshold,
             _admin
         );
 

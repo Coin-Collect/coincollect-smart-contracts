@@ -50,7 +50,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // The staked token
     IERC20Metadata public stakedToken;
 
-    // When participants are below this threshold, rewards are divided as if participant threshold were present
+    // When participants are below this threshold, rewards are divided by participant threshold
     uint256 participantThreshold;
 
     // Info of each user that stakes tokens (stakedToken)

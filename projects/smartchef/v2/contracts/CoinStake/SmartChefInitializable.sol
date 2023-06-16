@@ -50,6 +50,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // The staked token
     IERC20Metadata public stakedToken;
 
+    // When participants are below this threshold, rewards are divided as if participant threshold were present
+    uint256 participantThreshold;
+
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;
 
@@ -91,6 +94,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 _bonusEndBlock,
         uint256 _poolLimitPerUser,
         uint256 _numberBlocksForUserLimit,
+        uint256 _participantThreshold,
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
@@ -104,6 +108,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         rewardPerBlock = _rewardPerBlock;
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
+        participantThreshold = _participantThreshold;
 
         if (_poolLimitPerUser > 0) {
             userLimit = true;
@@ -247,6 +252,16 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit NewPoolLimit(poolLimitPerUser);
     }
 
+    /**
+     * @notice Update participant threshold
+     * @dev Only callable by owner.
+     * @param _participantThreshold: new participant threshold value
+     */
+    function updateParticipantThreshold(uint256 _participantThreshold) external onlyOwner {
+        require(block.number < startBlock, "Pool has started");
+        participantThreshold = _participantThreshold;
+    }
+
     /*
      * @notice Update reward per block
      * @dev Only callable by owner.
@@ -286,6 +301,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     function pendingReward(address _user) external view returns (uint256) {
         UserInfo storage user = userInfo[_user];
         uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
+        if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
+            stakedTokenSupply = participantThreshold;
+        }
+
         if (block.number > lastRewardBlock && stakedTokenSupply != 0) {
             uint256 multiplier = _getMultiplier(lastRewardBlock, block.number);
             uint256 tokenReward = multiplier * rewardPerBlock;
@@ -305,6 +324,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
+        if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
+            stakedTokenSupply = participantThreshold;
+        }
 
         if (stakedTokenSupply == 0) {
             lastRewardBlock = block.number;

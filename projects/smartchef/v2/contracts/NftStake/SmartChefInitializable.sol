@@ -408,7 +408,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _participantThreshold: new participant threshold value
      */
     function updateParticipantThreshold(uint256 _participantThreshold) external onlyOwner {
-        require(participantThreshold != _participantThreshold, "New value must be different");
+        require(block.number < startBlock, "Pool has started");
         participantThreshold = _participantThreshold;
     }
 

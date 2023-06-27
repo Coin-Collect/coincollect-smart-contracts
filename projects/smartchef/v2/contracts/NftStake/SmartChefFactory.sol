@@ -32,8 +32,8 @@ contract SmartChefFactory is Ownable {
     function deployPool(
         IERC721 _stakedToken,
         IERC20Metadata _rewardToken,
-        IERC20Metadata[] _sideRewardTokens,
-        uint256[] _sideRewardPercentage,
+        IERC20Metadata[] memory _sideRewardTokens,
+        uint256[] memory _sideRewardPercentage,
         uint256 _rewardPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock,
@@ -43,9 +43,9 @@ contract SmartChefFactory is Ownable {
         uint256 _participantThreshold,
         address _admin
     ) external onlyOwner {
-        require(_stakedToken.totalSupply() >= 0);
+        //require(_stakedToken.totalSupply() >= 0);
         require(_rewardToken.totalSupply() >= 0);
-        require(_stakedToken != _rewardToken, "Tokens must be be different");
+        require(address(_stakedToken) != address(_rewardToken), "Tokens must be be different");
 
         bytes memory bytecode = type(SmartChefInitializable).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(_stakedToken, _rewardToken, _startBlock));

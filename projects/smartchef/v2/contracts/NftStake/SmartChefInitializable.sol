@@ -66,8 +66,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     mapping(address => uint256) public rewardTokenDecimals;
 
     // Variables for NFT Stake
-    mapping(uint256 => mapping(address => EnumerableSet.UintSet)) holderTokens;
-    mapping(uint256 => EnumerableMap.UintToAddressMap) tokenOwners;
+    mapping(address => EnumerableSet.UintSet) holderTokens;
+    EnumerableMap.UintToAddressMap tokenOwners;
 
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;
@@ -107,8 +107,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     function initialize(
         IERC721 _stakedToken,
         IERC20Metadata _rewardToken,
-        IERC20Metadata[] _sideRewardTokens,
-        uint256[] _sideRewardPercentage,
+        IERC20Metadata[] memory _sideRewardTokens,
+        uint256[] memory _sideRewardPercentage,
         uint256 _rewardPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock,
@@ -141,15 +141,15 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 decimalsRewardToken = uint256(rewardToken.decimals());
         require(decimalsRewardToken < 30, "Must be inferior to 30");
 
-        rewardTokenDecimals[_rewardToken] = decimalsRewardToken;
+        rewardTokenDecimals[address(_rewardToken)] = decimalsRewardToken;
         if (_sideRewardTokens.length > 0) {
             isSideRewardActive = true;
             sideRewardTokens = _sideRewardTokens;
             for (uint i = 0; i < sideRewardTokens.length; i ++) {
                 IERC20Metadata sideRewardToken = sideRewardTokens[i];
-                sideRewardPercentage[sideRewardToken] = _sideRewardPercentage[i];
+                sideRewardPercentage[address(sideRewardToken)] = _sideRewardPercentage[i];
                 uint256 decimalsSideRewardToken = uint256(sideRewardToken.decimals());
-                rewardTokenDecimals[sideRewardToken] = decimalsSideRewardToken;
+                rewardTokenDecimals[address(sideRewardToken)] = decimalsSideRewardToken;
             }
 
         }
@@ -263,12 +263,12 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             for (uint i = 0; i < sideRewardTokens.length; i ++) {
                 IERC20Metadata sideRewardToken = sideRewardTokens[i];
                 // Add sideReward with specific percentage of pending amount.
-                uint256 sideReward = (pending * sideRewardPercentage[sideRewardToken]) / 100;
+                uint256 sideReward = (_pending * sideRewardPercentage[address(sideRewardToken)]) / 100;
 
-                if (rewardTokenDecimals[sideRewardToken] > rewardTokenDecimals[rewardToken]) {
-                    sideReward = sideReward * 10 ** (rewardTokenDecimals[sideRewardToken] - rewardTokenDecimals[rewardToken]);
-                } else if (rewardTokenDecimals[sideRewardToken] < rewardTokenDecimals[rewardToken]) {
-                    sideReward = sideReward / 10 ** (rewardTokenDecimals[rewardToken] - rewardTokenDecimals[sideRewardToken]);
+                if (rewardTokenDecimals[address(sideRewardToken)] > rewardTokenDecimals[address(rewardToken)]) {
+                    sideReward = sideReward * 10 ** (rewardTokenDecimals[address(sideRewardToken)] - rewardTokenDecimals[address(rewardToken)]);
+                } else if (rewardTokenDecimals[address(sideRewardToken)] < rewardTokenDecimals[address(rewardToken)]) {
+                    sideReward = sideReward / 10 ** (rewardTokenDecimals[address(rewardToken)] - rewardTokenDecimals[address(sideRewardToken)]);
                 }
 
                 sideRewardToken.safeTransfer(address(msg.sender), sideReward);

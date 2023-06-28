@@ -55,7 +55,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     IERC721 public stakedToken;
 
     // User capacity to stake simultaneously
-    uint256 poolCapacity;
+    uint256 public poolCapacity;
 
     // When participants are below this threshold, rewards are divided by participant threshold
     uint256 public participantThreshold;

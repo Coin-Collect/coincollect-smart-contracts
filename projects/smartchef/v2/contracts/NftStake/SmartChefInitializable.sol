@@ -77,6 +77,11 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 rewardDebt; // Reward debt
     }
 
+    struct ConfigExtra {
+        uint256 poolCapacity;
+        uint256 participantThreshold;
+    }
+
     event Deposit(address indexed user, uint256 tokenId);
     event EmergencyWithdraw(address indexed user, uint256 amount);
     event NewStartAndEndBlocks(uint256 startBlock, uint256 endBlock);
@@ -101,7 +106,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _bonusEndBlock: end block
      * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
      * @param _numberBlocksForUserLimit: block numbers available for user limit (after start block)
-     * @param _poolCapacity: user capacity to stake simultaneously
+     * @param _configExtra: Additional configuration parameters
      * @param _admin: admin address with ownership
      */
     function initialize(
@@ -114,8 +119,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 _bonusEndBlock,
         uint256 _poolLimitPerUser,
         uint256 _numberBlocksForUserLimit,
-        uint256 _poolCapacity,
-        uint256 _participantThreshold,
+        ConfigExtra memory _configExtra,
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
@@ -129,8 +133,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         rewardPerBlock = _rewardPerBlock;
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
-        poolCapacity = _poolCapacity;
-        participantThreshold = _participantThreshold;
+        poolCapacity = _configExtra.poolCapacity;
+        participantThreshold = _configExtra.participantThreshold;
 
         if (_poolLimitPerUser > 0) {
             userLimit = true;

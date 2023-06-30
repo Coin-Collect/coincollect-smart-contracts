@@ -7,8 +7,12 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
+interface IERC721Enumerable {
+    function totalSupply() external view returns (uint256);
+}
 
 contract SmartChefInitializable is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20Metadata;
@@ -519,21 +523,27 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         return true;
     }
 
-    function walletOfOwner(address _owner, uint256 _totalSupply) external view returns(uint256[] memory) {
+    function walletOfOwner(address _owner) external view returns(uint256[] memory) {
         uint256 tokenCount = stakedToken.balanceOf(_owner);
         if (tokenCount == 0) {
             return new uint256[](0);
         } else {
             uint256[] memory ownedTokenIds = new uint256[](tokenCount);
-            uint256 index = 0;
+            uint256 index;
+            uint256 loopThrough = IERC721Enumerable(address(stakedToken)).totalSupply();
 
-            for (uint256 tokenId = 1; tokenId <= _totalSupply; tokenId++) {
+            for (uint256 tokenId = 0; tokenId <= loopThrough; tokenId++) {
                 if (index == tokenCount) break;
 
-                if (stakedToken.ownerOf(tokenId) == _owner) {
-                    ownedTokenIds[index] = tokenId;
-                    index++;
+                try stakedToken.ownerOf(tokenId) returns (address result) {
+                    if (result == _owner) {
+                        ownedTokenIds[index] = tokenId;
+                        index++;
+                    }
+                } catch {
+                       loopThrough++;
                 }
+                
             }
 
             return ownedTokenIds;

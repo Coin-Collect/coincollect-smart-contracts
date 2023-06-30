@@ -10,9 +10,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
+/*
 interface IERC721Enumerable {
     function totalSupply() external view returns (uint256);
 }
+*/
 
 contract SmartChefInitializable is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20Metadata;
@@ -522,7 +524,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         return true;
     }
-
+    /*
     function walletOfOwner(address _owner) external view returns(uint256[] memory) {
         uint256 tokenCount = stakedToken.balanceOf(_owner);
         if (tokenCount == 0) {
@@ -549,4 +551,5 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             return ownedTokenIds;
         }
     }
+    */
 }

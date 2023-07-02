@@ -462,6 +462,14 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         feeTo = _feeTo;
     }
 
+    function setPerformanceFee(uint256 _performanceFee) external onlyOwner {
+        require(
+            _performanceFee <= MAX_PERFORMANCE_FEE,
+            "performanceFee cannot be more than MAX_PERFORMANCE_FEE"
+        );
+        performanceFee = _performanceFee;
+    }
+
     /**
      * @notice View function to see pending reward on frontend.
      * @param _user: user address

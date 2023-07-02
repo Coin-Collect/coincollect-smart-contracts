@@ -458,6 +458,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit NewStartAndEndBlocks(_startBlock, _bonusEndBlock);
     }
 
+    function setFeeTo(address _feeTo) external onlyOwner {
+        feeTo = _feeTo;
+    }
+
     /**
      * @notice View function to see pending reward on frontend.
      * @param _user: user address

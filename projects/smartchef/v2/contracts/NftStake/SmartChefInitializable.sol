@@ -75,6 +75,11 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     mapping(address => EnumerableSet.UintSet) holderTokens;
     EnumerableMap.UintToAddressMap tokenOwners;
 
+    // Fee Settings
+    uint256 public constant MAX_PERFORMANCE_FEE = 500;          // 5%
+    uint256 public performanceFee = 200;                        // 2%
+    address public feeTo;
+
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;
 

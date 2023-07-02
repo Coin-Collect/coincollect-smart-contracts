@@ -291,6 +291,15 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
     }
 
+    function getFee(uint256 _pending) internal returns (uint256 currentPerformanceFee) {
+        address _feeTo = feeTo; // Gas Saving
+        bool feeOn = feeTo != address(0);
+        if (feeOn) {
+            currentPerformanceFee = _pending * performanceFee / 10000;
+            rewardToken.safeTransfer(_feeTo, currentPerformanceFee);
+        }
+    }
+
     /**
      * @notice Stakes all the specified tokens
      * @param _tokenIds: an array of token IDs to be staked

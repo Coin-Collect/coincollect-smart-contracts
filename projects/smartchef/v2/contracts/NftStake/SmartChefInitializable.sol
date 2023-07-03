@@ -181,8 +181,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @notice Deposit staked tokens and collect reward tokens (if any)
      * @param _tokenId: id of nft to deposit
      */
-    function deposit(uint256 _tokenId) public nonReentrant payable {
-        getFee();
+    function deposit(uint256 _tokenId) internal nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
 
         userLimit = hasUserLimit();
@@ -306,7 +305,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _tokenIds: an array of token IDs to be staked
      * @dev This function allows the user to stake multiple tokens at once
      */
-    function stakeAll(uint256[] memory _tokenIds) external {
+    function stakeAll(uint256[] memory _tokenIds) external payable {
+        getFee();
         for (uint i = 0; i < _tokenIds.length; i ++) {
             deposit(_tokenIds[i]);
         }

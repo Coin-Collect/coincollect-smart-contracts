@@ -76,8 +76,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     EnumerableMap.UintToAddressMap tokenOwners;
 
     // Fee Settings
-    uint256 public constant MAX_PERFORMANCE_FEE = 500;          // 5%
-    uint256 public performanceFee = 200;                        // 2%
+    uint256 public performanceFee;
     address public feeTo;
 
     // Info of each user that stakes tokens (stakedToken)
@@ -182,7 +181,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @notice Deposit staked tokens and collect reward tokens (if any)
      * @param _tokenId: id of nft to deposit
      */
-    function deposit(uint256 _tokenId) public nonReentrant {
+    function deposit(uint256 _tokenId) public nonReentrant payable {
+        getFee();
         UserInfo storage user = userInfo[msg.sender];
 
         userLimit = hasUserLimit();
@@ -291,12 +291,13 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
     }
 
-    function getFee(uint256 _pending) internal returns (uint256 currentPerformanceFee) {
+    function getFee() internal {
         address _feeTo = feeTo; // Gas Saving
         bool feeOn = feeTo != address(0);
         if (feeOn) {
-            currentPerformanceFee = _pending * performanceFee / 10000;
-            rewardToken.safeTransfer(_feeTo, currentPerformanceFee);
+            uint256 currentPerformanceFee = performanceFee;
+            require(msg.value >= currentPerformanceFee, "Not enough matic sent");
+            require(payable(_feeTo).send(address(this).balance));
         }
     }
 
@@ -467,15 +468,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         emit NewStartAndEndBlocks(_startBlock, _bonusEndBlock);
     }
 
-    function setFeeTo(address _feeTo) external onlyOwner {
+    function setPerformanceFee(address _feeTo, uint256 _performanceFee) external onlyOwner {
         feeTo = _feeTo;
-    }
-
-    function setPerformanceFee(uint256 _performanceFee) external onlyOwner {
-        require(
-            _performanceFee <= MAX_PERFORMANCE_FEE,
-            "performanceFee cannot be more than MAX_PERFORMANCE_FEE"
-        );
         performanceFee = _performanceFee;
     }
 

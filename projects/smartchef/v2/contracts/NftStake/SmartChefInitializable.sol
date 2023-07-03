@@ -292,7 +292,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
     function getFee() internal {
         address _feeTo = feeTo; // Gas Saving
-        bool feeOn = feeTo != address(0);
+        bool feeOn = _feeTo != address(0);
         if (feeOn) {
             uint256 currentPerformanceFee = performanceFee;
             require(msg.value >= currentPerformanceFee, "Not enough matic sent");

@@ -194,8 +194,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         if (user.amount > 0) {
             uint256 pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
             if (pending > 0) {
-                uint256 currentPerformanceFee = getFee(pending);
-                rewardToken.safeTransfer(address(msg.sender), pending - currentPerformanceFee);
+                rewardToken.safeTransfer(address(msg.sender), pending);
                 distributeSideRewards(pending);
             }
         }
@@ -229,8 +228,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         if (user.amount > 0) {
             pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
             if (pending > 0) {
-                uint256 currentPerformanceFee = getFee(pending);
-                rewardToken.safeTransfer(address(msg.sender), pending - currentPerformanceFee);
+                rewardToken.safeTransfer(address(msg.sender), pending);
                 distributeSideRewards(pending);
             }
         }
@@ -252,8 +250,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         uint256 pending = (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
         if (pending > 0) {
-            uint256 currentPerformanceFee = getFee(pending);
-            rewardToken.safeTransfer(address(msg.sender), pending - currentPerformanceFee);
+            rewardToken.safeTransfer(address(msg.sender), pending);
             distributeSideRewards(pending);
         }
 

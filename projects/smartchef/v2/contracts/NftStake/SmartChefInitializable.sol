@@ -72,12 +72,16 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     mapping(address => uint256) public rewardTokenDecimals;
 
     // Variables for NFT Stake
-    mapping(address => EnumerableSet.UintSet) holderTokens;
-    EnumerableMap.UintToAddressMap tokenOwners;
+    mapping(address => mapping(address => EnumerableSet.UintSet)) holderTokens;
+    mapping(address => EnumerableMap.UintToAddressMap) tokenOwners;
 
     // Fee Settings
     uint256 public performanceFee;
     address public feeTo;
+
+    //token => weight
+    mapping(address => uint) public collectionWeights;
+    address[] public communityCollections;
 
     // Info of each user that stakes tokens (stakedToken)
     mapping(address => UserInfo) public userInfo;
@@ -92,7 +96,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         uint256 participantThreshold;
     }
 
-    event Deposit(address indexed user, uint256 tokenId);
+    event Deposit(address indexed user, address collectionAddress, uint256 tokenId);
     event EmergencyWithdraw(address indexed user, uint256 amount);
     event NewStartAndEndBlocks(uint256 startBlock, uint256 endBlock);
     event NewRewardPerBlock(uint256 rewardPerBlock);
@@ -100,7 +104,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     event RewardsStop(uint256 blockNumber);
     event TokenRecovery(address indexed token, uint256 amount);
     event Harvest(address indexed user, uint256 amount);
-    event Withdraw(address indexed user, uint256 tokenId);
+    event Withdraw(address indexed user, address collectionAddress, uint256 tokenId);
     
 
     constructor() {
@@ -145,6 +149,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         bonusEndBlock = _bonusEndBlock;
         poolCapacity = _configExtra.poolCapacity;
         participantThreshold = _configExtra.participantThreshold;
+        collectionWeights[address(stakedToken)] = 1;
 
         if (_poolLimitPerUser > 0) {
             userLimit = true;
@@ -181,7 +186,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @notice Deposit staked tokens and collect reward tokens (if any)
      * @param _tokenId: id of nft to deposit
      */
-    function deposit(uint256 _tokenId) internal nonReentrant {
+    function deposit(address _collectionAddress, uint256 _tokenId) internal nonReentrant {
+        uint256 collectionWeight = collectionWeights[_collectionAddress];
+        require(collectionWeight > 0, "Collection doesn't have a weight");
+
         UserInfo storage user = userInfo[msg.sender];
 
         userLimit = hasUserLimit();
@@ -204,16 +212,15 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             poolCapacity = poolCapacity - 1;
         }
 
-        
-        user.amount = user.amount + 1;
-        stakedToken.transferFrom(address(msg.sender), address(this), _tokenId);
+        user.amount = user.amount + collectionWeight;
+        IERC721(_collectionAddress).transferFrom(address(msg.sender), address(this), _tokenId);
 
-        holderTokens[msg.sender].add(_tokenId);
-        tokenOwners.set(_tokenId, msg.sender);
+        holderTokens[_collectionAddress][msg.sender].add(_tokenId);
+        tokenOwners[_collectionAddress].set(_tokenId, msg.sender);
 
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
-        emit Deposit(msg.sender, _tokenId);
+        emit Deposit(msg.sender, _collectionAddress, _tokenId);
     }
 
     /**
@@ -240,8 +247,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @notice Withdraw staked tokens and collect reward tokens
      * @param _tokenId: id of nft to withdraw
      */
-    function withdraw(uint256 _tokenId) public nonReentrant {
-        require(tokenOwners.get(_tokenId) == msg.sender, "illegal tokenId");
+    function withdraw(address _collectionAddress, uint256 _tokenId) public nonReentrant {
+        require(tokenOwners[_collectionAddress].get(_tokenId) == msg.sender, "illegal tokenId");
+        uint256 collectionWeight = collectionWeights[_collectionAddress];
 
         UserInfo storage user = userInfo[msg.sender];
 
@@ -253,10 +261,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             distributeSideRewards(pending);
         }
 
-        user.amount = user.amount - 1;
-        stakedToken.transferFrom(address(this), address(msg.sender), _tokenId);
-        tokenOwners.remove(_tokenId);
-        holderTokens[msg.sender].remove(_tokenId);
+        user.amount = user.amount - collectionWeight;
+        IERC721(_collectionAddress).transferFrom(address(this), address(msg.sender), _tokenId);
+        tokenOwners[_collectionAddress].remove(_tokenId);
+        holderTokens[_collectionAddress][msg.sender].remove(_tokenId);
         
         // User leaves the pool, add capacity
         if(user.amount == 0) {
@@ -265,7 +273,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
-        emit Withdraw(msg.sender, _tokenId);
+        emit Withdraw(msg.sender, _collectionAddress, _tokenId);
     }
 
     /**
@@ -305,10 +313,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _tokenIds: an array of token IDs to be staked
      * @dev This function allows the user to stake multiple tokens at once
      */
-    function stakeAll(uint256[] memory _tokenIds) external payable {
+    function stakeAll(address[] memory _collectionAddresses, uint256[] memory _tokenIds) external payable {
         getFee();
         for (uint i = 0; i < _tokenIds.length; i ++) {
-            deposit(_tokenIds[i]);
+            deposit(_collectionAddresses[i], _tokenIds[i]);
         }
     }
 
@@ -317,9 +325,9 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param _tokenIds: an array of token IDs to be unstaked
      * @dev This function allows the user to unstake multiple tokens at once
      */
-    function unstakeAll(uint256[] memory _tokenIds) external {
+    function unstakeAll(address[] memory _collectionAddresses, uint256[] memory _tokenIds) external {
         for (uint i = 0; i < _tokenIds.length; i ++) {
-            withdraw(_tokenIds[i]);
+            withdraw(_collectionAddresses[i], _tokenIds[i]);
         }
     }
 
@@ -328,9 +336,14 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param owner: the address to query the token balance for
      * @return The number of tokens owned by the address
      */
-    function balanceOf(address owner) external view returns (uint256) {
+    function balanceOf(address owner) public view returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
-        return holderTokens[owner].length();
+        uint256 balance = holderTokens[address(stakedToken)][owner].length();
+        for (uint i = 0; i < communityCollections.length; i ++) {
+            uint256 communityTokenBalance = holderTokens[communityCollections[i]][owner].length();
+            balance = balance + communityTokenBalance;
+        }
+        return balance;
     }
 
     /**
@@ -339,8 +352,25 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param index: the index of the token to retrieve
      * @return The token ID at the specified index owned by the address
      */
-    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256) {
-        return holderTokens[owner].at(index);
+    function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (address, uint256) {
+        uint256 stakedTokenCount = holderTokens[address(stakedToken)][owner].length();
+        if (index < stakedTokenCount) {
+            uint256 tokenId = holderTokens[address(stakedToken)][owner].at(index);
+            return (address(stakedToken), tokenId);
+        }
+
+        index -= stakedTokenCount;
+
+        for (uint256 i = 0; i < communityCollections.length; i++) {
+            uint256 communityTokenCount = holderTokens[communityCollections[i]][owner].length();
+            if (index < communityTokenCount) {
+                uint256 tokenId = holderTokens[communityCollections[i]][owner].at(index);
+                return (communityCollections[i], tokenId);
+            }
+            index -= communityTokenCount;
+        }
+
+        revert("Invalid index");
     }
 
     /**
@@ -349,22 +379,25 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      */
     function emergencyWithdraw() external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
-        uint256 amountToTransfer = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
 
-        if (amountToTransfer > 0) {
-            for (uint i = 0; i < amountToTransfer; i ++) {
-                uint256 tokenId = holderTokens[msg.sender].at(i);
-                stakedToken.transferFrom(address(this), address(msg.sender), tokenId);
-                tokenOwners.remove(tokenId);
-                holderTokens[msg.sender].remove(tokenId);
-            }
-            poolCapacity = poolCapacity + 1;
+        uint256 nftCount = balanceOf(msg.sender);
+        require(nftCount > 0, "No NFTs to withdraw");
+
+        for (uint256 i = 0; i < nftCount; i++) {
+            (address collectionAddress, uint256 tokenId) = tokenOfOwnerByIndex(msg.sender, i);
+            
+            IERC721(collectionAddress).transferFrom(address(this), address(msg.sender), tokenId);
+            tokenOwners[collectionAddress].remove(tokenId);
+            holderTokens[collectionAddress][msg.sender].remove(tokenId);
         }
 
-        emit EmergencyWithdraw(msg.sender, user.amount);
+        poolCapacity = poolCapacity + 1;
+
+        emit EmergencyWithdraw(msg.sender, nftCount);
     }
+
 
     /**
      * @notice Stop rewards
@@ -473,6 +506,15 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         performanceFee = _performanceFee;
     }
 
+    function setCollectionWeights(address[] memory _communityNftAddresses, uint256[] memory _weight, uint256 _stakedTokenWeight) external onlyOwner {
+        require(_communityNftAddresses.length == _weight.length, "wrong data length");
+        for (uint i = 0; i < _communityNftAddresses.length; i ++) {
+            collectionWeights[_communityNftAddresses[i]] = _weight[i];
+        }
+        collectionWeights[address(stakedToken)] = _stakedTokenWeight;
+        communityCollections = _communityNftAddresses;
+    }
+
     /**
      * @notice View function to see pending reward on frontend.
      * @param _user: user address
@@ -481,6 +523,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     function pendingReward(address _user) external view returns (uint256) {
         UserInfo storage user = userInfo[_user];
         uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
+        for (uint i = 0; i < communityCollections.length; i ++) {
+            uint256 communityTokenSupply = IERC721(communityCollections[i]).balanceOf(address(this));
+            stakedTokenSupply = stakedTokenSupply + communityTokenSupply;
+        }
         if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
             stakedTokenSupply = participantThreshold;
         }
@@ -504,6 +550,10 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
+        for (uint i = 0; i < communityCollections.length; i ++) {
+            uint256 communityTokenSupply = IERC721(communityCollections[i]).balanceOf(address(this));
+            stakedTokenSupply = stakedTokenSupply + communityTokenSupply;
+        }
         if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
             stakedTokenSupply = participantThreshold;
         }

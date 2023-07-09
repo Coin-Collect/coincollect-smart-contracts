@@ -74,6 +74,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // Variables for NFT Stake
     mapping(address => mapping(address => EnumerableSet.UintSet)) holderTokens;
     mapping(address => EnumerableMap.UintToAddressMap) tokenOwners;
+    mapping(address => mapping(uint256 => uint256)) public tokenWeight;
 
     // Fee Settings
     uint256 public performanceFee;
@@ -217,6 +218,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         holderTokens[_collectionAddress][msg.sender].add(_tokenId);
         tokenOwners[_collectionAddress].set(_tokenId, msg.sender);
+        tokenWeight[_collectionAddress][_tokenId] = collectionWeight;
 
         user.rewardDebt = (user.amount * accTokenPerShare) / PRECISION_FACTOR;
 
@@ -249,7 +251,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      */
     function withdraw(address _collectionAddress, uint256 _tokenId) public nonReentrant {
         require(tokenOwners[_collectionAddress].get(_tokenId) == msg.sender, "illegal tokenId");
-        uint256 collectionWeight = collectionWeights[_collectionAddress];
+        uint256 collectionWeight = tokenWeight[_collectionAddress][_tokenId];
 
         UserInfo storage user = userInfo[msg.sender];
 
@@ -265,6 +267,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         IERC721(_collectionAddress).transferFrom(address(this), address(msg.sender), _tokenId);
         tokenOwners[_collectionAddress].remove(_tokenId);
         holderTokens[_collectionAddress][msg.sender].remove(_tokenId);
+        delete tokenWeight[_collectionAddress][_tokenId];
         
         // User leaves the pool, add capacity
         if(user.amount == 0) {

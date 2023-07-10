@@ -33,6 +33,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     // Accrued token per share
     uint256 public accTokenPerShare;
 
+    uint256 public totalShares;
+
     // The block number at which the staking period ends
     uint256 public bonusEndBlock;
 
@@ -88,7 +90,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     mapping(address => UserInfo) public userInfo;
 
     struct UserInfo {
-        uint256 amount; // How many staked tokens the user has provided
+        uint256 amount; // How many shares the user has
         uint256 rewardDebt; // Reward debt
     }
 
@@ -214,6 +216,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         user.amount = user.amount + collectionWeight;
+        totalShares = totalShares + collectionWeight;
         IERC721(_collectionAddress).transferFrom(address(msg.sender), address(this), _tokenId);
 
         holderTokens[_collectionAddress][msg.sender].add(_tokenId);
@@ -264,6 +267,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         user.amount = user.amount - collectionWeight;
+        totalShares = totalShares - collectionWeight;
         IERC721(_collectionAddress).transferFrom(address(this), address(msg.sender), _tokenId);
         tokenOwners[_collectionAddress].remove(_tokenId);
         holderTokens[_collectionAddress][msg.sender].remove(_tokenId);
@@ -525,19 +529,16 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      */
     function pendingReward(address _user) external view returns (uint256) {
         UserInfo storage user = userInfo[_user];
-        uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
-        for (uint i = 0; i < communityCollections.length; i ++) {
-            uint256 communityTokenSupply = IERC721(communityCollections[i]).balanceOf(address(this));
-            stakedTokenSupply = stakedTokenSupply + communityTokenSupply;
-        }
-        if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
-            stakedTokenSupply = participantThreshold;
+        uint256 _totalShares = totalShares;
+        
+        if (_totalShares > 0 && _totalShares < participantThreshold) {
+            _totalShares = participantThreshold;
         }
 
-        if (block.number > lastRewardBlock && stakedTokenSupply != 0) {
+        if (block.number > lastRewardBlock && _totalShares != 0) {
             uint256 multiplier = _getMultiplier(lastRewardBlock, block.number);
             uint256 tokenReward = multiplier * rewardPerBlock;
-            uint256 adjustedTokenPerShare = accTokenPerShare + (tokenReward * PRECISION_FACTOR) / stakedTokenSupply;
+            uint256 adjustedTokenPerShare = accTokenPerShare + (tokenReward * PRECISION_FACTOR) / _totalShares;
             return (user.amount * adjustedTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
         } else {
             return (user.amount * accTokenPerShare) / PRECISION_FACTOR - user.rewardDebt;
@@ -552,23 +553,19 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
             return;
         }
 
-        uint256 stakedTokenSupply = stakedToken.balanceOf(address(this));
-        for (uint i = 0; i < communityCollections.length; i ++) {
-            uint256 communityTokenSupply = IERC721(communityCollections[i]).balanceOf(address(this));
-            stakedTokenSupply = stakedTokenSupply + communityTokenSupply;
-        }
-        if (stakedTokenSupply > 0 && stakedTokenSupply < participantThreshold) {
-            stakedTokenSupply = participantThreshold;
+        uint256 _totalShares = totalShares;
+        if (_totalShares > 0 && _totalShares < participantThreshold) {
+            _totalShares = participantThreshold;
         }
 
-        if (stakedTokenSupply == 0) {
+        if (_totalShares == 0) {
             lastRewardBlock = block.number;
             return;
         }
 
         uint256 multiplier = _getMultiplier(lastRewardBlock, block.number);
         uint256 tokenReward = multiplier * rewardPerBlock;
-        accTokenPerShare = accTokenPerShare + (tokenReward * PRECISION_FACTOR) / stakedTokenSupply;
+        accTokenPerShare = accTokenPerShare + (tokenReward * PRECISION_FACTOR) / _totalShares;
         lastRewardBlock = block.number;
     }
 

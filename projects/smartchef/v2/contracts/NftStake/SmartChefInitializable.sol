@@ -91,6 +91,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
     struct UserInfo {
         uint256 amount; // How many shares the user has
+        uint256 nftCount;
         uint256 rewardDebt; // Reward debt
     }
 
@@ -197,7 +198,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         userLimit = hasUserLimit();
 
-        require(!userLimit || ((user.amount + 1) <= poolLimitPerUser), "Deposit: Amount above limit");
+        require(!userLimit || ((user.nftCount + 1) <= poolLimitPerUser), "Deposit: Amount above limit");
 
         _updatePool();
 
@@ -216,6 +217,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         user.amount = user.amount + collectionWeight;
+        user.nftCount = user.nftCount + 1;
         totalShares = totalShares + collectionWeight;
         IERC721(_collectionAddress).transferFrom(address(msg.sender), address(this), _tokenId);
 
@@ -267,6 +269,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         }
 
         user.amount = user.amount - collectionWeight;
+        user.nftCount = user.nftCount - 1;
         totalShares = totalShares - collectionWeight;
         IERC721(_collectionAddress).transferFrom(address(this), address(msg.sender), _tokenId);
         tokenOwners[_collectionAddress].remove(_tokenId);
@@ -345,11 +348,8 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      */
     function balanceOf(address owner) public view returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
-        uint256 balance = holderTokens[address(stakedToken)][owner].length();
-        for (uint i = 0; i < communityCollections.length; i ++) {
-            uint256 communityTokenBalance = holderTokens[communityCollections[i]][owner].length();
-            balance = balance + communityTokenBalance;
-        }
+        UserInfo memory user = userInfo[owner];
+        uint256 balance = user.nftCount;
         return balance;
     }
 
@@ -386,8 +386,11 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      */
     function emergencyWithdraw() external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
+        uint256 _amount = user.amount;
         user.amount = 0;
+        user.nftCount = 0;
         user.rewardDebt = 0;
+        totalShares = totalShares - _amount;
 
         uint256 nftCount = balanceOf(msg.sender);
         require(nftCount > 0, "No NFTs to withdraw");

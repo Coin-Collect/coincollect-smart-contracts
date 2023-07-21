@@ -341,7 +341,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
      * @param owner: the address to query the token balance for
      * @return The number of tokens owned by the address
      */
-    function balanceOf(address owner) public view returns (uint256) {
+    function balanceOf(address owner) external view returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
         UserInfo memory user = userInfo[owner];
         uint256 balance = user.nftCount;
@@ -382,15 +382,15 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
     function emergencyWithdraw() external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
         uint256 _amount = user.amount;
+        uint256 _nftCount = user.nftCount;
         user.amount = 0;
         user.nftCount = 0;
         user.rewardDebt = 0;
         totalShares = totalShares - _amount;
 
-        uint256 nftCount = balanceOf(msg.sender);
-        require(nftCount > 0, "No NFTs to withdraw");
+        require(_nftCount > 0, "No NFTs to withdraw");
 
-        for (uint256 i = 0; i < nftCount; i++) {
+        for (uint256 i = 0; i < _nftCount; i++) {
             (address collectionAddress, uint256 tokenId) = tokenOfOwnerByIndex(msg.sender, i);
             
             IERC721(collectionAddress).transferFrom(address(this), address(msg.sender), tokenId);
@@ -400,7 +400,7 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         poolCapacity = poolCapacity + 1;
 
-        emit EmergencyWithdraw(msg.sender, nftCount);
+        emit EmergencyWithdraw(msg.sender, _nftCount);
     }
 
 

@@ -597,32 +597,5 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
 
         return true;
     }
-    /*
-    function walletOfOwner(address _owner) external view returns(uint256[] memory) {
-        uint256 tokenCount = stakedToken.balanceOf(_owner);
-        if (tokenCount == 0) {
-            return new uint256[](0);
-        } else {
-            uint256[] memory ownedTokenIds = new uint256[](tokenCount);
-            uint256 index;
-            uint256 loopThrough = IERC721Enumerable(address(stakedToken)).totalSupply();
-
-            for (uint256 tokenId = 0; tokenId <= loopThrough; tokenId++) {
-                if (index == tokenCount) break;
-
-                try stakedToken.ownerOf(tokenId) returns (address result) {
-                    if (result == _owner) {
-                        ownedTokenIds[index] = tokenId;
-                        index++;
-                    }
-                } catch {
-                       loopThrough++;
-                }
-                
-            }
-
-            return ownedTokenIds;
-        }
-    }
-    */
+    
 }

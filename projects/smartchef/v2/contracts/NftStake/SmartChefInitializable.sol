@@ -391,17 +391,20 @@ contract SmartChefInitializable is Ownable, ReentrancyGuard {
         require(_nftCount > 0, "No NFTs to withdraw");
 
         for (uint256 i = 0; i < _nftCount; i++) {
-            (address collectionAddress, uint256 tokenId) = tokenOfOwnerByIndex(msg.sender, i);
+            (address collectionAddress, uint256 tokenId) = tokenOfOwnerByIndex(msg.sender, 0);
+            require(tokenOwners[collectionAddress].get(tokenId) == msg.sender, "illegal tokenId");
             
             IERC721(collectionAddress).transferFrom(address(this), address(msg.sender), tokenId);
             tokenOwners[collectionAddress].remove(tokenId);
             holderTokens[collectionAddress][msg.sender].remove(tokenId);
+            delete tokenWeight[collectionAddress][tokenId];
         }
 
         poolCapacity = poolCapacity + 1;
 
         emit EmergencyWithdraw(msg.sender, _nftCount);
     }
+
 
 
     /**

@@ -115,7 +115,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         require(totalAmount > 0, "Not eligible: Not enough nft balance");
 
         // Transfer the reward to the user.
-        claim.rewardToken.safeTransfer(msg.sender, totalAmount * 10**18);  
+        claim.rewardToken.safeTransfer(msg.sender, totalAmount);  
     }
 
     function calculateTotalAmount(uint256 _claimId, IERC721[] memory nftTokens, uint256[] memory tokenIds) internal returns (uint256) {

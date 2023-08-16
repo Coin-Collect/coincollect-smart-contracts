@@ -79,9 +79,9 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         }
     }
 
-    function setNftRewardsClaimed(uint256 _claimIndex, address[] memory _collectionAddresses, uint256[] memory _tokenIds, bool[] memory _status) public onlyOwner {
-        for (uint i = 0; i < _collectionAddresses.length; i ++) {
-            nftRewardsClaimed[loop][_claimIndex][_collectionAddresses[i]][_tokenIds[i]] = _status[i];
+    function setNftRewardsClaimed(uint256 _claimIndex, address _collectionAddress, uint256[] memory _tokenIds, bool _status) public onlyOwner {
+        for (uint i = 0; i < _tokenIds.length; i ++) {
+            nftRewardsClaimed[loop][_claimIndex][_collectionAddress][_tokenIds[i]] = _status;
         }
     }
 

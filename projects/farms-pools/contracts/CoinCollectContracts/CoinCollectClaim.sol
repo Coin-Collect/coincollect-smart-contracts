@@ -18,7 +18,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
     mapping(uint => bool) public claimDisabled;
     Claim[] public claims;
-    uint256 loop = 0;
+    uint256 public loop = 0;
 
     //loop -> claimId -> token => tokenId => amount
     mapping(uint => mapping(uint => mapping(address => mapping(uint => bool)))) public nftRewardsClaimed;
@@ -73,6 +73,17 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
         claimDisabled[_claimIndex] = !claimDisabled[_claimIndex];
     }
 
+    function setWalletClaimedCount(uint256 _claimIndex, address[] memory _user, uint256[] memory _amount) public onlyOwner {
+        for (uint i = 0; i < _user.length; i ++) {
+            walletClaimedCount[loop][_claimIndex][_user[i]] = _amount[i];
+        }
+    }
+
+    function setNftRewardsClaimed(uint256 _claimIndex, address[] memory _collectionAddresses, uint256[] memory _tokenIds, bool[] memory _status) public onlyOwner {
+        for (uint i = 0; i < _collectionAddresses.length; i ++) {
+            nftRewardsClaimed[loop][_claimIndex][_collectionAddresses[i]][_tokenIds[i]] = _status[i];
+        }
+    }
 
     function addCommunityCollections(address[] memory _collectionAddress, uint256[] memory _weight) public onlyOwner {
         require(_collectionAddress.length == _weight.length, "wrong data length");
@@ -228,7 +239,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
 
             // If nft claim limit already reached, weight will be zero
             if(walletClaimedCount[loop][claimIndex][msg.sender] >= claim.nftLimit) {
-                break;
+                continue;
             }
             uint256 remainingClaimCount = claim.nftLimit - walletClaimedCount[loop][claimIndex][msg.sender];
             userClaimInfo[claimIndex].remainingClaims = remainingClaimCount;
@@ -241,7 +252,7 @@ contract CoinCollectClaim is Ownable, ReentrancyGuard {
                 userClaimInfo[claimIndex].totalWeights += weight;
                 remainingClaimCount -= claimedCount;
                 if(remainingClaimCount <= 0) {
-                    break;
+                    continue;
                 }
             }
 

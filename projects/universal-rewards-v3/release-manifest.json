@@ -2,7 +2,7 @@
   "release": "3.5-rc",
   "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
   "chainId": 137,
-  "packageLockSha256": "29b5344c0eff0716f6a38f8d2ed2ce9c5c1bd139efc3edf9db4608c7a4fba5a6",
+  "packageLockSha256": "5a598f651ee2faf35695f993d7960d4cc307a63539dda2ca8b83ba5714053bda",
   "standardInputSha256": "d4a8549e6b7de37f7624fdd8060d193bff83437b60e955fffeaeb95a425e067d",
   "contracts": [
     {

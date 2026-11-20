@@ -29,6 +29,7 @@ jobs:
           cache: npm
           cache-dependency-path: projects/universal-rewards-v3/package-lock.json
       - run: npm ci --workspaces=false --ignore-scripts
+      - run: npm audit --workspaces=false --audit-level=high
       - run: npm run --workspaces=false compile
       - run: npm test --workspaces=false
       - name: Reproduce release artifacts

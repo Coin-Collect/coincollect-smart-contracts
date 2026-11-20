@@ -22,8 +22,8 @@ const { USDT, WPOL, COLLECT, SHIB } = POLYGON_ASSETS
 const usd = (value) => utils.parseUnits(String(value), 6)
 const pol = (value) => utils.parseEther(String(value))
 
-const v33 = process.env.COINCOLLECT_V33_FIXTURE === '1'
-test((v33 ? 'V3.3' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinned router code and a 10 USDT lifetime budget', async (t) => {
+const v33 = (process.env.COINCOLLECT_V34_FIXTURE ?? process.env.COINCOLLECT_V33_FIXTURE) === '1'
+test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinned router code and a 10 USDT lifetime budget', async (t) => {
   const upstream = process.env.COINCOLLECT_V3_POLYGON_RPC || SOURCE
   assert.equal(new URL(upstream).protocol, 'https:')
   const fork = await startLocalAnvil(['--fork-url', upstream, '--fork-block-number', String(block)])
@@ -95,9 +95,15 @@ test((v33 ? 'V3.3' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
   await send(quickRouter.swapExactTokensForTokens(pol(300), usd(10), [WPOL, USDT], owner, (await now()) + 90, gas))
   assert.ok((await stable.balanceOf(owner)).gte(usd(10)))
 
-  for (const [adapter, input, output] of legs) await send(adapter.observe(input, output))
+  const observationGas = []
+  for (const [adapter, input, output] of legs) {
+    observationGas.push((await send(adapter.observe(input, output))).gasUsed.toNumber())
+  }
   await advance((await now()) + 1800)
-  for (const [adapter, input, output] of legs) await send(adapter.observe(input, output))
+  for (const [adapter, input, output] of legs) {
+    observationGas.push((await send(adapter.observe(input, output))).gasUsed.toNumber())
+  }
+  t.diagnostic(JSON.stringify({ observationGas, totalObservationGas: observationGas.reduce((sum, gas) => sum + gas, 0) }))
   await assert.rejects(planner.preview(USDT, COLLECT, usd(5), 0), { errorName: 'NoApprovedRoute' })
   assert.equal((await planner.bestRoute(USDT, SHIB, usd(2), 0)).index, 1)
 

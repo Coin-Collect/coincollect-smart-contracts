@@ -11,7 +11,7 @@ contract FinalizedNftJournal is EIP712, ReentrancyGuard {
     uint256 public constant MAX_BATCH = 32;
     uint256 public constant MAX_OBSERVATION_AGE = 2 hours;
     bytes32 private constant BATCH_TYPEHASH = keccak256(
-        "JournalBatch(address adapter,address sourceJournal,uint256 chain,address collection,uint64 first,uint64 sourceBlock,bytes32 sourceHash,uint64 finalizedAt,bytes32 entriesHash)"
+        "JournalBatch(address adapter,address sourceJournal,uint256 chain,address collection,uint64 first,uint64 sourceBlock,bytes32 sourceHash,uint64 finalizedAt,uint64 sourceSequence,bytes32 entriesHash)"
     );
 
     struct Entry {
@@ -30,6 +30,7 @@ contract FinalizedNftJournal is EIP712, ReentrancyGuard {
         uint64 sourceBlock;
         bytes32 sourceHash;
         uint64 finalizedAt;
+        uint64 sourceSequence;
     }
 
     struct Stream {
@@ -54,8 +55,9 @@ contract FinalizedNftJournal is EIP712, ReentrancyGuard {
     uint256 public immutable quorum;
     mapping(address => bool) public isWitness;
     mapping(address => Stream) public streams;
+    mapping(address => uint64) public finalizedSequence;
 
-    constructor(address governor, address[] memory witnesses, uint256 threshold) EIP712("CoinCollect NFT Journal", "3.3") {
+    constructor(address governor, address[] memory witnesses, uint256 threshold) EIP712("CoinCollect NFT Journal", "3.4") {
         if (block.chainid != 31337 || governor == address(0) || witnesses.length > 9
             || threshold < 2 || threshold > witnesses.length || 2 * threshold <= witnesses.length) revert InvalidWitnesses();
         admin = governor;
@@ -83,21 +85,30 @@ contract FinalizedNftJournal is EIP712, ReentrancyGuard {
 
     function allowsClaims(address adapter) external view returns (bool) {
         Stream storage stream = streams[adapter];
-        return stream.next != 0 && !stream.paused;
+        return stream.next != 0 && !stream.paused && stream.sourceBlock != 0
+            && stream.next - 1 == finalizedSequence[adapter]
+            && block.timestamp - stream.finalizedAt < MAX_OBSERVATION_AGE;
     }
 
     function applyBatch(ManagedNftCollection adapter, Batch calldata batch, Entry[] calldata entries, bytes[] calldata signatures)
         external nonReentrant
     {
         Stream storage stream = streams[address(adapter)];
-        if (entries.length == 0 || entries.length > MAX_BATCH || stream.next == 0 || stream.paused
-            || batch.first != stream.next || batch.sourceBlock == 0 || batch.sourceBlock < stream.sourceBlock
+        uint64 knownTip = finalizedSequence[address(adapter)];
+        if (entries.length > MAX_BATCH || stream.next == 0 || stream.paused || batch.first != stream.next
+            || batch.sourceBlock == 0 || batch.sourceBlock < stream.sourceBlock
             || batch.sourceHash == bytes32(0) || batch.finalizedAt < stream.finalizedAt
-            || batch.finalizedAt > block.timestamp || block.timestamp - batch.finalizedAt > MAX_OBSERVATION_AGE
-            || (batch.sourceBlock == stream.sourceBlock && batch.sourceHash != stream.sourceHash)) revert InvalidBatch();
+            || batch.finalizedAt > block.timestamp || block.timestamp - batch.finalizedAt >= MAX_OBSERVATION_AGE
+            || batch.sourceSequence < knownTip || batch.sourceSequence == type(uint64).max
+            || uint256(batch.first) - 1 + entries.length > batch.sourceSequence) revert InvalidBatch();
+        if (batch.sourceBlock == stream.sourceBlock && (batch.sourceHash != stream.sourceHash
+            || batch.finalizedAt != stream.finalizedAt || batch.sourceSequence != knownTip)) revert InvalidBatch();
+        if (entries.length == 0 && (batch.sourceBlock == stream.sourceBlock || batch.sourceSequence != stream.next - 1)) {
+            revert InvalidBatch();
+        }
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
             BATCH_TYPEHASH, address(adapter), stream.sourceJournal, adapter.sourceChainId(), adapter.sourceCollection(),
-            batch.first, batch.sourceBlock, batch.sourceHash, batch.finalizedAt, keccak256(abi.encode(entries))
+            batch.first, batch.sourceBlock, batch.sourceHash, batch.finalizedAt, batch.sourceSequence, keccak256(abi.encode(entries))
         )));
         if (signatures.length != quorum) revert InvalidWitnesses();
         address last;
@@ -113,12 +124,14 @@ contract FinalizedNftJournal is EIP712, ReentrancyGuard {
             stream.occurredAt = entry.occurredAt;
             if (entry.action == ManagedNftCollection.Action.Transfer) {
                 adapter.applyObservation(entry.action, 0, entry.tokenId, entry.from, entry.to, entry.amount, 0);
-            } else if (block.timestamp - entry.occurredAt <= MAX_OBSERVATION_AGE) {
+            } else if (block.timestamp - entry.occurredAt < MAX_OBSERVATION_AGE) {
                 // A failed user intent can be resubmitted on the source. A transfer can never be skipped.
                 if (gasleft() < 1_150_000) revert InvalidBatch();
                 try adapter.applyObservation{gas: 1_000_000}(
                     entry.action, entry.poolId, entry.tokenId, entry.from, address(0), entry.amount, entry.balance
-                ) {} catch {
+                ) {} catch (bytes memory reason) {
+                    // Unknown failures and exhausted gas must keep the sequence retryable.
+                    if (!_knownIntentFailure(reason)) revert InvalidBatch();
                     emit IntentSkipped(address(adapter), batch.first + uint64(i));
                 }
             } else emit IntentSkipped(address(adapter), batch.first + uint64(i));
@@ -127,6 +140,18 @@ contract FinalizedNftJournal is EIP712, ReentrancyGuard {
         stream.sourceHash = batch.sourceHash;
         stream.finalizedAt = batch.finalizedAt;
         stream.next += uint64(entries.length);
+        finalizedSequence[address(adapter)] = batch.sourceSequence;
         emit EntriesApplied(address(adapter), batch.first, stream.next, batch.sourceHash);
+    }
+
+    function _knownIntentFailure(bytes memory reason) private pure returns (bool) {
+        if (reason.length != 4) return false;
+        bytes4 selector = bytes4(reason);
+        return selector == ManagedNftCollection.InvalidQuantity.selector
+            || selector == ManagedNftCollection.IntentUnavailable.selector
+            || selector == ManagedNftCollection.NoSeat.selector
+            || selector == ManagedNftCollection.PoolLimit.selector
+            || selector == ManagedNftCollection.UnsupportedCollection.selector
+            || selector == bytes4(keccak256("UnavailablePool()"));
     }
 }

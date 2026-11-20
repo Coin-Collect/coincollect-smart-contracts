@@ -15,7 +15,7 @@ async function main() {
   const [operator, participant] = await provider.listAccounts()
   const treasury = operator
   const signer = provider.getSigner(operator)
-  const v33 = process.env.COINCOLLECT_V33_FIXTURE === '1'
+  const v33 = (process.env.COINCOLLECT_V34_FIXTURE ?? process.env.COINCOLLECT_V33_FIXTURE) === '1'
   const entries = ['contracts/UniversalRewards.sol', 'test/Fixtures.sol', 'test/SwapFixtures.sol', 'test/ScaleFixtures.sol']
   if (v33) entries.push('contracts/ManagedNftCollection.sol', 'test/ManagedFixtures.sol')
   const compiled = compile(entries)
@@ -40,10 +40,11 @@ async function main() {
     const collection = await deploy('Hooked1155Fixture', 'test/ManagedFixtures.sol')
     const adapter = await deploy('ManagedNftCollection', 'contracts/ManagedNftCollection.sol',
       ledger.address, 137, collection.address, 1155, 25, constants.AddressZero)
-    await (await ledger.approveManagedCollection(adapter.address)).wait()
     await (await collection.setHook(adapter.address)).wait()
+    await (await ledger.approveManagedCollection(adapter.address)).wait()
     await (await collection.mint(participant, 25, 10)).wait()
-    managed = { collection: collection.address, adapter: adapter.address, tokenId: 25 }
+    const plain = await deploy('Plain1155Fixture', 'test/ManagedFixtures.sol')
+    managed = { collection: collection.address, adapter: adapter.address, tokenId: 25, plainCollection: plain.address }
   }
   const vault = await deploy('TreasuryVault', 'contracts/TreasuryVault.sol', ledger.address)
   await (await ledger.attachTreasuryVault(vault.address)).wait()
@@ -76,7 +77,7 @@ async function main() {
     treasury,
     treasuryVault: vault.address,
     scaleFixture: scaleFixture.address,
-    version: v33 ? '3.3' : '3.2',
+    version: v33 ? '3.4' : '3.2',
     managed,
     poolId: 1,
     tokenId: 23,

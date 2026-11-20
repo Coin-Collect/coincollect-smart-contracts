@@ -2,6 +2,10 @@
 
 Universal Rewards V3 creates numbered NFT reward pools in a shared settlement contract on Polygon. V2 pools continue to use their existing contracts and custody rules.
 
+## V3.4 compatibility and hardening
+
+The [V3.4 operating report](V3.4.md) covers the supported collection model, transfer failure behavior, source reconciliation, measured gas and isolated deployment gates.
+
 ## V3.3 mixed-chain and mixed-standard pools
 
 The new version supports approved Polygon ERC-1155 transfer hooks alongside native ERC-721. Base and Arbitrum ERC-721 and ERC-1155 are available in isolated journal tests. See the [V3.3 architecture, gas and deployment gates](V3.3.md).

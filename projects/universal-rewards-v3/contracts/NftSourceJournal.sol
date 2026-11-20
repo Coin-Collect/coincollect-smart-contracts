@@ -29,8 +29,10 @@ contract NftSourceJournal {
     }
 
     function onTransfer(address from, address to, uint256 tokenId, uint256 amount) external {
-        if (msg.sender != collection || amount > type(uint128).max) revert InvalidAction();
-        emit Observation(++sequence, 0, 0, tokenId, from, to, uint128(amount), 0, uint64(block.timestamp));
+        if (msg.sender != collection) revert InvalidAction();
+        // A position can hold at most uint128 units. Larger transfers move its entire entitlement.
+        uint128 moved = amount > type(uint128).max ? type(uint128).max : uint128(amount);
+        emit Observation(++sequence, 0, 0, tokenId, from, to, moved, 0, uint64(block.timestamp));
     }
 
     function request(uint8 action, uint256 poolId, uint256 tokenId, uint32 amount) external {

@@ -13,7 +13,7 @@ const entryType = 'tuple(uint8 action,uint256 poolId,uint256 tokenId,address fro
 const types = { JournalBatch: [
   { name: 'adapter', type: 'address' }, { name: 'sourceJournal', type: 'address' }, { name: 'chain', type: 'uint256' },
   { name: 'collection', type: 'address' }, { name: 'first', type: 'uint64' }, { name: 'sourceBlock', type: 'uint64' },
-  { name: 'sourceHash', type: 'bytes32' }, { name: 'finalizedAt', type: 'uint64' }, { name: 'entriesHash', type: 'bytes32' },
+  { name: 'sourceHash', type: 'bytes32' }, { name: 'finalizedAt', type: 'uint64' }, { name: 'sourceSequence', type: 'uint64' }, { name: 'entriesHash', type: 'bytes32' },
 ] }
 
 function hex(number) {
@@ -42,7 +42,7 @@ async function collectFinalizedJournal({
   const height = heads.reduce((minimum, { number }) => number < minimum ? number : minimum, heads[0].number)
   const observations = await Promise.all(clients.map(async ({ request }) => {
     const head = canonicalBlock(await request('eth_getBlockByNumber', [hex(height), false]))
-    if (head.number !== height || now < head.time || now - head.time > 7200) throw Error('Stale finalized source.')
+    if (head.number !== height || now < head.time || now - head.time >= 7200) throw Error('Stale finalized source.')
     if (previous) {
       if (BigInt(previous.sourceBlock) > height) throw Error('Finalized source is behind the settlement cursor.')
       const prior = canonicalBlock(await request('eth_getBlockByNumber', [hex(previous.sourceBlock), false]))
@@ -90,18 +90,21 @@ async function collectFinalizedJournal({
     if (upper === height && entries.length < 32 && BigInt(count.toString()) >= BigInt(first) + BigInt(entries.length)) {
       throw Error('Source RPC omitted journal entries.')
     }
-    return { sourceBlock: height.toString(), sourceHash: head.hash, finalizedAt: head.time, entries }
+    const sourceSequence = count.toString();
+    if (BigInt(first) - 1n + BigInt(entries.length) > BigInt(sourceSequence)) throw Error('Invalid finalized journal length.');
+    return { sourceBlock: height.toString(), sourceHash: head.hash, finalizedAt: head.time, sourceSequence, entries }
   }))
   const observation = observations[0]
   if (observations.some((candidate) => JSON.stringify(candidate) !== JSON.stringify(observation))) {
     throw Error('Source RPCs disagree on finalized journal evidence.')
   }
-  if (!observation.entries.length) return undefined
+  if (!observation.entries.length && (BigInt(observation.sourceSequence) !== BigInt(first) - 1n
+    || (previous && BigInt(observation.sourceBlock) === BigInt(previous.sourceBlock)))) return undefined
   const { entries, ...head } = observation
   const batch = { first: String(first), ...head }
   return {
     entries, batch, types,
-    domain: { name: 'CoinCollect NFT Journal', version: '3.3', chainId: 31337, verifyingContract: verifier },
+    domain: { name: 'CoinCollect NFT Journal', version: '3.4', chainId: 31337, verifyingContract: verifier },
     value: { adapter, sourceJournal, chain, collection, ...batch, entriesHash: utils.keccak256(utils.defaultAbiCoder.encode([entryType], [entries])) },
   }
 }

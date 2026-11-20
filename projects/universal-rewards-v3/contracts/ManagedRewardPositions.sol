@@ -4,6 +4,13 @@ pragma solidity 0.8.30;
 import {UniversalRewards} from "./UniversalRewards.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
+interface IManagedCollection {
+    function ledger() external view returns (address);
+    function sourceChainId() external view returns (uint256);
+    function sourceCollection() external view returns (address);
+    function hasLocalHook() external view returns (bool);
+}
+
 /// @notice Statically linked accounting for collection-authenticated positions.
 library ManagedRewardPositions {
     uint256 private constant SOURCE_CHAIN = 137;
@@ -20,6 +27,18 @@ library ManagedRewardPositions {
 
     event Joined(uint256 indexed poolId, bytes32 indexed nft, address indexed owner, uint256 sourceChainId, address collection, uint256 tokenId);
     event SeatChanged(uint256 indexed poolId, bytes32 indexed nft, address indexed owner);
+
+    error InvalidConfiguration();
+    error InvalidNetwork();
+
+    function approvalKey(IManagedCollection collection) external view returns (bytes32) {
+        if (collection.ledger() != address(this)) revert InvalidConfiguration();
+        uint256 chain = collection.sourceChainId();
+        if (chain == SOURCE_CHAIN) {
+            if (!collection.hasLocalHook()) revert InvalidConfiguration();
+        } else if (block.chainid != 31337 || (chain != 8453 && chain != 42161)) revert InvalidNetwork();
+        return keccak256(abi.encode(chain, collection.sourceCollection()));
+    }
 
     function update(UniversalRewards.Pool storage pool, uint256 poolId, PositionUpdate calldata movement)
         external returns (uint32 acceptedWeight)

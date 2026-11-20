@@ -2,13 +2,7 @@
 pragma solidity 0.8.30;
 
 import {UniversalRewards, RewardSwapAdapter, FinalizedOwnershipVerifier} from "./UniversalRewards.sol";
-import {ManagedRewardPositions} from "./ManagedRewardPositions.sol";
-
-interface IManagedCollection {
-    function ledger() external view returns (address);
-    function sourceChainId() external view returns (uint256);
-    function sourceCollection() external view returns (address);
-}
+import {IManagedCollection, ManagedRewardPositions} from "./ManagedRewardPositions.sol";
 
 /// @notice A versioned ledger. Remote participation is available only through isolated authenticated journals.
 contract UniversalRewardsV33 is UniversalRewards {
@@ -22,10 +16,7 @@ contract UniversalRewardsV33 is UniversalRewards {
     /// @notice The CoinCollect admin must review the immutable adapter and collection before approval.
     function approveManagedCollection(IManagedCollection collection) external {
         if (msg.sender != admin) revert Unauthorized();
-        if (collection.ledger() != address(this)) revert InvalidConfiguration();
-        uint256 chain = collection.sourceChainId();
-        if (chain != SOURCE_CHAIN && block.chainid != 31337) revert InvalidNetwork();
-        bytes32 key = keccak256(abi.encode(chain, collection.sourceCollection()));
+        bytes32 key = ManagedRewardPositions.approvalKey(collection);
         if (managedAdapter[key] != address(0)) revert InvalidConfiguration();
         managedAdapter[key] = address(collection);
         managedCollection[address(collection)] = true;

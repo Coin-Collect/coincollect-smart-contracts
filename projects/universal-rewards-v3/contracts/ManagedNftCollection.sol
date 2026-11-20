@@ -2,6 +2,7 @@
 pragma solidity 0.8.30;
 
 import {UniversalRewardsV33, UniversalRewards, ManagedRewardPositions} from "./UniversalRewardsV33.sol";
+import {ERC165Checker} from "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -36,6 +37,7 @@ contract ManagedNftCollection is ReentrancyGuard {
     error PoolLimit();
     error UnsupportedCollection();
     error NoSeat();
+    error IntentUnavailable();
 
     event UnitsChanged(uint256 indexed poolId, uint256 indexed tokenId, address indexed account, uint128 entitled, uint32 active);
     event CreditReleased(uint256 indexed poolId, uint256 indexed tokenId, address indexed account);
@@ -46,11 +48,16 @@ contract ManagedNftCollection is ReentrancyGuard {
     uint16 public immutable standard;
     uint32 public immutable maxUnits;
     address public immutable journal;
+    bytes32 public immutable collectionCodeHash;
+    uint256 private immutable claimPeriod;
     mapping(uint256 => Position) public positions;
     mapping(uint256 => uint256) public activeUnits;
     mapping(uint256 => uint32) private configuredLimit;
     mapping(uint256 => PositionOwner) public positionInfo;
     uint256[] private trackedPools;
+    // Pool end and collection weight are immutable after creation.
+    mapping(uint256 => uint64) private trackedEnd;
+    mapping(uint256 => uint32) private trackedWeight;
 
     constructor(
         UniversalRewardsV33 rewards, uint256 chain, address collection, uint16 tokenStandard, uint32 unitLimit, address relay
@@ -58,7 +65,8 @@ contract ManagedNftCollection is ReentrancyGuard {
         if (collection == address(0) || unitLimit == 0 || (tokenStandard != 721 && tokenStandard != 1155)
             || (tokenStandard == 721 && unitLimit != 1)) revert UnsupportedCollection();
         if (chain == 137) {
-            if (relay != address(0) || tokenStandard != 1155 || collection.code.length == 0) {
+            if (relay != address(0) || tokenStandard != 1155
+                || !ERC165Checker.supportsInterface(collection, type(IERC1155).interfaceId)) {
                 revert UnsupportedCollection();
             }
         } else if (block.chainid != 31337 || (chain != 8453 && chain != 42161) || relay.code.length == 0) {
@@ -70,6 +78,8 @@ contract ManagedNftCollection is ReentrancyGuard {
         standard = tokenStandard;
         maxUnits = unitLimit;
         journal = relay;
+        collectionCodeHash = chain == 137 ? collection.codehash : bytes32(0);
+        claimPeriod = rewards.CLAIM_PERIOD();
     }
 
     function positionId(uint256 poolId, uint256 tokenId, address account, bool released)
@@ -86,9 +96,18 @@ contract ManagedNftCollection is ReentrancyGuard {
             return info.account;
         }
         if (sourceChainId != 137 || info.account == address(0)) return address(0);
-        if (IRewardHookCollection(sourceCollection).rewardsHook() != address(this)) return address(0);
+        if (!hasLocalHook()) return address(0);
         return IERC1155(sourceCollection).balanceOf(info.account, info.underlyingId) >= positions[id].entitled
             ? info.account : address(0);
+    }
+
+    function hasLocalHook() public view returns (bool) {
+        if (sourceChainId != 137 || sourceCollection.codehash != collectionCodeHash) return false;
+        try IRewardHookCollection(sourceCollection).rewardsHook() returns (address hook) {
+            return hook == address(this);
+        } catch {
+            return false;
+        }
     }
 
     function unitLimit(uint256 poolId) public view returns (uint32) {
@@ -101,7 +120,7 @@ contract ManagedNftCollection is ReentrancyGuard {
         (UniversalRewards.PoolConfig memory config,,,,) = ledger.poolState(poolId);
         if (block.timestamp >= config.start || limit == 0 || limit > maxUnits
             || ledger.managedWeight(poolId, address(this)) == 0) revert InvalidQuantity();
-        _power(poolId, limit);
+        _power(ledger.managedWeight(poolId, address(this)), limit);
         configuredLimit[poolId] = limit;
     }
 
@@ -110,14 +129,14 @@ contract ManagedNftCollection is ReentrancyGuard {
     }
 
     function join(uint256 poolId, uint256 tokenId, uint32 quantity) external nonReentrant {
-        if (sourceChainId != 137 || IRewardHookCollection(sourceCollection).rewardsHook() != address(this)) {
+        if (!hasLocalHook()) {
             revert UnsupportedCollection();
         }
         _join(poolId, tokenId, msg.sender, quantity, IERC1155(sourceCollection).balanceOf(msg.sender, tokenId));
     }
 
     function exit(uint256 poolId, uint256 tokenId, uint128 quantity) external nonReentrant {
-        if (sourceChainId != 137 || IRewardHookCollection(sourceCollection).rewardsHook() != address(this)) {
+        if (!hasLocalHook()) {
             revert Unauthorized();
         }
         uint256 id = positionId(poolId, tokenId, msg.sender, false);
@@ -128,6 +147,7 @@ contract ManagedNftCollection is ReentrancyGuard {
     /// @notice The collection invokes this while applying both TransferSingle and TransferBatch.
     function onTransfer(address from, address to, uint256 tokenId, uint256 quantity) external nonReentrant {
         if (sourceChainId != 137 || msg.sender != sourceCollection) revert Unauthorized();
+        if (sourceCollection.codehash != collectionCodeHash) revert UnsupportedCollection();
         _transfer(from, to, tokenId, quantity);
     }
 
@@ -141,14 +161,12 @@ contract ManagedNftCollection is ReentrancyGuard {
             if (amount > type(uint32).max) revert InvalidQuantity();
             (UniversalRewards.PoolConfig memory config,,,,) = ledger.poolState(poolId);
             // A delayed observation must never block the rest of the collection's transfer stream.
-            if (block.timestamp >= config.start && block.timestamp < config.end) {
-                _join(poolId, tokenId, from, uint32(amount), balance);
-            }
+            if (block.timestamp < config.start || block.timestamp >= config.end) revert IntentUnavailable();
+            _join(poolId, tokenId, from, uint32(amount), balance);
         } else {
             (UniversalRewards.PoolConfig memory config,,,,) = ledger.poolState(poolId);
-            if (block.timestamp < uint256(config.end) + ledger.CLAIM_PERIOD()) {
-                _release(poolId, tokenId, from, amount, action == Action.Exit);
-            }
+            if (block.timestamp >= uint256(config.end) + claimPeriod) revert IntentUnavailable();
+            _release(poolId, tokenId, from, amount, action == Action.Exit);
         }
     }
 
@@ -158,9 +176,9 @@ contract ManagedNftCollection is ReentrancyGuard {
         uint32 active = position.active + amount;
         uint32 limit = unitLimit(poolId);
         if (amount == 0 || active > limit || owned < active || owned < position.entitled) revert InvalidQuantity();
-        _track(poolId);
-        _power(poolId, limit);
-        uint32 power = _power(poolId, active);
+        uint32 weight = _track(poolId);
+        _power(weight, limit);
+        uint32 power = _power(weight, active);
         uint32 accepted = ledger.updateManagedPosition(poolId,
             ManagedRewardPositions.PositionUpdate(0, id, owner, 0, power, 0, 0));
         if (accepted != power) revert NoSeat();
@@ -171,24 +189,28 @@ contract ManagedNftCollection is ReentrancyGuard {
         emit UnitsChanged(poolId, tokenId, owner, position.entitled, active);
     }
 
-    function _track(uint256 poolId) private {
-        bool present;
+    function _track(uint256 poolId) private returns (uint32 weight) {
+        weight = trackedWeight[poolId];
+        if (weight != 0) {
+            if (block.timestamp >= trackedEnd[poolId]) revert IntentUnavailable();
+            return weight;
+        }
         uint256 i;
         while (i < trackedPools.length) {
             uint256 track = trackedPools[i];
-            (UniversalRewards.PoolConfig memory config,,,,) = ledger.poolState(track);
-            if (block.timestamp >= uint256(config.end) + ledger.CLAIM_PERIOD()) {
+            if (block.timestamp >= uint256(trackedEnd[track]) + claimPeriod) {
                 trackedPools[i] = trackedPools[trackedPools.length - 1];
                 trackedPools.pop();
-            } else {
-                if (track == poolId) present = true;
-                ++i;
-            }
+            } else ++i;
         }
-        if (!present) {
-            if (trackedPools.length == MAX_TRACKED_POOLS) revert PoolLimit();
-            trackedPools.push(poolId);
-        }
+        if (trackedPools.length == MAX_TRACKED_POOLS) revert PoolLimit();
+        (UniversalRewards.PoolConfig memory config,,,,) = ledger.poolState(poolId);
+        if (block.timestamp < config.start || block.timestamp >= config.end) revert IntentUnavailable();
+        weight = ledger.managedWeight(poolId, address(this));
+        if (weight == 0) revert UnsupportedCollection();
+        trackedEnd[poolId] = config.end;
+        trackedWeight[poolId] = weight;
+        trackedPools.push(poolId);
     }
 
     function _transfer(address from, address to, uint256 tokenId, uint256 quantity) private {
@@ -199,12 +221,12 @@ contract ManagedNftCollection is ReentrancyGuard {
     }
 
     function _moveUnits(uint256 poolId, address from, address to, uint256 tokenId, uint256 quantity) private {
+        uint64 end = trackedEnd[poolId];
+        if (block.timestamp >= uint256(end) + claimPeriod) return;
         ManagedRewardPositions.PositionUpdate memory move;
         move.fromId = positionId(poolId, tokenId, from, false);
         Position storage sender = positions[move.fromId];
         if (sender.entitled == 0) return;
-        (UniversalRewards.PoolConfig memory config,,,,) = ledger.poolState(poolId);
-        if (block.timestamp >= uint256(config.end) + ledger.CLAIM_PERIOD()) return;
         move.previousQuantity = sender.entitled;
         move.quantity = quantity < sender.entitled ? uint128(quantity) : sender.entitled;
         uint32 activeMoved = move.quantity < sender.active ? uint32(move.quantity) : sender.active;
@@ -214,15 +236,15 @@ contract ManagedNftCollection is ReentrancyGuard {
             move.toOwner = to;
             Position storage receiver = positions[move.toId];
             nextActive = receiver.active;
-            if (block.timestamp < config.end) {
+            if (block.timestamp < end) {
                 uint32 capacity = unitLimit(poolId) - receiver.active;
                 nextActive += activeMoved < capacity ? activeMoved : capacity;
             }
             positionInfo[move.toId] = PositionOwner(tokenId, poolId, to, false);
             receiver.entitled += move.quantity;
         }
-        move.fromWeight = _power(poolId, sender.active - activeMoved);
-        move.toWeight = _power(poolId, nextActive);
+        move.fromWeight = _power(trackedWeight[poolId], sender.active - activeMoved);
+        move.toWeight = _power(trackedWeight[poolId], nextActive);
         uint32 accepted = ledger.updateManagedPosition(poolId, move);
         sender.entitled -= move.quantity;
         sender.active -= activeMoved;
@@ -247,7 +269,7 @@ contract ManagedNftCollection is ReentrancyGuard {
         uint256 toId = positionId(poolId, tokenId, owner, true);
         positionInfo[toId] = PositionOwner(tokenId, poolId, owner, true);
         ledger.updateManagedPosition(poolId, ManagedRewardPositions.PositionUpdate(
-            fromId, toId, owner, _power(poolId, active), 0, amount, position.entitled
+            fromId, toId, owner, _power(trackedWeight[poolId], active), 0, amount, position.entitled
         ));
         if (exitUnits) {
             activeUnits[poolId] -= position.active - active;
@@ -258,8 +280,8 @@ contract ManagedNftCollection is ReentrancyGuard {
         emit CreditReleased(poolId, tokenId, owner);
     }
 
-    function _power(uint256 poolId, uint32 units) private view returns (uint32) {
-        uint256 weight = uint256(ledger.managedWeight(poolId, address(this))) * units;
+    function _power(uint32 unitWeight, uint32 units) private pure returns (uint32) {
+        uint256 weight = uint256(unitWeight) * units;
         if (weight > type(uint32).max) revert InvalidQuantity();
         return uint32(weight);
     }

@@ -2,6 +2,10 @@
 
 Universal Rewards V3 creates numbered NFT reward pools in a shared settlement contract on Polygon. V2 pools continue to use their existing contracts and custody rules.
 
+## V3.3 mixed-chain and mixed-standard pools
+
+The new version supports approved Polygon ERC-1155 transfer hooks alongside native ERC-721. Base and Arbitrum ERC-721 and ERC-1155 are available in isolated journal tests. See the [V3.3 architecture, gas and deployment gates](V3.3.md).
+
 ## V3.2 unified admin and shared treasury
 
 V3.2 uses the CoinCollect admin wallet as both the pool administrator and immutable treasury owner. Use that address to govern the approved planner and route adapters as well. The admin deposits ERC-20s or native POL as WPOL and can withdraw the vault's recorded available balance. The automation executor has its own gas-only wallet without administrative authority. Creating a pool can reserve its lifetime budget atomically. Each allocation moves exact ERC-20 units into that pool's ledger balance and reduces the vault's available balance. The vault records outstanding allocations, purchase spend, returns and withdrawals independently. Purchased inventories and reserved NFT credits remain in the ledger per pool and token.

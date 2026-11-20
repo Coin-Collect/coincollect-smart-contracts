@@ -6,6 +6,10 @@ const root = path.resolve(__dirname, '..')
 
 function compile(entries = [
   'contracts/UniversalRewards.sol',
+  'contracts/UniversalRewardsV33.sol',
+  'contracts/ManagedNftCollection.sol',
+  'contracts/FinalizedNftJournal.sol',
+  'contracts/NftSourceJournal.sol',
   'contracts/RewardSwapAdapter.sol',
   'contracts/FinalizedOwnershipVerifier.sol',
   'contracts/TreasuryVault.sol',
@@ -18,7 +22,7 @@ function compile(entries = [
       optimizer: { enabled: true, runs: 200 },
       viaIR: true,
       evmVersion: 'paris',
-      outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.deployedBytecode.object'] } },
+      outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences', 'evm.deployedBytecode.object'] } },
     },
   }
   const output = JSON.parse(solc.compile(JSON.stringify(input), {

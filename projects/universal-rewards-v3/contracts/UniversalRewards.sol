@@ -187,7 +187,7 @@ contract UniversalRewards is ReentrancyGuard {
     uint256 public poolCount;
     mapping(address => bool) public supportedTokens;
     address[] private fundingAssets;
-    mapping(uint256 => Pool) private pools;
+    mapping(uint256 => Pool) internal pools;
 
     constructor(
         address poolAdmin,
@@ -596,6 +596,7 @@ contract UniversalRewards is ReentrancyGuard {
 
     function _join(uint256 poolId, Pool storage pool, uint256 sourceChainId, address collection, uint256 tokenId) private {
         uint32 weight = pool.collectionWeights[sourceChainId][collection];
+        _requireDirectCollection(collection);
         if (weight == 0) revert NotCurrentOwner();
         (address owner, uint64 expiry) = _qualifiedOwner(sourceChainId, collection, tokenId);
         if (owner != msg.sender) revert NotCurrentOwner();
@@ -629,6 +630,7 @@ contract UniversalRewards is ReentrancyGuard {
             bytes32 key = keys[i];
             Position storage position = pool.positions[key];
             if (position.collection == address(0)) revert NotEnrolled();
+            _requireDirectCollection(position.collection);
             (address owner, uint64 expiry) = _qualifiedOwner(position.sourceChainId, position.collection, position.tokenId);
             _reconcileSeat(poolId, pool, key, position, owner, expiry);
         }
@@ -649,6 +651,7 @@ contract UniversalRewards is ReentrancyGuard {
     }
 
     function exit(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        _requireDirectCollection(collection);
         (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
         _leave(poolId, pool, key);
         for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
@@ -656,6 +659,7 @@ contract UniversalRewards is ReentrancyGuard {
 
     /// @notice Releases the seat without transferring rewards. Preserves any unexpired claims.
     function leave(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        _requireDirectCollection(collection);
         (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, false);
         _leave(poolId, pool, key);
     }
@@ -708,7 +712,7 @@ contract UniversalRewards is ReentrancyGuard {
         }
     }
 
-    function _pool(uint256 poolId) private view returns (Pool storage pool) {
+    function _pool(uint256 poolId) internal view returns (Pool storage pool) {
         if (poolId == 0 || poolId > poolCount) revert UnavailablePool();
         return pools[poolId];
     }
@@ -728,7 +732,9 @@ contract UniversalRewards is ReentrancyGuard {
         _reconcileSeat(poolId, pool, key, position, owner, expiry);
     }
 
-    function _supportsCollection(uint256 sourceChainId, address collection) private view returns (bool) {
+    function _requireDirectCollection(address) internal view virtual {}
+
+    function _supportsCollection(uint256 sourceChainId, address collection) internal view virtual returns (bool) {
         if (sourceChainId != SOURCE_CHAIN) {
             return address(remoteVerifier) != address(0) && remoteVerifier.supportsSource(sourceChainId);
         }
@@ -736,7 +742,7 @@ contract UniversalRewards is ReentrancyGuard {
     }
 
     function _qualifiedOwner(uint256 sourceChainId, address collection, uint256 tokenId)
-        private view returns (address owner, uint64 expiry)
+        internal view virtual returns (address owner, uint64 expiry)
     {
         if (sourceChainId == SOURCE_CHAIN) return (_ownerOf(collection, tokenId), 0);
         if (address(remoteVerifier) == address(0)) return (address(0), 0);
@@ -751,7 +757,7 @@ contract UniversalRewards is ReentrancyGuard {
         return ok && value == 1;
     }
 
-    function _ownerOf(address collection, uint256 tokenId) private view returns (address) {
+    function _ownerOf(address collection, uint256 tokenId) internal view returns (address) {
         (bool ok, uint256 value) = _readWord(collection, abi.encodeCall(IERC721.ownerOf, (tokenId)));
         if (!ok || value >> 160 != 0) return address(0);
         return address(uint160(value));
@@ -769,7 +775,7 @@ contract UniversalRewards is ReentrancyGuard {
         return block.timestamp < pool.config.end ? uint64(block.timestamp) : pool.config.end;
     }
 
-    function _claimPeriodEnded(Pool storage pool) private view returns (bool) {
+    function _claimPeriodEnded(Pool storage pool) internal view returns (bool) {
         return block.timestamp >= uint256(pool.config.end) + CLAIM_PERIOD;
     }
 
@@ -830,7 +836,7 @@ contract UniversalRewards is ReentrancyGuard {
         return _intervalEmission(pool, reward, through) / pool.totalWeight;
     }
 
-    function _nextExpiry(Pool storage pool, uint64 through) private view returns (uint8 slot, uint64 expiry) {
+    function _nextExpiry(Pool storage pool, uint64 through) internal view virtual returns (uint8 slot, uint64 expiry) {
         expiry = through;
         // Polygon seats never enter this bounded list. Remote proofs exist only in the isolated verifier.
         for (uint8 i; i < pool.remoteSeats.length; ++i) {
@@ -843,7 +849,7 @@ contract UniversalRewards is ReentrancyGuard {
         (, through) = _nextExpiry(pool, _through(pool));
     }
 
-    function _settle(uint256 poolId, Pool storage pool) private {
+    function _settle(uint256 poolId, Pool storage pool) internal {
         uint64 through = _through(pool);
         if (through <= pool.checkedUntil) return;
         if (_claimPeriodEnded(pool)) {
@@ -874,7 +880,7 @@ contract UniversalRewards is ReentrancyGuard {
         pool.checkedUntil = through;
     }
 
-    function _accrue(Pool storage pool, bytes32 key, uint32 weight, address token) private {
+    function _accrue(Pool storage pool, bytes32 key, uint32 weight, address token) internal {
         RewardIndex storage index = pool.indexes[token];
         uint256 current = index.perWeight;
         uint256 previous = index.debt[key];
@@ -884,7 +890,7 @@ contract UniversalRewards is ReentrancyGuard {
         }
     }
 
-    function _remember(Pool storage pool, address owner, bytes32 key) private {
+    function _remember(Pool storage pool, address owner, bytes32 key) internal {
         if (!pool.remembered[owner][key]) {
             pool.remembered[owner][key] = true;
             pool.walletHistory[owner].push(key);
@@ -905,13 +911,13 @@ contract UniversalRewards is ReentrancyGuard {
         emit SeatChanged(poolId, key, position.seatOwner);
     }
 
-    function _canSeat(Pool storage pool, address owner, uint64 expiry) private view returns (bool) {
+    function _canSeat(Pool storage pool, address owner, uint64 expiry) internal view returns (bool) {
         uint256 count = pool.seatsByWallet[owner];
         return pool.activeNfts < MAX_POSITIONS && (expiry == 0 || pool.remoteSeats.length < MAX_REMOTE_POSITIONS)
             && count < pool.config.maxNftsPerWallet && (count != 0 || pool.activeWallets < pool.config.maxWallets);
     }
 
-    function _attach(Pool storage pool, bytes32 key, Position storage position, address owner, uint64 expiry) private {
+    function _attach(Pool storage pool, bytes32 key, Position storage position, address owner, uint64 expiry) internal {
         if (pool.seatsByWallet[owner]++ == 0) ++pool.activeWallets;
         ++pool.activeNfts;
         pool.totalWeight += position.weight;
@@ -929,7 +935,7 @@ contract UniversalRewards is ReentrancyGuard {
         _remember(pool, owner, key);
     }
 
-    function _detach(Pool storage pool, bytes32 key, Position storage position) private {
+    function _detach(Pool storage pool, bytes32 key, Position storage position) internal {
         if (!_claimPeriodEnded(pool)) {
             for (uint256 i; i < pool.rewardTokens.length; ++i) {
                 _accrue(pool, key, position.weight, pool.rewardTokens[i]);

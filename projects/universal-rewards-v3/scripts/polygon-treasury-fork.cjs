@@ -2,6 +2,7 @@ const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { Contract, ContractFactory, constants, utils } = require('ethers')
 const { compile } = require('./compile.cjs')
+const { linkBytecode } = require('./link-bytecode.cjs')
 const { startLocalAnvil } = require('./local-anvil.cjs')
 const { POLYGON_ROUTER, POLYGON_ASSETS, routerAbi } = require('./polygon-market.cjs')
 
@@ -21,7 +22,8 @@ const { USDT, WPOL, COLLECT, SHIB } = POLYGON_ASSETS
 const usd = (value) => utils.parseUnits(String(value), 6)
 const pol = (value) => utils.parseEther(String(value))
 
-test('V3.1 acquires WPOL, COLLECT and SHIB with real pinned router code and a 10 USDT lifetime budget', async (t) => {
+const v33 = process.env.COINCOLLECT_V33_FIXTURE === '1'
+test((v33 ? 'V3.3' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinned router code and a 10 USDT lifetime budget', async (t) => {
   const upstream = process.env.COINCOLLECT_V3_POLYGON_RPC || SOURCE
   assert.equal(new URL(upstream).protocol, 'https:')
   const fork = await startLocalAnvil(['--fork-url', upstream, '--fork-block-number', String(block)])
@@ -34,10 +36,16 @@ test('V3.1 acquires WPOL, COLLECT and SHIB with real pinned router code and a 10
   const admin = provider.getSigner(operator)
   const treasurySigner = provider.getSigner(owner)
   const trader = provider.getSigner(executor)
-  const entries = compile(['contracts/UniversalRewards.sol', 'contracts/RewardRoutePlanner.sol', 'test/Fixtures.sol'])
+  const entries = compile([
+    v33 ? 'contracts/UniversalRewardsV33.sol' : 'contracts/UniversalRewards.sol',
+    'contracts/RewardRoutePlanner.sol', 'test/Fixtures.sol',
+  ])
+  const links = {}
   const deploy = async (file, name, ...args) => {
     const artifact = entries[file][name]
-    return (await new ContractFactory(artifact.abi, '0x' + artifact.evm.bytecode.object, admin).deploy(...args, gas)).deployed()
+    const contract = await (await new ContractFactory(artifact.abi, linkBytecode(artifact, links), admin).deploy(...args, gas)).deployed()
+    links[file + ':' + name] = contract.address
+    return contract
   }
   const send = async (tx) => (await tx).wait()
   const now = async () => (await provider.getBlock('latest')).timestamp
@@ -94,10 +102,10 @@ test('V3.1 acquires WPOL, COLLECT and SHIB with real pinned router code and a 10
   assert.equal((await planner.bestRoute(USDT, SHIB, usd(2), 0)).index, 1)
 
   const nft = await deploy('test/Fixtures.sol', 'FixtureNft')
-  const ledger = await deploy(
-    'contracts/UniversalRewards.sol', 'UniversalRewards',
-    operator, owner, [USDT, WPOL, COLLECT, SHIB], WPOL, planner.address, zero,
-  )
+  if (v33) await deploy('contracts/ManagedRewardPositions.sol', 'ManagedRewardPositions')
+  const ledger = v33
+    ? await deploy('contracts/UniversalRewardsV33.sol', 'UniversalRewardsV33', operator, [USDT, WPOL, COLLECT, SHIB], WPOL, planner.address)
+    : await deploy('contracts/UniversalRewards.sol', 'UniversalRewards', operator, owner, [USDT, WPOL, COLLECT, SHIB], WPOL, planner.address, zero)
   const vault = await deploy('contracts/TreasuryVault.sol', 'TreasuryVault', ledger.address)
   await send(ledger.connect(treasurySigner).attachTreasuryVault(vault.address))
   await assert.rejects(vault.connect(trader).callStatic.withdraw(USDT, usd(1)))

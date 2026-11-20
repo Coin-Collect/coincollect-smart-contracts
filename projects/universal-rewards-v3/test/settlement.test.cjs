@@ -81,7 +81,7 @@ before(async () => {
   secondary = await deploy(FixtureToken, 18)
   nft = await deploy(FixtureNft)
   rare = await deploy(FixtureNft)
-  ledger = await deploy(entries['contracts/UniversalRewards.sol'].UniversalRewards, accounts[0], treasury, [primary.address, secondary.address])
+  ledger = await deploy(entries['contracts/UniversalRewards.sol'].UniversalRewards, accounts[0], treasury, [primary.address, secondary.address], constants.AddressZero, constants.AddressZero)
   for (const token of [primary, secondary]) {
     await mint(token, accounts[0], 10n ** 32n)
     await (await token.approve(ledger.address, constants.MaxUint256)).wait()
@@ -325,6 +325,8 @@ test('maximum roster settles four independent reward tokens within the measured 
     accounts[0],
     treasury,
     rewards.map((token) => token.address),
+    constants.AddressZero,
+    constants.AddressZero,
   )
   for (const token of rewards) {
     if (token === third || token === fourth) await mint(token, accounts[0], 10_000n)

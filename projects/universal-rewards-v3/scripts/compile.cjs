@@ -4,7 +4,7 @@ const solc = require('solc')
 
 const root = path.resolve(__dirname, '..')
 
-function compile(entries = ['contracts/UniversalRewards.sol']) {
+function compile(entries = ['contracts/UniversalRewards.sol', 'contracts/RewardSwapAdapter.sol']) {
   const input = {
     language: 'Solidity',
     sources: Object.fromEntries(entries.map((file) => [file, { content: fs.readFileSync(path.join(root, file), 'utf8') }])),
@@ -17,8 +17,9 @@ function compile(entries = ['contracts/UniversalRewards.sol']) {
   }
   const output = JSON.parse(solc.compile(JSON.stringify(input), {
     import: (name) => {
+      const location = name.startsWith('@') ? path.join(root, 'node_modules', name) : path.join(root, name)
       try {
-        return { contents: fs.readFileSync(path.join(root, 'node_modules', name), 'utf8') }
+        return { contents: fs.readFileSync(location, 'utf8') }
       } catch {
         return { error: 'Unavailable import: ' + name }
       }

@@ -4,7 +4,7 @@
   "scripts": {
     "compile": "node scripts/compile.cjs",
     "test": "node --test",
-    "test:polygon-fork": "node --test scripts/polygon-fork.cjs",
+    "test:polygon-fork": "node --test scripts/polygon-fork.cjs scripts/polygon-treasury-fork.cjs",
     "inspect:polygon-market": "node scripts/polygon-market.cjs"
   },
   "dependencies": {

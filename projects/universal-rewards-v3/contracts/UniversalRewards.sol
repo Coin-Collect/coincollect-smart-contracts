@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {TreasuryVault} from "./TreasuryVault.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -112,6 +114,8 @@ contract UniversalRewards is ReentrancyGuard {
         FundingPlan funding;
         mapping(address => FundingLane) lanes;
         mapping(address => uint128) expiredRecovered;
+        bool treasuryBacked;
+        bool consolidated;
     }
 
     error Unauthorized();
@@ -159,12 +163,14 @@ contract UniversalRewards is ReentrancyGuard {
         uint256 received
     );
     event BudgetRecovered(uint256 indexed poolId, address indexed asset, uint256 amount);
+    event TreasuryVaultAttached(address indexed vault);
 
     address public immutable admin;
     address public immutable treasury;
     address public immutable wrappedNative;
     RewardSwapAdapter public immutable swapAdapter;
     FinalizedOwnershipVerifier public immutable remoteVerifier;
+    TreasuryVault public treasuryVault;
     uint256 public poolCount;
     mapping(address => bool) public supportedTokens;
     address[] private fundingAssets;
@@ -219,6 +225,60 @@ contract UniversalRewards is ReentrancyGuard {
         if (msg.sender != admin) revert Unauthorized();
         poolId = _createPool(config, collections, rewards);
         _configureFunding(poolId, funding.asset, funding.budget, funding.interval, funding.allocations);
+    }
+
+    /// @notice Only the immutable treasury authority can attach its vault, once.
+    function attachTreasuryVault(TreasuryVault vault) external nonReentrant {
+        if (msg.sender != treasury) revert Unauthorized();
+        if (
+            admin == treasury || address(treasuryVault) != address(0) || address(vault.ledger()) != address(this)
+                || vault.owner() != treasury || vault.wrappedNative() != wrappedNative
+        ) revert InvalidConfiguration();
+        treasuryVault = vault;
+        emit TreasuryVaultAttached(address(vault));
+    }
+
+    function createTreasuryFundedPool(
+        PoolConfig calldata config,
+        CollectionRule[] calldata collections,
+        RewardConfig[] calldata rewards,
+        FundingConfig calldata funding,
+        uint128 initialAllocation,
+        bool consolidated
+    ) external nonReentrant returns (uint256 poolId) {
+        if (msg.sender != admin) revert Unauthorized();
+        poolId = _createPool(config, collections, rewards);
+        _configureFunding(poolId, funding.asset, funding.budget, funding.interval, funding.allocations);
+        Pool storage pool = pools[poolId];
+        pool.treasuryBacked = true;
+        pool.consolidated = consolidated;
+        _allocateTreasuryBudget(poolId, pool, initialAllocation);
+    }
+
+    function allocateTreasuryBudget(uint256 poolId, uint128 amount) external nonReentrant {
+        if (msg.sender != admin) revert Unauthorized();
+        Pool storage pool = _pool(poolId);
+        if (!pool.treasuryBacked) revert InvalidFundingPlan();
+        _allocateTreasuryBudget(poolId, pool, amount);
+    }
+
+    function treasuryFunding(uint256 poolId) external view returns (bool treasuryBacked, bool consolidated) {
+        Pool storage pool = _pool(poolId);
+        return (pool.treasuryBacked, pool.consolidated);
+    }
+
+    function _allocateTreasuryBudget(uint256 poolId, Pool storage pool, uint128 amount) private {
+        FundingPlan storage plan = pool.funding;
+        if (
+            address(treasuryVault) == address(0) || amount == 0 || amount > plan.budget - plan.deposited
+                || block.timestamp >= pool.config.end
+        ) revert FundingUnavailable();
+        IERC20 asset = IERC20(plan.asset);
+        uint256 beforeBalance = asset.balanceOf(address(this));
+        plan.deposited += amount;
+        treasuryVault.allocate(poolId, plan.asset, amount);
+        if (asset.balanceOf(address(this)) != beforeBalance + amount) revert InvalidReceipt();
+        emit BudgetFunded(poolId, plan.asset, address(treasuryVault), amount);
     }
 
     function supportedAssets() external view returns (address[] memory) {
@@ -408,7 +468,7 @@ contract UniversalRewards is ReentrancyGuard {
         Pool storage pool = _pool(poolId);
         FundingPlan storage plan = pool.funding;
         if (
-            plan.asset == address(0) || amount == 0 || amount > plan.budget - plan.deposited
+            pool.treasuryBacked || plan.asset == address(0) || amount == 0 || amount > plan.budget - plan.deposited
                 || block.timestamp >= pool.config.end
         ) revert FundingUnavailable();
 
@@ -456,6 +516,7 @@ contract UniversalRewards is ReentrancyGuard {
         lane.purchased = true;
         lane.spent += uint128(amount);
         plan.spent += uint128(amount);
+        if (pool.treasuryBacked) treasuryVault.recordSpend(poolId, plan.asset, amount);
 
         received = amount;
         if (plan.asset != rewardToken) {
@@ -486,7 +547,7 @@ contract UniversalRewards is ReentrancyGuard {
         amount = plan.deposited - plan.spent - plan.recovered;
         if (amount != 0) {
             plan.recovered += uint128(amount);
-            _transferExact(plan.asset, treasury, amount);
+            _returnToTreasury(poolId, pool, plan.asset, amount, false);
             emit BudgetRecovered(poolId, plan.asset, amount);
         }
     }
@@ -571,7 +632,7 @@ contract UniversalRewards is ReentrancyGuard {
         amount = _available(reward) / PRECISION;
         reward.inventory -= uint128(amount);
         if (amount != 0) {
-            _transferExact(token, treasury, amount);
+            _returnToTreasury(poolId, pool, token, amount, true);
             emit SurplusRecovered(poolId, token, amount);
         }
     }
@@ -593,8 +654,19 @@ contract UniversalRewards is ReentrancyGuard {
         if (amount != 0) {
             reward.inventory = 0;
             pool.expiredRecovered[token] = uint128(amount);
-            _transferExact(token, treasury, amount);
+            _returnToTreasury(poolId, pool, token, amount, true);
             emit ExpiredRewardsRecovered(poolId, token, amount);
+        }
+    }
+
+    function _returnToTreasury(uint256 poolId, Pool storage pool, address token, uint256 amount, bool reward)
+        private
+    {
+        if (pool.treasuryBacked) {
+            _transferExact(token, address(treasuryVault), amount);
+            treasuryVault.recordRecovery(poolId, token, amount, reward);
+        } else {
+            _transferExact(token, treasury, amount);
         }
     }
 
@@ -678,10 +750,13 @@ contract UniversalRewards is ReentrancyGuard {
         uint256 duration = pool.config.end - pool.config.start;
         uint256 through = block.timestamp < pool.config.start ? pool.config.start : block.timestamp;
         uint256 remaining = pool.config.end - through;
-        uint256 horizon = remaining < plan.interval ? remaining : plan.interval;
+        uint256 horizon = pool.consolidated || remaining < plan.interval ? remaining : plan.interval;
         // Round target coverage up to a whole base unit. Inventory is still capped by on-chain funding.
         target = (uint256(pool.rewards[token].cap) * horizon + duration - 1) / duration;
-        if (plan.paused || (lane.purchased && lane.lastEpoch == epoch) || available >= target * PRECISION) {
+        if (
+            plan.paused || (pool.treasuryBacked && treasuryVault.paused())
+                || (lane.purchased && lane.lastEpoch == epoch) || available >= target * PRECISION
+        ) {
             return (epoch, 0, target);
         }
 
@@ -689,7 +764,7 @@ contract UniversalRewards is ReentrancyGuard {
         uint256 maximumShare = uint256(plan.budget) * lane.allocationBps / BPS;
         uint256 windowLimit = (maximumShare * horizon + duration - 1) / duration;
         amount = fundedShare - lane.spent;
-        if (amount > windowLimit) amount = windowLimit;
+        if (!pool.consolidated && amount > windowLimit) amount = windowLimit;
         // Same-asset allocation can use exact units and avoids buying more than the coverage deficit.
         if (plan.asset == token) {
             uint256 deficit = (target * PRECISION - available + PRECISION - 1) / PRECISION;

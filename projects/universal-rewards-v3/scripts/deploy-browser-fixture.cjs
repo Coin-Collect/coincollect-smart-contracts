@@ -23,6 +23,12 @@ async function main() {
   const wrapped = await deploy('FixtureWrapped', 'test/SwapFixtures.sol')
   const ledger = await deploy('UniversalRewards', 'contracts/UniversalRewards.sol',
     operator, treasury, [wrapped.address], wrapped.address, constants.AddressZero, constants.AddressZero)
+  let treasuryVault
+  if (process.env.COINCOLLECT_V31_FIXTURE === '1') {
+    const vault = await deploy('TreasuryVault', 'contracts/TreasuryVault.sol', ledger.address)
+    await (await ledger.connect(provider.getSigner(treasury)).attachTreasuryVault(vault.address)).wait()
+    treasuryVault = vault.address
+  }
 
   await (await nft.mint(participant, 23)).wait()
   const now = (await provider.getBlock('latest')).timestamp
@@ -49,6 +55,7 @@ async function main() {
     operator,
     participant,
     treasury,
+    treasuryVault,
     poolId: 1,
     tokenId: 23,
     end: now + 18_030,

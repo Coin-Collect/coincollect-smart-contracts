@@ -2,6 +2,30 @@
 
 Universal Rewards V3 creates numbered NFT reward pools in a shared settlement contract on Polygon. V2 pools continue to use their existing contracts and custody rules.
 
+## V3.1 shared treasury and route selection
+
+V3.1 adds `TreasuryVault` and `RewardRoutePlanner`. The immutable treasury owner deposits ERC-20s or deposits native POL as WPOL. Only that owner can withdraw from the vault's recorded available balance. A different wallet operates the pool ledger. Creating a pool can reserve its lifetime budget atomically. Each allocation moves exact ERC-20 units into that pool's ledger balance and reduces the vault's available balance. The vault records outstanding allocations, purchase spend, returns and withdrawals independently. Purchased inventories and reserved NFT credits remain in the ledger per pool and token.
+
+Allocations remain locked until the pool ends. The ledger can return unspent funding then, and expired claims at the existing 30-day deadline. The vault can pause new deposits, withdrawals, allocations and purchases while claims and returns remain available. Only use explicit deposits. An unsolicited transfer to the vault does not create a spendable accounting balance. Directly funded V3 pools retain their original payout and recovery paths.
+
+The route planner checks up to four approved candidates. A candidate can be one existing V2-style adapter or two adapters joined by an approved token. Each hop has pinned router and pair identity, reserve floors, a capped input share, fresh TWAP, a bounded spot deviation and a minimum output. Exact balance checks cover the funding, intermediate and reward assets. A failed candidate rolls back before a different candidate can execute. The highest verified output is tried first within the caller's minimum and deadline. Compatible tokens must have standard balances and transfers.
+
+For a 10 USDT, 365-day pool, 50%, 30% and 20% splits cap lifetime input at 5, 3 and 2 USDT. A consolidated purchase can acquire those tokens early. Emission is still spread over 365 days. Adaptive purchases use the configured reserve horizon and one purchase per token per epoch. POL gas is paid separately and never charged against the pool budget.
+
+### Verified Polygon routes
+
+The V3.1 fork test pins block `97638790`, router and pair code hashes. It executes USDT → WPOL via QuickSwap V2, USDT → WPOL → COLLECT through QuickSwap V2 and CoinCollect, and USDT → WPOL → SHIB through QuickSwap V2. A 5 USDT consolidated COLLECT purchase failed the tested depth limits. Direct USDT → SHIB held about 1.996 USDT on the input side, far below the depth required for a 2 USDT allocation. That path is rejected in the test and the WPOL path succeeds. These observations apply to the pinned block. [QuickSwap Polygon V2 deployments](https://docs.quickswap.exchange/overview/contracts-and-addresses)
+
+The first 30-day tranches used about 384–393k gas for WPOL, 623k for COLLECT and 626–634k for SHIB across fork runs. At 30 gwei this is about 0.0115–0.0118, 0.0187 and 0.0188–0.0190 POL respectively. These figures exclude separately submitted TWAP observations. Runtime estimates and fees depend on state, path, fallback and Polygon gas prices.
+
+### Versioned deployment and operations
+
+For a disposable isolated environment, set `COINCOLLECT_V31_FIXTURE=1` when running `scripts/deploy-browser-fixture.cjs`. The output includes the new ledger hash and vault address. The Polygon fork tests build a second fixture using real router and token state. Both setups verify a loopback Anvil before writes.
+
+An authorized rollout would need new contract addresses. First assign distinct treasury, pool operator, route governance and gas executor identities. Deploy the reviewed adapters and planner, verify route and token configuration, deploy the new ledger, deploy its vault and have the treasury owner attach it once. Verify the chain and runtime hash before changing the frontend configuration. Legacy pools stay on their original ledger. Production configuration and third-party security review are separate release requirements.
+
+Pause the vault to stop new treasury exposure, and pause a planner or leaf adapter to block suspect swaps. Users can continue claiming under the existing deadline. For settlement, call `recoverBudget` after a pool ends and `recoverExpiredRewards` per token after the claim deadline. A blocked token can be retried independently. Trusted operators still choose NFT collections and pool budgets. TWAPs can be distorted in weak markets, and slippage guards reduce rather than eliminate MEV exposure.
+
 ## Architecture
 
 | Contract | Responsibilities |

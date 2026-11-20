@@ -70,6 +70,13 @@ contract UniversalRewards is ReentrancyGuard {
         uint64 seatExpiry;
     }
 
+    struct FundingConfig {
+        address asset;
+        uint128 budget;
+        uint32 interval;
+        uint16[] allocations;
+    }
+
     struct FundingPlan {
         address asset;
         uint128 budget;
@@ -155,6 +162,7 @@ contract UniversalRewards is ReentrancyGuard {
     FinalizedOwnershipVerifier public immutable remoteVerifier;
     uint256 public poolCount;
     mapping(address => bool) public supportedTokens;
+    address[] private fundingAssets;
     mapping(uint256 => Pool) private pools;
 
     constructor(
@@ -177,6 +185,7 @@ contract UniversalRewards is ReentrancyGuard {
         for (uint256 i; i < tokens.length; ++i) {
             if (tokens[i].code.length == 0 || supportedTokens[tokens[i]]) revert InvalidToken();
             supportedTokens[tokens[i]] = true;
+            fundingAssets.push(tokens[i]);
         }
         if (wrapped != address(0) && !supportedTokens[wrapped]) revert InvalidToken();
         if (address(adapter) != address(0) && (wrapped == address(0) || adapter.wrappedNative() != wrapped)) {
@@ -193,6 +202,27 @@ contract UniversalRewards is ReentrancyGuard {
         returns (uint256 poolId)
     {
         if (msg.sender != admin) revert Unauthorized();
+        return _createPool(config, collections, rewards);
+    }
+
+    function createFundedPool(
+        PoolConfig calldata config,
+        CollectionRule[] calldata collections,
+        RewardConfig[] calldata rewards,
+        FundingConfig calldata funding
+    ) external nonReentrant returns (uint256 poolId) {
+        if (msg.sender != admin) revert Unauthorized();
+        poolId = _createPool(config, collections, rewards);
+        _configureFunding(poolId, funding.asset, funding.budget, funding.interval, funding.allocations);
+    }
+
+    function supportedAssets() external view returns (address[] memory) {
+        return fundingAssets;
+    }
+
+    function _createPool(PoolConfig calldata config, CollectionRule[] calldata collections, RewardConfig[] calldata rewards)
+        private returns (uint256 poolId)
+    {
         if (
             config.start < block.timestamp || config.end <= config.start || config.end - config.start > 4 * 365 days
                 || config.maxWallets == 0 || config.maxWallets > MAX_POSITIONS || config.threshold > config.maxWallets
@@ -305,6 +335,12 @@ contract UniversalRewards is ReentrancyGuard {
         external nonReentrant
     {
         if (msg.sender != admin) revert Unauthorized();
+        _configureFunding(poolId, asset, budget, interval, splits);
+    }
+
+    function _configureFunding(uint256 poolId, address asset, uint128 budget, uint32 interval, uint16[] calldata splits)
+        private
+    {
         Pool storage pool = _pool(poolId);
         if (
             pool.funding.asset != address(0) || !supportedTokens[asset] || budget == 0

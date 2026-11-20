@@ -35,13 +35,13 @@ async function makePool(assets = [wrapped.address, rewards.address], splits = [5
   const start = (await now()) + 100
   const end = start + duration
   const ledger = makePool.ledger
-  const receipt = await transact(ledger.createPool(
+  const receipt = await transact(ledger.createFundedPool(
     [start, end, 0, 2, 3, 'ipfs://funding-fixture'],
     [[137, nft.address, 1]],
     assets.map((asset) => [asset, 1000n * unit]),
+    [wrapped.address, fundingBudget, interval, splits],
   ))
   const poolId = receipt.events.find(({ event }) => event === 'PoolCreated').args.poolId
-  await transact(ledger.configureFunding(poolId, wrapped.address, fundingBudget, interval, splits))
   return { poolId, start, end, ledger }
 }
 
@@ -204,4 +204,17 @@ test('partial ERC-20 deposits honor allocation floors and isolate independently 
   assert.equal((await ledger.rewardState(first.poolId, wrapped.address)).inventory.toBigInt(), amount)
   assert.equal((await ledger.fundingState(second.poolId)).spent.toBigInt(), 0n)
   assert.equal((await ledger.rewardState(second.poolId, wrapped.address)).inventory.toBigInt(), 0n)
+})
+
+test('an invalid funding split leaves no half-created pool', async () => {
+  const ledger = makePool.ledger
+  const start = (await now()) + 100
+  const before = await ledger.poolCount()
+  const assets = await ledger.supportedAssets()
+  assert.deepEqual(assets, [wrapped.address, rewards.address])
+  const config = [start, start + duration, 0, 2, 3, '']
+  const fields = [config, [[137, nft.address, 1]], [[wrapped.address, 1000n * unit]]]
+  await assert.rejects(ledger.callStatic.createFundedPool(...fields, [wrapped.address, fundingBudget, interval, [9000]]))
+  await assert.rejects(ledger.connect(executor).callStatic.createFundedPool(...fields, [wrapped.address, fundingBudget, interval, [10000]]))
+  assert.equal((await ledger.poolCount()).toString(), before.toString())
 })

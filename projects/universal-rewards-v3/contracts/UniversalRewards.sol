@@ -8,6 +8,7 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {RewardSwapAdapter} from "./RewardSwapAdapter.sol";
+import {FinalizedOwnershipVerifier} from "./FinalizedOwnershipVerifier.sol";
 
 interface IWrappedNative {
     function deposit() external payable;
@@ -54,11 +55,19 @@ contract UniversalRewards is ReentrancyGuard {
         uint256 committed;
     }
 
+    struct NftRef {
+        uint256 sourceChainId;
+        address collection;
+        uint256 tokenId;
+    }
+
     struct Position {
+        uint256 sourceChainId;
         address collection;
         uint32 weight;
         uint256 tokenId;
         address seatOwner;
+        uint64 seatExpiry;
     }
 
     struct FundingPlan {
@@ -86,7 +95,8 @@ contract UniversalRewards is ReentrancyGuard {
         CollectionRule[] collections;
         address[] rewardTokens;
         bytes32[] roster;
-        mapping(address => uint32) collectionWeights;
+        bytes32[] enrollmentHistory;
+        mapping(uint256 => mapping(address => uint32)) collectionWeights;
         mapping(address => Reward) rewards;
         mapping(address => uint8) seatsByWallet;
         mapping(bytes32 => Position) positions;
@@ -113,7 +123,14 @@ contract UniversalRewards is ReentrancyGuard {
 
     event PoolCreated(uint256 indexed poolId, uint64 start, uint64 end, string metadataURI);
     event RewardFunded(uint256 indexed poolId, address indexed token, address indexed funder, uint256 amount);
-    event Joined(uint256 indexed poolId, bytes32 indexed nft, address indexed owner, address collection, uint256 tokenId);
+    event Joined(
+        uint256 indexed poolId,
+        bytes32 indexed nft,
+        address indexed owner,
+        uint256 sourceChainId,
+        address collection,
+        uint256 tokenId
+    );
     event SeatChanged(uint256 indexed poolId, bytes32 indexed nft, address indexed owner);
     event Checkpoint(uint256 indexed poolId, uint64 checkedUntil, uint8 activeWallets, uint64 totalWeight);
     event Claimed(uint256 indexed poolId, bytes32 indexed nft, address indexed token, address owner, uint256 amount);
@@ -135,6 +152,7 @@ contract UniversalRewards is ReentrancyGuard {
     address public immutable treasury;
     address public immutable wrappedNative;
     RewardSwapAdapter public immutable swapAdapter;
+    FinalizedOwnershipVerifier public immutable remoteVerifier;
     uint256 public poolCount;
     mapping(address => bool) public supportedTokens;
     mapping(uint256 => Pool) private pools;
@@ -144,9 +162,13 @@ contract UniversalRewards is ReentrancyGuard {
         address surplusTreasury,
         address[] memory tokens,
         address wrapped,
-        RewardSwapAdapter adapter
+        RewardSwapAdapter adapter,
+        FinalizedOwnershipVerifier verifier
     ) {
-        if (block.chainid != SOURCE_CHAIN && block.chainid != 31337) revert InvalidNetwork();
+        if ((block.chainid != SOURCE_CHAIN && block.chainid != 31337)
+            || (address(verifier) != address(0) && (block.chainid != 31337 || address(verifier).code.length == 0))) {
+            revert InvalidNetwork();
+        }
         if (poolAdmin == address(0) || surplusTreasury == address(0) || tokens.length == 0 || tokens.length > 32) {
             revert InvalidConfiguration();
         }
@@ -162,6 +184,7 @@ contract UniversalRewards is ReentrancyGuard {
         }
         wrappedNative = wrapped;
         swapAdapter = adapter;
+        remoteVerifier = verifier;
     }
 
     function createPool(PoolConfig calldata config, CollectionRule[] calldata collections, RewardConfig[] calldata rewards)
@@ -185,11 +208,12 @@ contract UniversalRewards is ReentrancyGuard {
         for (uint256 i; i < collections.length; ++i) {
             CollectionRule calldata rule = collections[i];
             if (
-                rule.sourceChainId != SOURCE_CHAIN || rule.weight == 0 || rule.weight > MAX_WEIGHT
-                    || pool.collectionWeights[rule.collection] != 0 || !_isErc721(rule.collection)
+                rule.collection == address(0) || rule.weight == 0 || rule.weight > MAX_WEIGHT
+                    || pool.collectionWeights[rule.sourceChainId][rule.collection] != 0
+                    || !_supportsCollection(rule.sourceChainId, rule.collection)
             ) revert InvalidConfiguration();
             pool.collections.push(rule);
-            pool.collectionWeights[rule.collection] = rule.weight;
+            pool.collectionWeights[rule.sourceChainId][rule.collection] = rule.weight;
         }
         for (uint256 i; i < rewards.length; ++i) {
             RewardConfig calldata reward = rewards[i];
@@ -231,6 +255,20 @@ contract UniversalRewards is ReentrancyGuard {
         return _pool(poolId).positions[key];
     }
 
+    /// @notice Paged enrollment history includes expired and departed positions that may still hold credits.
+    function positionKeys(uint256 poolId, uint256 offset, uint256 limit)
+        external view returns (bytes32[] memory keys, uint256 total)
+    {
+        if (limit == 0 || limit > MAX_POSITIONS) revert InvalidConfiguration();
+        bytes32[] storage history = _pool(poolId).enrollmentHistory;
+        total = history.length;
+        if (offset >= total) return (new bytes32[](0), total);
+        uint256 length = total - offset;
+        if (length > limit) length = limit;
+        keys = new bytes32[](length);
+        for (uint256 i; i < length; ++i) keys[i] = history[offset + i];
+    }
+
     function walletsNftCount(uint256 poolId, address account) external view returns (uint256) {
         return _pool(poolId).seatsByWallet[account];
     }
@@ -241,8 +279,10 @@ contract UniversalRewards is ReentrancyGuard {
         uint256 credit = pool.credits[key][token];
         Position storage position = pool.positions[key];
         if (position.seatOwner != address(0)) {
-            uint256 amount = _intervalEmission(pool, pool.rewards[token], _through(pool));
-            credit += amount * position.weight / pool.totalWeight;
+            Reward storage reward = pool.rewards[token];
+            uint64 through = _through(pool);
+            uint256 emission = _intervalEmission(pool, reward, through);
+            credit += _intervalShare(pool, reward, position, through, emission);
         }
         return credit / PRECISION;
     }
@@ -391,22 +431,42 @@ contract UniversalRewards is ReentrancyGuard {
         }
     }
 
-    function join(uint256 poolId, address collection, uint256 tokenId) external nonReentrant {
-        Pool storage pool = _pool(poolId);
+    function join(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        Pool storage pool = _prepareJoin(poolId);
+        _join(poolId, pool, sourceChainId, collection, tokenId);
+    }
+
+    function joinBatch(uint256 poolId, NftRef[] calldata nfts) external nonReentrant {
+        if (nfts.length == 0 || nfts.length > MAX_POSITIONS) revert InvalidConfiguration();
+        Pool storage pool = _prepareJoin(poolId);
+        for (uint256 i; i < nfts.length; ++i) {
+            _join(poolId, pool, nfts[i].sourceChainId, nfts[i].collection, nfts[i].tokenId);
+        }
+    }
+
+    function _prepareJoin(uint256 poolId) private returns (Pool storage pool) {
+        pool = _pool(poolId);
         if (block.timestamp < pool.config.start || block.timestamp >= pool.config.end) revert UnavailablePool();
-        uint32 weight = pool.collectionWeights[collection];
-        if (weight == 0 || _ownerOf(collection, tokenId) != msg.sender) revert NotCurrentOwner();
         _checkpoint(poolId, pool);
-        bytes32 key = nftKey(SOURCE_CHAIN, collection, tokenId);
+    }
+
+    function _join(uint256 poolId, Pool storage pool, uint256 sourceChainId, address collection, uint256 tokenId) private {
+        uint32 weight = pool.collectionWeights[sourceChainId][collection];
+        if (weight == 0) revert NotCurrentOwner();
+        (address owner, uint64 expiry) = _qualifiedOwner(sourceChainId, collection, tokenId);
+        if (owner != msg.sender) revert NotCurrentOwner();
+        bytes32 key = nftKey(sourceChainId, collection, tokenId);
         Position storage position = pool.positions[key];
         if (position.seatOwner != address(0)) revert AlreadyEnrolled();
         if (pool.roster.length == MAX_POSITIONS || !_canSeat(pool, msg.sender)) revert NoSeatAvailable();
+        if (position.collection == address(0)) pool.enrollmentHistory.push(key);
+        position.sourceChainId = sourceChainId;
         position.collection = collection;
         position.tokenId = tokenId;
         position.weight = weight;
-        _attach(pool, position, msg.sender);
+        _attach(pool, position, msg.sender, expiry);
         pool.roster.push(key);
-        emit Joined(poolId, key, msg.sender, collection, tokenId);
+        emit Joined(poolId, key, msg.sender, sourceChainId, collection, tokenId);
     }
 
     /// @notice Owner transfers reconcile at checkpoints. Anyone may advance observation for a pool.
@@ -415,27 +475,29 @@ contract UniversalRewards is ReentrancyGuard {
         _checkpoint(poolId, pool);
     }
 
-    function claim(uint256 poolId, address collection, uint256 tokenId) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, collection, tokenId);
+    function claim(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
         for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
     }
 
     /// @notice A single-token claim stays useful if another reward token is paused.
-    function claimReward(uint256 poolId, address collection, uint256 tokenId, address rewardToken) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, collection, tokenId);
+    function claimReward(
+        uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId, address rewardToken
+    ) external nonReentrant {
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
         if (pool.rewards[rewardToken].cap == 0) revert InvalidToken();
         _pay(poolId, pool, key, rewardToken);
     }
 
-    function exit(uint256 poolId, address collection, uint256 tokenId) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, collection, tokenId);
+    function exit(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
         _leave(poolId, pool, key);
         for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
     }
 
     /// @notice Releases the seat if an ERC-20 transfer is blocked. Preserves all claims.
-    function leave(uint256 poolId, address collection, uint256 tokenId) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, collection, tokenId);
+    function leave(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
         _leave(poolId, pool, key);
     }
 
@@ -458,15 +520,31 @@ contract UniversalRewards is ReentrancyGuard {
         return pools[poolId];
     }
 
-    function _ownedPosition(uint256 poolId, address collection, uint256 tokenId)
+    function _ownedPosition(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId)
         private
         returns (Pool storage pool, bytes32 key)
     {
         pool = _pool(poolId);
-        key = nftKey(SOURCE_CHAIN, collection, tokenId);
-        if (pool.positions[key].collection != collection || collection == address(0)) revert NotEnrolled();
-        if (_ownerOf(collection, tokenId) != msg.sender) revert NotCurrentOwner();
+        key = nftKey(sourceChainId, collection, tokenId);
+        if (pool.positions[key].collection == address(0)) revert NotEnrolled();
+        (address owner,) = _qualifiedOwner(sourceChainId, collection, tokenId);
+        if (owner != msg.sender) revert NotCurrentOwner();
         _checkpoint(poolId, pool);
+    }
+
+    function _supportsCollection(uint256 sourceChainId, address collection) private view returns (bool) {
+        if (sourceChainId != SOURCE_CHAIN) {
+            return address(remoteVerifier) != address(0) && remoteVerifier.supportsSource(sourceChainId);
+        }
+        return _isErc721(collection);
+    }
+
+    function _qualifiedOwner(uint256 sourceChainId, address collection, uint256 tokenId)
+        private view returns (address owner, uint64 expiry)
+    {
+        if (sourceChainId == SOURCE_CHAIN) return (_ownerOf(collection, tokenId), 0);
+        if (address(remoteVerifier) == address(0)) return (address(0), 0);
+        return remoteVerifier.freshOwner(sourceChainId, collection, tokenId);
     }
 
     function _isErc721(address collection) private view returns (bool) {
@@ -555,7 +633,7 @@ contract UniversalRewards is ReentrancyGuard {
             uint256 newlyCommitted;
             for (uint256 j; j < pool.roster.length; ++j) {
                 bytes32 key = pool.roster[j];
-                uint256 share = emission * pool.positions[key].weight / pool.totalWeight;
+                uint256 share = _intervalShare(pool, reward, pool.positions[key], through, emission);
                 pool.credits[key][token] += share;
                 newlyCommitted += share;
             }
@@ -565,22 +643,35 @@ contract UniversalRewards is ReentrancyGuard {
         emit Checkpoint(poolId, through, pool.activeWallets, pool.totalWeight);
     }
 
+    function _intervalShare(
+        Pool storage pool, Reward storage reward, Position storage position, uint64 through, uint256 emission
+    ) private view returns (uint256) {
+        uint64 expiry = position.seatExpiry;
+        if (expiry != 0 && expiry < through) emission = _intervalEmission(pool, reward, expiry);
+        return emission * position.weight / pool.totalWeight;
+    }
+
     function _checkpoint(uint256 poolId, Pool storage pool) private {
         _settle(poolId, pool);
         if (block.timestamp >= pool.config.end) return;
         uint256 size = pool.roster.length;
         address[] memory owners = new address[](size);
+        uint64[] memory expiries = new uint64[](size);
         for (uint256 i; i < size; ++i) {
             Position storage position = pool.positions[pool.roster[i]];
-            owners[i] = _ownerOf(position.collection, position.tokenId);
-            if (owners[i] != position.seatOwner) _detach(pool, position);
+            (owners[i], expiries[i]) = _qualifiedOwner(position.sourceChainId, position.collection, position.tokenId);
+            if (owners[i] != position.seatOwner) {
+                _detach(pool, position);
+            } else if (expiries[i] != position.seatExpiry) {
+                position.seatExpiry = expiries[i];
+            }
         }
         uint256 remaining;
         for (uint256 i; i < size; ++i) {
             bytes32 key = pool.roster[i];
             Position storage position = pool.positions[key];
             if (position.seatOwner == address(0)) {
-                if (owners[i] != address(0) && _canSeat(pool, owners[i])) _attach(pool, position, owners[i]);
+                if (owners[i] != address(0) && _canSeat(pool, owners[i])) _attach(pool, position, owners[i], expiries[i]);
                 emit SeatChanged(poolId, key, position.seatOwner);
             }
             if (position.seatOwner != address(0)) {
@@ -596,16 +687,18 @@ contract UniversalRewards is ReentrancyGuard {
         return count < pool.config.maxNftsPerWallet && (count != 0 || pool.activeWallets < pool.config.maxWallets);
     }
 
-    function _attach(Pool storage pool, Position storage position, address owner) private {
+    function _attach(Pool storage pool, Position storage position, address owner, uint64 expiry) private {
         if (pool.seatsByWallet[owner]++ == 0) ++pool.activeWallets;
         pool.totalWeight += position.weight;
         position.seatOwner = owner;
+        position.seatExpiry = expiry;
     }
 
     function _detach(Pool storage pool, Position storage position) private {
         if (--pool.seatsByWallet[position.seatOwner] == 0) --pool.activeWallets;
         pool.totalWeight -= position.weight;
         position.seatOwner = address(0);
+        position.seatExpiry = 0;
     }
 
     function _leave(uint256 poolId, Pool storage pool, bytes32 key) private {
@@ -629,7 +722,8 @@ contract UniversalRewards is ReentrancyGuard {
         if (amount != 0) {
             // Revalidate after each previous reward token call in a multi-token payout.
             Position storage position = pool.positions[key];
-            if (_ownerOf(position.collection, position.tokenId) != msg.sender) revert NotCurrentOwner();
+            (address owner,) = _qualifiedOwner(position.sourceChainId, position.collection, position.tokenId);
+            if (owner != msg.sender) revert NotCurrentOwner();
             reward.inventory -= uint128(amount);
             _transferExact(token, msg.sender, amount);
             emit Claimed(poolId, key, token, msg.sender, amount);

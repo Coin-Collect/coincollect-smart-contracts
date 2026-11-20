@@ -4,7 +4,7 @@ const solc = require('solc')
 
 const root = path.resolve(__dirname, '..')
 
-function compile(entries = ['contracts/UniversalRewards.sol', 'contracts/RewardSwapAdapter.sol']) {
+function compile(entries = ['contracts/UniversalRewards.sol', 'contracts/RewardSwapAdapter.sol', 'contracts/FinalizedOwnershipVerifier.sol']) {
   const input = {
     language: 'Solidity',
     sources: Object.fromEntries(entries.map((file) => [file, { content: fs.readFileSync(path.join(root, file), 'utf8') }])),

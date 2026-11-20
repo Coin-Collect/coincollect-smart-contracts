@@ -81,7 +81,7 @@ before(async () => {
   secondary = await deploy(FixtureToken, 18)
   nft = await deploy(FixtureNft)
   rare = await deploy(FixtureNft)
-  ledger = await deploy(entries['contracts/UniversalRewards.sol'].UniversalRewards, accounts[0], treasury, [primary.address, secondary.address], constants.AddressZero, constants.AddressZero)
+  ledger = await deploy(entries['contracts/UniversalRewards.sol'].UniversalRewards, accounts[0], treasury, [primary.address, secondary.address], constants.AddressZero, constants.AddressZero, constants.AddressZero)
   for (const token of [primary, secondary]) {
     await mint(token, accounts[0], 10n ** 32n)
     await (await token.approve(ledger.address, constants.MaxUint256)).wait()
@@ -94,24 +94,24 @@ test('NFT stays in the wallet and transfers carry vested rewards, even after a p
   await mint(nft, accounts[1], 1)
   const pool = await makePool()
   await fund(pool, primary, 1000n)
-  await at(pool.start, () => ledger.connect(alice).join(pool.id, nft.address, 1, gas))
+  await at(pool.start, () => ledger.connect(alice).join(pool.id, nativeId, nft.address, 1, gas))
   assert.equal(await nft.ownerOf(1), accounts[1])
   assert.equal(await nft.getApproved(1), constants.AddressZero)
 
-  await at(pool.start + 20, () => ledger.connect(alice).claim(pool.id, nft.address, 1, gas))
+  await at(pool.start + 20, () => ledger.connect(alice).claim(pool.id, nativeId, nft.address, 1, gas))
   assert.equal(await walletBalance(primary, accounts[1]), 200n)
   await at(pool.start + 30, () => nft.connect(alice).transferFrom(accounts[1], accounts[2], 1))
   assert.equal(await claimable(pool, nft, 1), 100n)
-  await assert.rejects(ledger.connect(alice).callStatic.claim(pool.id, nft.address, 1))
+  await assert.rejects(ledger.connect(alice).callStatic.claim(pool.id, nativeId, nft.address, 1))
   await at(pool.start + 40, () => nft.connect(bob).transferFrom(accounts[2], accounts[3], 1))
-  await assert.rejects(ledger.connect(bob).callStatic.claim(pool.id, nft.address, 1))
+  await assert.rejects(ledger.connect(bob).callStatic.claim(pool.id, nativeId, nft.address, 1))
   const carolBefore = await walletBalance(primary, accounts[3])
-  await at(pool.start + 50, () => ledger.connect(carol).exit(pool.id, nft.address, 1, gas))
+  await at(pool.start + 50, () => ledger.connect(carol).exit(pool.id, nativeId, nft.address, 1, gas))
   assert.equal(await walletBalance(primary, accounts[3]) - carolBefore, 300n)
   assert.equal(await (await ledger.positionState(pool.id, await key(nft, 1))).seatOwner, constants.AddressZero)
   assert.equal(await nft.ownerOf(1), accounts[3])
 
-  await at(pool.start + 70, () => ledger.connect(carol).claim(pool.id, nft.address, 1, gas))
+  await at(pool.start + 70, () => ledger.connect(carol).claim(pool.id, nativeId, nft.address, 1, gas))
   assert.equal(await walletBalance(primary, accounts[3]) - carolBefore, 300n)
   assert.equal(await walletBalance(primary, accounts[1]), 200n)
 })
@@ -125,9 +125,9 @@ test('checkpoint applies distinct wallet threshold, mixed powers, partial entry,
   const pool = await makePool({ cap, secondCap, threshold: 2 })
   await fund(pool, primary, cap)
   await fund(pool, secondary, secondCap)
-  await at(pool.start, () => ledger.connect(alice).join(pool.id, nft.address, 2, gas))
-  await at(pool.start + 10, () => ledger.connect(alice).join(pool.id, rare.address, 3, gas))
-  await at(pool.start + 30, () => ledger.connect(bob).join(pool.id, nft.address, 4, gas))
+  await at(pool.start, () => ledger.connect(alice).join(pool.id, nativeId, nft.address, 2, gas))
+  await at(pool.start + 10, () => ledger.connect(alice).join(pool.id, nativeId, rare.address, 3, gas))
+  await at(pool.start + 30, () => ledger.connect(bob).join(pool.id, nativeId, nft.address, 4, gas))
   await at(pool.start + 50)
 
   assert.equal((await ledger.poolState(pool.id)).activeWallets, 2)
@@ -146,10 +146,10 @@ test('wallet and NFT caps are distinct and transfer invalidation leaves claimabl
   await mint(nft, accounts[3], 13)
   const pool = await makePool({ maxWallets: 2, maxNftsPerWallet: 1 })
   await fund(pool, primary, 1000n)
-  await at(pool.start, () => ledger.connect(alice).join(pool.id, nft.address, 10, gas))
-  await at(pool.start + 1, () => ledger.connect(bob).join(pool.id, nft.address, 11, gas))
-  await assert.rejects(ledger.connect(bob).callStatic.join(pool.id, nft.address, 12))
-  await assert.rejects(ledger.connect(carol).callStatic.join(pool.id, nft.address, 13))
+  await at(pool.start, () => ledger.connect(alice).join(pool.id, nativeId, nft.address, 10, gas))
+  await at(pool.start + 1, () => ledger.connect(bob).join(pool.id, nativeId, nft.address, 11, gas))
+  await assert.rejects(ledger.connect(bob).callStatic.join(pool.id, nativeId, nft.address, 12))
+  await assert.rejects(ledger.connect(carol).callStatic.join(pool.id, nativeId, nft.address, 13))
   await at(pool.start + 11, () => nft.connect(alice).transferFrom(accounts[1], accounts[2], 10))
   await at(pool.start + 12, () => ledger.checkpoint(pool.id, gas))
   const transferred = await ledger.positionState(pool.id, await key(nft, 10))
@@ -157,10 +157,10 @@ test('wallet and NFT caps are distinct and transfer invalidation leaves claimabl
   assert.equal((await ledger.poolState(pool.id)).activeWallets, 1)
   assert.equal(await claimable(pool, nft, 10), 65n)
   assert.equal(await claimable(pool, nft, 11), 55n)
-  await assert.rejects(ledger.connect(alice).callStatic.claim(pool.id, nft.address, 10))
-  await at(pool.start + 13, () => ledger.connect(carol).join(pool.id, nft.address, 13, gas))
+  await assert.rejects(ledger.connect(alice).callStatic.claim(pool.id, nativeId, nft.address, 10))
+  await at(pool.start + 13, () => ledger.connect(carol).join(pool.id, nativeId, nft.address, 13, gas))
   const balance = await walletBalance(primary, accounts[2])
-  await at(pool.start + 14, () => ledger.connect(bob).claim(pool.id, nft.address, 10, gas))
+  await at(pool.start + 14, () => ledger.connect(bob).claim(pool.id, nativeId, nft.address, 10, gas))
   assert.equal(await walletBalance(primary, accounts[2]) - balance, 65n)
 })
 
@@ -170,7 +170,7 @@ test('underfunding cannot retroactively earn and ended pools return only surplus
   const otherPool = await makePool()
   await fund(pool, primary, 50n)
   await fund(otherPool, primary, 80n)
-  await at(pool.start, () => ledger.connect(alice).join(pool.id, nft.address, 20, gas))
+  await at(pool.start, () => ledger.connect(alice).join(pool.id, nativeId, nft.address, 20, gas))
   await at(pool.start + 50, () => ledger.fundReward(pool.id, primary.address, 1000n, gas))
   assert.equal(await claimable(pool, nft, 20), 50n)
   await assert.rejects(ledger.callStatic.recoverSurplus(pool.id, primary.address))
@@ -185,8 +185,8 @@ test('underfunding cannot retroactively earn and ended pools return only surplus
   const aliceBefore = await walletBalance(primary, accounts[1])
   await at(pool.end + 45 * 86400, () => nft.connect(alice).transferFrom(accounts[1], accounts[2], 20))
   const bobBefore = await walletBalance(primary, accounts[2])
-  await assert.rejects(ledger.connect(alice).callStatic.exit(pool.id, nft.address, 20))
-  await (await ledger.connect(bob).exit(pool.id, nft.address, 20, gas)).wait()
+  await assert.rejects(ledger.connect(alice).callStatic.exit(pool.id, nativeId, nft.address, 20))
+  await (await ledger.connect(bob).exit(pool.id, nativeId, nft.address, 20, gas)).wait()
   assert.equal(await walletBalance(primary, accounts[2]) - bobBefore, 550n)
   assert.equal(await walletBalance(primary, accounts[1]), aliceBefore)
   assert.equal((await ledger.rewardState(pool.id, primary.address)).inventory.toBigInt(), 0n)
@@ -197,13 +197,13 @@ test('one blocked reward does not prevent the NFT owner from leaving and claimin
   const pool = await makePool({ secondCap: 3000n })
   await fund(pool, primary, 1000n)
   await fund(pool, secondary, 3000n)
-  await at(pool.start, () => ledger.connect(alice).join(pool.id, nft.address, 30, gas))
+  await at(pool.start, () => ledger.connect(alice).join(pool.id, nativeId, nft.address, 30, gas))
   await at(pool.start + 30, () => secondary.setTransfersBlocked(true))
-  await assert.rejects(ledger.connect(alice).callStatic.exit(pool.id, nft.address, 30))
-  await at(pool.start + 40, () => ledger.connect(alice).leave(pool.id, nft.address, 30, gas))
+  await assert.rejects(ledger.connect(alice).callStatic.exit(pool.id, nativeId, nft.address, 30))
+  await at(pool.start + 40, () => ledger.connect(alice).leave(pool.id, nativeId, nft.address, 30, gas))
   assert.equal(await claimable(pool, nft, 30), 400n)
   assert.equal(await claimable(pool, nft, 30, secondary), 1200n)
-  await at(pool.start + 50, () => ledger.connect(alice).claimReward(pool.id, nft.address, 30, primary.address, gas))
+  await at(pool.start + 50, () => ledger.connect(alice).claimReward(pool.id, nativeId, nft.address, 30, primary.address, gas))
   assert.equal(await claimable(pool, nft, 30), 0n)
   assert.equal(await claimable(pool, nft, 30, secondary), 1200n)
   await (await secondary.setTransfersBlocked(false)).wait()
@@ -259,12 +259,12 @@ test('tracked reserves conserve actual payouts across randomized transfers, join
       switch (pick(5)) {
         case 0:
           if (!active) {
-            await at(timestamp, () => signer.join(pool.id, collection.address, id, gas))
+            await at(timestamp, () => signer.join(pool.id, nativeId, collection.address, id, gas))
           }
           break
         case 1:
           if (active) {
-            await at(timestamp, () => signer.exit(pool.id, collection.address, id, gas))
+            await at(timestamp, () => signer.exit(pool.id, nativeId, collection.address, id, gas))
           }
           break
         case 2: {
@@ -300,7 +300,7 @@ test('tracked reserves conserve actual payouts across randomized transfers, join
     await at(pool.end + 1, () => ledger.checkpoint(pool.id, gas))
     for (const position of positions) {
       if ((await ledger.positionState(pool.id, position.key)).collection !== constants.AddressZero) {
-        await (await ledger.connect(users[position.walletIndex]).claim(pool.id, position.collection.address, position.id, gas)).wait()
+        await (await ledger.connect(users[position.walletIndex]).claim(pool.id, nativeId, position.collection.address, position.id, gas)).wait()
       }
     }
     for (const [index, token] of [primary, secondary].entries()) {
@@ -327,6 +327,7 @@ test('maximum roster settles four independent reward tokens within the measured 
     rewards.map((token) => token.address),
     constants.AddressZero,
     constants.AddressZero,
+    constants.AddressZero,
   )
   for (const token of rewards) {
     if (token === third || token === fourth) await mint(token, accounts[0], 10_000n)
@@ -341,9 +342,9 @@ test('maximum roster settles four independent reward tokens within the measured 
   )).wait()
   for (const token of rewards) await (await separateLedger.fundReward(1, token.address, 10_000n)).wait()
   for (let i = 0; i < 32; i++) {
-    await at(start + i + 1, () => separateLedger.connect(alice).join(1, nft.address, 200 + i, gas))
+    await at(start + i + 1, () => separateLedger.connect(alice).join(1, nativeId, nft.address, 200 + i, gas))
   }
-  await assert.rejects(separateLedger.connect(alice).callStatic.join(1, nft.address, 232))
+  await assert.rejects(separateLedger.connect(alice).callStatic.join(1, nativeId, nft.address, 232))
   const receipt = await at(start + 2000, () => separateLedger.checkpoint(1, gas))
   assert.equal((await separateLedger.poolState(1)).activeNfts.toNumber(), 32)
   assert.ok(receipt.gasUsed.toNumber() < 4_000_000)

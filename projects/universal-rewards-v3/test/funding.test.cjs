@@ -87,6 +87,7 @@ before(async () => {
     [wrapped.address, rewards.address],
     wrapped.address,
     swap.address,
+    constants.AddressZero,
   )
 })
 
@@ -146,7 +147,7 @@ test('bounded replenishment for native POL and two reward allocations is replay-
   assert.equal((await ledger.rewardState(poolId, rewards.address)).inventory.toBigInt(), executed.received.toBigInt())
 
   await transact(nft.mint(accounts[1], 1))
-  await transact(ledger.connect(executor).join(poolId, nft.address, 1, gas))
+  await transact(ledger.connect(executor).join(poolId, 137, nft.address, 1, gas))
   assert.ok((await now()) < end)
   const treasury = accounts[2]
   const [treasuryBefore] = await balances(wrapped, treasury)
@@ -155,7 +156,7 @@ test('bounded replenishment for native POL and two reward allocations is replay-
   assert.equal((await balances(wrapped, treasury))[0] - treasuryBefore, 900n * unit)
   assert.equal((await ledger.callStatic.recoverBudget(poolId)).toBigInt(), 0n)
   assert.equal((await ledger.callStatic.recoverSurplus(poolId, wrapped.address)).toBigInt(), 0n)
-  await transact(ledger.connect(executor).exit(poolId, nft.address, 1, gas))
+  await transact(ledger.connect(executor).exit(poolId, 137, nft.address, 1, gas))
   assert.equal((await balances(wrapped, accounts[1]))[0], 50n * unit)
   assert.equal((await balances(rewards, accounts[1]))[0], executed.received.toBigInt())
 })

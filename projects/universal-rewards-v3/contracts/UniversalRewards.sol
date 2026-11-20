@@ -28,6 +28,7 @@ contract UniversalRewards is ReentrancyGuard {
     uint256 public constant MIN_REPLENISH_INTERVAL = 15 minutes;
     uint256 public constant MAX_REPLENISH_INTERVAL = 30 days;
     uint256 public constant MAX_REPLENISH_DEADLINE = 5 minutes;
+    uint256 public constant CLAIM_PERIOD = 30 days;
 
     struct PoolConfig {
         uint64 start;
@@ -110,6 +111,7 @@ contract UniversalRewards is ReentrancyGuard {
         mapping(bytes32 => mapping(address => uint256)) credits;
         FundingPlan funding;
         mapping(address => FundingLane) lanes;
+        mapping(address => uint128) expiredRecovered;
     }
 
     error Unauthorized();
@@ -127,6 +129,8 @@ contract UniversalRewards is ReentrancyGuard {
     error InvalidFundingEpoch();
     error FundingUnavailable();
     error InvalidDeadline();
+    error ClaimPeriodEnded();
+    error ClaimPeriodOpen();
 
     event PoolCreated(uint256 indexed poolId, uint64 start, uint64 end, string metadataURI);
     event RewardFunded(uint256 indexed poolId, address indexed token, address indexed funder, uint256 amount);
@@ -142,6 +146,7 @@ contract UniversalRewards is ReentrancyGuard {
     event Checkpoint(uint256 indexed poolId, uint64 checkedUntil, uint8 activeWallets, uint64 totalWeight);
     event Claimed(uint256 indexed poolId, bytes32 indexed nft, address indexed token, address owner, uint256 amount);
     event SurplusRecovered(uint256 indexed poolId, address indexed token, uint256 amount);
+    event ExpiredRewardsRecovered(uint256 indexed poolId, address indexed token, uint256 amount);
     event FundingConfigured(uint256 indexed poolId, address indexed asset, uint128 budget, uint32 interval);
     event BudgetFunded(uint256 indexed poolId, address indexed asset, address indexed funder, uint256 amount);
     event FundingPaused(uint256 indexed poolId, bool paused);
@@ -281,6 +286,24 @@ contract UniversalRewards is ReentrancyGuard {
         return _pool(poolId).rewards[token];
     }
 
+    /// @notice Aggregate reserved credits in scaled units, including unsettled earnings.
+    /// Per-NFT payouts round down independently to whole ERC-20 base units.
+    function rewardSettlement(uint256 poolId, address token)
+        external view returns (uint256 claimLiability, uint128 expiredRecovered)
+    {
+        Pool storage pool = _pool(poolId);
+        Reward storage reward = pool.rewards[token];
+        expiredRecovered = pool.expiredRecovered[token];
+        if (_claimPeriodEnded(pool)) return (0, expiredRecovered);
+        claimLiability = reward.committed;
+        uint64 through = _through(pool);
+        uint256 emission = _intervalEmission(pool, reward, through);
+        if (emission == 0) return (claimLiability, expiredRecovered);
+        for (uint256 i; i < pool.roster.length; ++i) {
+            claimLiability += _intervalShare(pool, reward, pool.positions[pool.roster[i]], through, emission);
+        }
+    }
+
     function positionState(uint256 poolId, bytes32 key) external view returns (Position memory) {
         return _pool(poolId).positions[key];
     }
@@ -306,6 +329,7 @@ contract UniversalRewards is ReentrancyGuard {
     /// @notice Preview uses the last roster for elapsed time, just as the next checkpoint does.
     function claimable(uint256 poolId, bytes32 key, address token) external view returns (uint256) {
         Pool storage pool = _pool(poolId);
+        if (_claimPeriodEnded(pool)) return 0;
         uint256 credit = pool.credits[key][token];
         Position storage position = pool.positions[key];
         if (position.seatOwner != address(0)) {
@@ -512,7 +536,7 @@ contract UniversalRewards is ReentrancyGuard {
     }
 
     function claim(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
         for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
     }
 
@@ -520,29 +544,30 @@ contract UniversalRewards is ReentrancyGuard {
     function claimReward(
         uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId, address rewardToken
     ) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
         if (pool.rewards[rewardToken].cap == 0) revert InvalidToken();
         _pay(poolId, pool, key, rewardToken);
     }
 
     function exit(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
         _leave(poolId, pool, key);
         for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
     }
 
-    /// @notice Releases the seat if an ERC-20 transfer is blocked. Preserves all claims.
+    /// @notice Releases the seat without transferring rewards. Preserves any unexpired claims.
     function leave(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
-        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId);
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, false);
         _leave(poolId, pool, key);
     }
 
     function recoverSurplus(uint256 poolId, address token) external nonReentrant returns (uint256 amount) {
         Pool storage pool = _pool(poolId);
         if (block.timestamp < pool.config.end) revert PoolNotEnded();
-        _settle(poolId, pool);
         Reward storage reward = pool.rewards[token];
         if (reward.cap == 0) revert InvalidToken();
+        if (_claimPeriodEnded(pool)) return _recoverExpiredRewards(poolId, pool, reward, token);
+        _settle(poolId, pool);
         amount = _available(reward) / PRECISION;
         reward.inventory -= uint128(amount);
         if (amount != 0) {
@@ -551,16 +576,39 @@ contract UniversalRewards is ReentrancyGuard {
         }
     }
 
+    /// @notice Anyone may settle one expired reward token to the immutable treasury.
+    function recoverExpiredRewards(uint256 poolId, address token) external nonReentrant returns (uint256 amount) {
+        Pool storage pool = _pool(poolId);
+        if (!_claimPeriodEnded(pool)) revert ClaimPeriodOpen();
+        Reward storage reward = pool.rewards[token];
+        if (reward.cap == 0) revert InvalidToken();
+        return _recoverExpiredRewards(poolId, pool, reward, token);
+    }
+
+    function _recoverExpiredRewards(uint256 poolId, Pool storage pool, Reward storage reward, address token)
+        private returns (uint256 amount)
+    {
+        amount = reward.inventory;
+        reward.committed = 0;
+        if (amount != 0) {
+            reward.inventory = 0;
+            pool.expiredRecovered[token] = uint128(amount);
+            _transferExact(token, treasury, amount);
+            emit ExpiredRewardsRecovered(poolId, token, amount);
+        }
+    }
+
     function _pool(uint256 poolId) private view returns (Pool storage pool) {
         if (poolId == 0 || poolId > poolCount) revert UnavailablePool();
         return pools[poolId];
     }
 
-    function _ownedPosition(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId)
+    function _ownedPosition(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId, bool paysRewards)
         private
         returns (Pool storage pool, bytes32 key)
     {
         pool = _pool(poolId);
+        if (paysRewards && _claimPeriodEnded(pool)) revert ClaimPeriodEnded();
         key = nftKey(sourceChainId, collection, tokenId);
         if (pool.positions[key].collection == address(0)) revert NotEnrolled();
         (address owner,) = _qualifiedOwner(sourceChainId, collection, tokenId);
@@ -607,6 +655,10 @@ contract UniversalRewards is ReentrancyGuard {
 
     function _through(Pool storage pool) private view returns (uint64) {
         return block.timestamp < pool.config.end ? uint64(block.timestamp) : pool.config.end;
+    }
+
+    function _claimPeriodEnded(Pool storage pool) private view returns (bool) {
+        return block.timestamp >= uint256(pool.config.end) + CLAIM_PERIOD;
     }
 
     function _available(Reward storage reward) private view returns (uint256) {
@@ -661,6 +713,11 @@ contract UniversalRewards is ReentrancyGuard {
     function _settle(uint256 poolId, Pool storage pool) private {
         uint64 through = _through(pool);
         if (through <= pool.checkedUntil) return;
+        if (_claimPeriodEnded(pool)) {
+            pool.checkedUntil = through;
+            emit Checkpoint(poolId, through, pool.activeWallets, pool.totalWeight);
+            return;
+        }
         for (uint256 i; i < pool.rewardTokens.length; ++i) {
             address token = pool.rewardTokens[i];
             Reward storage reward = pool.rewards[token];

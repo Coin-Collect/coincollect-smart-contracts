@@ -5,6 +5,7 @@ const { compile } = require('../scripts/compile.cjs')
 const { startLocalAnvil } = require('../scripts/local-anvil.cjs')
 
 const PRECISION = 10n ** 18n
+const CLAIM_PERIOD = 30 * 86400
 const units = (value, decimals) => BigInt(value) * 10n ** BigInt(decimals)
 const gas = { gasLimit: 8_000_000 }
 const nativeId = 137
@@ -183,13 +184,69 @@ test('underfunding cannot retroactively earn and ended pools return only surplus
   assert.equal((await ledger.rewardState(otherPool.id, primary.address)).inventory.toBigInt(), 80n)
 
   const aliceBefore = await walletBalance(primary, accounts[1])
-  await at(pool.end + 45 * 86400, () => nft.connect(alice).transferFrom(accounts[1], accounts[2], 20))
+  await at(pool.end + 15 * 86400, () => nft.connect(alice).transferFrom(accounts[1], accounts[2], 20))
   const bobBefore = await walletBalance(primary, accounts[2])
   await assert.rejects(ledger.connect(alice).callStatic.exit(pool.id, nativeId, nft.address, 20))
-  await (await ledger.connect(bob).exit(pool.id, nativeId, nft.address, 20, gas)).wait()
+  const receipt = await at(pool.end + CLAIM_PERIOD - 1, () => ledger.connect(bob).exit(pool.id, nativeId, nft.address, 20, gas))
+  assert.equal((await chain.provider.getBlock(receipt.blockNumber)).timestamp, pool.end + CLAIM_PERIOD - 1)
   assert.equal(await walletBalance(primary, accounts[2]) - bobBefore, 550n)
   assert.equal(await walletBalance(primary, accounts[1]), aliceBefore)
   assert.equal((await ledger.rewardState(pool.id, primary.address)).inventory.toBigInt(), 0n)
+})
+
+test('the exact claim deadline closes all payouts and lets anyone settle each token independently', async () => {
+  assert.equal((await ledger.CLAIM_PERIOD()).toNumber(), CLAIM_PERIOD)
+  await mint(nft, accounts[1], 21)
+  await mint(nft, accounts[1], 22)
+  const pool = await makePool({ secondCap: 3001n })
+  const other = await makePool()
+  await fund(pool, primary, 70n)
+  await fund(pool, secondary, 3001n)
+  await fund(other, primary, 80n)
+  await at(pool.start, () => ledger.connect(alice).joinBatch(pool.id, [
+    [nativeId, nft.address, 21], [nativeId, nft.address, 22],
+  ], gas))
+  await at(pool.end - 1, () => secondary.setTransfersBlocked(true))
+
+  const deadline = pool.end + CLAIM_PERIOD
+  await at(deadline - 1)
+  const position = [pool.id, nativeId, nft.address, 21]
+  assert.equal(await claimable(pool, nft, 21), 35n)
+  const [liability] = await ledger.rewardSettlement(pool.id, secondary.address)
+  assert.equal(liability.toBigInt(), 3001n * PRECISION)
+  assert.equal(await claimable(pool, nft, 21, secondary), 1500n)
+  assert.equal(await claimable(pool, nft, 22, secondary), 1500n)
+  await ledger.connect(alice).callStatic.claimReward(...position, primary.address)
+  await assert.rejects(ledger.connect(carol).callStatic.recoverExpiredRewards(pool.id, primary.address),
+    { errorName: 'ClaimPeriodOpen' })
+
+  const primaryBefore = await walletBalance(primary, treasury)
+  await at(deadline, () => ledger.connect(carol).recoverExpiredRewards(pool.id, primary.address, gas))
+  assert.equal(await now(), deadline)
+  assert.equal(await walletBalance(primary, treasury) - primaryBefore, 70n)
+  assert.equal(await claimable(pool, nft, 21), 0n)
+  assert.equal(await claimable(pool, nft, 22, secondary), 0n)
+  assert.equal((await ledger.rewardSettlement(pool.id, secondary.address)).claimLiability.toBigInt(), 0n)
+  for (const [name, args] of [['claim', position], ['claimReward', [...position, primary.address]], ['exit', position]]) {
+    await assert.rejects(ledger.connect(alice).callStatic[name](...args), { errorName: 'ClaimPeriodEnded' })
+  }
+  assert.equal((await ledger.callStatic.recoverExpiredRewards(pool.id, primary.address)).toBigInt(), 0n)
+  assert.equal((await ledger.callStatic.recoverSurplus(pool.id, primary.address)).toBigInt(), 0n)
+  assert.equal((await ledger.rewardState(other.id, primary.address)).inventory.toBigInt(), 80n)
+
+  await assert.rejects(ledger.callStatic.recoverExpiredRewards(pool.id, secondary.address))
+  assert.equal((await ledger.rewardState(pool.id, secondary.address)).inventory.toBigInt(), 3001n)
+  assert.equal((await ledger.rewardSettlement(pool.id, secondary.address)).expiredRecovered.toBigInt(), 0n)
+  await (await ledger.connect(alice).leave(...position, gas)).wait()
+  await (await secondary.setTransfersBlocked(false)).wait()
+  const secondaryBefore = await walletBalance(secondary, treasury)
+  await (await ledger.connect(bob).recoverSurplus(pool.id, secondary.address, gas)).wait()
+  assert.equal(await walletBalance(secondary, treasury) - secondaryBefore, 3001n)
+  const settled = await ledger.rewardState(pool.id, secondary.address)
+  assert.equal(settled.inventory.toBigInt(), 0n)
+  assert.equal(settled.committed.toBigInt(), 0n)
+  assert.equal((await ledger.rewardSettlement(pool.id, secondary.address)).expiredRecovered.toBigInt(), 3001n)
+  assert.equal((await ledger.callStatic.recoverExpiredRewards(pool.id, secondary.address)).toBigInt(), 0n)
 })
 
 test('one blocked reward does not prevent the NFT owner from leaving and claiming independently', async () => {

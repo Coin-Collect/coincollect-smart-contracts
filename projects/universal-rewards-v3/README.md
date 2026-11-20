@@ -14,6 +14,8 @@ The ledger checks Polygon ERC-721 ownership on chain and leaves the NFT in its o
 
 A pool can take a single budget asset and allocate it across reward tokens. Native POL can enter through the configured wrapped asset. A same-asset allocation moves funds into the reward reserve directly. A cross-asset allocation uses an enabled adapter route. Each token can be replenished once per funding epoch when its conditions are met. The application or an operator can submit eligible replenishment transactions.
 
+Accrual ends at the pool's configured end time. The current NFT owner can claim until the settlement chain reaches `pool.end + 30 days`. At that exact timestamp, claims and reward-paying exits expire. Anyone can then call `recoverExpiredRewards` for each remaining reward token. Recovery pays the immutable treasury from the selected pool's inventory. It can be retried per token and returns zero after successful settlement. Before the deadline, `recoverSurplus` can recover only uncommitted rewards after the pool ends. Unspent funding retains its independent `recoverBudget` path.
+
 ## Install, compile and test
 
 Use Node.js 22, as configured in the repository's GitHub Actions workflow. From `projects/universal-rewards-v3`, run these commands. The workspace flag selects this project's own lockfile inside the repository.

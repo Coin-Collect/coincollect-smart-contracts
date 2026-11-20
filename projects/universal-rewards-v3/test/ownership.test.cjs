@@ -203,7 +203,7 @@ test('expiry stops remote earning and a fresh superior observation recovers the 
   assert.equal((await ledger.positionState(poolId, key)).seatOwner, constants.AddressZero)
   await assert.rejects(ledger.connect(alice).callStatic.claim(poolId, arbitrum, nft.address, tokenId))
 
-  await at(end + 45 * 86400)
+  await at(end + 15 * 86400)
   await publish(await observation({ sourceChainId: arbitrum, tokenId, owner: accounts[2], sourceBlock: 101 }))
   await assert.rejects(ledger.connect(alice).callStatic.claim(poolId, arbitrum, nft.address, tokenId))
   const balance = await reward.balanceOf(accounts[2])

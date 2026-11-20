@@ -37,8 +37,31 @@ contract FixtureToken is ERC20 {
         transfersBlocked = blocked;
     }
 
-    function _update(address from, address to, uint256 amount) internal override {
+    function _update(address from, address to, uint256 amount) internal virtual override {
         require(from == address(0) || !transfersBlocked, "fixture: transfers blocked");
+        super._update(from, to, amount);
+    }
+}
+
+contract FixtureCallbackToken is FixtureToken {
+    address private target;
+    bytes private operation;
+    bool public attempted;
+    bytes4 public refusal;
+
+    constructor() FixtureToken(6) {}
+
+    function configureCallback(address callTarget, bytes calldata callData) external {
+        target = callTarget;
+        operation = callData;
+    }
+
+    function _update(address from, address to, uint256 amount) internal override {
+        if (target != address(0) && from == target && !attempted) {
+            attempted = true;
+            (bool ok, bytes memory result) = target.call(operation);
+            if (!ok && result.length >= 4) refusal = bytes4(result);
+        }
         super._update(from, to, amount);
     }
 }

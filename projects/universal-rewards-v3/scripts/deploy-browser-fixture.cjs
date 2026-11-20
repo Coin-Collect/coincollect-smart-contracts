@@ -11,9 +11,10 @@ async function main() {
   provider.pollingInterval = 50
   if (await provider.send('eth_chainId', []) !== '0x7a69') throw new Error('The fixture requires chain 31337.')
   await provider.send('anvil_nodeInfo', [])
-  const [operator, participant, , treasury] = await provider.listAccounts()
+  const [operator, participant] = await provider.listAccounts()
+  const treasury = operator
   const signer = provider.getSigner(operator)
-  const compiled = compile(['contracts/UniversalRewards.sol', 'test/Fixtures.sol', 'test/SwapFixtures.sol'])
+  const compiled = compile(['contracts/UniversalRewards.sol', 'test/Fixtures.sol', 'test/SwapFixtures.sol', 'test/ScaleFixtures.sol'])
   const deploy = async (name, file, ...args) => {
     const artifact = compiled[file][name]
     const factory = new ContractFactory(artifact.abi, '0x' + artifact.evm.bytecode.object, signer)
@@ -23,12 +24,9 @@ async function main() {
   const wrapped = await deploy('FixtureWrapped', 'test/SwapFixtures.sol')
   const ledger = await deploy('UniversalRewards', 'contracts/UniversalRewards.sol',
     operator, treasury, [wrapped.address], wrapped.address, constants.AddressZero, constants.AddressZero)
-  let treasuryVault
-  if (process.env.COINCOLLECT_V31_FIXTURE === '1') {
-    const vault = await deploy('TreasuryVault', 'contracts/TreasuryVault.sol', ledger.address)
-    await (await ledger.connect(provider.getSigner(treasury)).attachTreasuryVault(vault.address)).wait()
-    treasuryVault = vault.address
-  }
+  const vault = await deploy('TreasuryVault', 'contracts/TreasuryVault.sol', ledger.address)
+  await (await ledger.attachTreasuryVault(vault.address)).wait()
+  const scaleFixture = await deploy('ScaleFixtures', 'test/ScaleFixtures.sol')
 
   await (await nft.mint(participant, 23)).wait()
   const now = (await provider.getBlock('latest')).timestamp
@@ -55,7 +53,9 @@ async function main() {
     operator,
     participant,
     treasury,
-    treasuryVault,
+    treasuryVault: vault.address,
+    scaleFixture: scaleFixture.address,
+    version: '3.2',
     poolId: 1,
     tokenId: 23,
     end: now + 18_030,

@@ -29,7 +29,8 @@ test('V3.1 acquires WPOL, COLLECT and SHIB with real pinned router code and a 10
   const { provider } = fork
   assert.equal(await provider.send('eth_chainId', []), '0x7a69')
   assert.equal((await provider.getBlock(block)).hash, '0x9cf4791f6b4aab715d03aa5f66ad39e40676b80f00620927c6ddc6827db63419')
-  const [operator, owner, user, executor] = await provider.listAccounts()
+  const [operator, , user, executor] = await provider.listAccounts()
+  const owner = operator
   const admin = provider.getSigner(operator)
   const treasurySigner = provider.getSigner(owner)
   const trader = provider.getSigner(executor)
@@ -99,6 +100,8 @@ test('V3.1 acquires WPOL, COLLECT and SHIB with real pinned router code and a 10
   )
   const vault = await deploy('contracts/TreasuryVault.sol', 'TreasuryVault', ledger.address)
   await send(ledger.connect(treasurySigner).attachTreasuryVault(vault.address))
+  await assert.rejects(vault.connect(trader).callStatic.withdraw(USDT, usd(1)))
+  await assert.rejects(planner.connect(trader).callStatic.setPaused(true))
   await send(stable.approve(vault.address, usd(10)))
   await send(vault.connect(treasurySigner).deposit(USDT, usd(10)))
   const start = (await now()) + 60

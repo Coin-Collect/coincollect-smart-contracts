@@ -183,7 +183,7 @@ test('three source identities share one pool, reward ledger and wallet caps', as
 
   // A Polygon transfer would be a third seat for Bob across the same shared pool.
   await at(start + 55, () => nft.connect(alice).transferFrom(accounts[1], accounts[2], tokenId))
-  await at(start + 56, () => ledger.checkpoint(poolId, gas))
+  await at(start + 56, () => ledger.reconcile(poolId, [localKey], gas))
   assert.equal((await ledger.positionState(poolId, localKey)).seatOwner, constants.AddressZero)
   assert.equal((await ledger.walletsNftCount(poolId, accounts[2])).toNumber(), 2)
   assert.equal((await ledger.poolState(poolId)).activeWallets, 1)

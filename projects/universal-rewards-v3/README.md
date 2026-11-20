@@ -2,9 +2,9 @@
 
 Universal Rewards V3 creates numbered NFT reward pools in a shared settlement contract on Polygon. V2 pools continue to use their existing contracts and custody rules.
 
-## V3.1 shared treasury and route selection
+## V3.2 unified admin and shared treasury
 
-V3.1 adds `TreasuryVault` and `RewardRoutePlanner`. The immutable treasury owner deposits ERC-20s or deposits native POL as WPOL. Only that owner can withdraw from the vault's recorded available balance. A different wallet operates the pool ledger. Creating a pool can reserve its lifetime budget atomically. Each allocation moves exact ERC-20 units into that pool's ledger balance and reduces the vault's available balance. The vault records outstanding allocations, purchase spend, returns and withdrawals independently. Purchased inventories and reserved NFT credits remain in the ledger per pool and token.
+V3.2 uses the CoinCollect admin wallet as both the pool administrator and immutable treasury owner. Use that address to govern the approved planner and route adapters as well. The admin deposits ERC-20s or native POL as WPOL and can withdraw the vault's recorded available balance. The automation executor has its own gas-only wallet without administrative authority. Creating a pool can reserve its lifetime budget atomically. Each allocation moves exact ERC-20 units into that pool's ledger balance and reduces the vault's available balance. The vault records outstanding allocations, purchase spend, returns and withdrawals independently. Purchased inventories and reserved NFT credits remain in the ledger per pool and token.
 
 Allocations remain locked until the pool ends. The ledger can return unspent funding then, and expired claims at the existing 30-day deadline. The vault can pause new deposits, withdrawals, allocations and purchases while claims and returns remain available. Only use explicit deposits. An unsolicited transfer to the vault does not create a spendable accounting balance. Directly funded V3 pools retain their original payout and recovery paths.
 
@@ -20,9 +20,9 @@ The first 30-day tranches used about 384–393k gas for WPOL, 623k for COLLECT a
 
 ### Versioned deployment and operations
 
-For a disposable isolated environment, set `COINCOLLECT_V31_FIXTURE=1` when running `scripts/deploy-browser-fixture.cjs`. The output includes the new ledger hash and vault address. The Polygon fork tests build a second fixture using real router and token state. Both setups verify a loopback Anvil before writes.
+For a disposable isolated environment, run `scripts/deploy-browser-fixture.cjs`. Its V3.2 manifest includes the ledger runtime hash, attached vault and scale-test seeder. The Polygon fork tests build a second fixture using real router and token state. Both setups verify a loopback Anvil before writes.
 
-An authorized rollout would need new contract addresses. First assign distinct treasury, pool operator, route governance and gas executor identities. Deploy the reviewed adapters and planner, verify route and token configuration, deploy the new ledger, deploy its vault and have the treasury owner attach it once. Verify the chain and runtime hash before changing the frontend configuration. Legacy pools stay on their original ledger. Production configuration and third-party security review are separate release requirements.
+An authorized rollout would need new contract addresses. Use the reviewed CoinCollect admin address for the treasury, ledger administration and governance of the adapters and planner. Use a dedicated gas-only executor. Deploy the reviewed adapters and planner, verify route and token configuration, deploy the new ledger, deploy its vault and have the admin attach it once. Verify the chain and runtime hash before changing the frontend configuration. Legacy pools stay on their original ledger. Production configuration and third-party security review are separate release requirements.
 
 Pause the vault to stop new treasury exposure, and pause a planner or leaf adapter to block suspect swaps. Users can continue claiming under the existing deadline. For settlement, call `recoverBudget` after a pool ends and `recoverExpiredRewards` per token after the claim deadline. A blocked token can be retried independently. Trusted operators still choose NFT collections and pool budgets. TWAPs can be distorted in weak markets, and slippage guards reduce rather than eliminate MEV exposure.
 
@@ -34,7 +34,11 @@ Pause the vault to stop new treasury exposure, and pause a planner or leaf adapt
 | `RewardSwapAdapter` | Executes exact-input replenishment swaps on configured direct pairs. It verifies router and pair code, reserve bounds, cumulative-price observations, minimum output, and deadlines. |
 | `FinalizedOwnershipVerifier` | Accepts a configured quorum of distinct EIP-712 witnesses for finalized remote ERC-721 ownership. The verifier and the ledger integration are restricted to local chain 31337. |
 
-The ledger checks Polygon ERC-721 ownership on chain and leaves the NFT in its owner's wallet. Accrued rewards follow the NFT's current owner. A checkpoint settles the preceding interval for the last verified roster before reconciling owners for the next interval. A transfer can therefore take until the next checkpoint to affect future accrual. Each reward token has a separate cap and funded reserve.
+The ledger checks Polygon ERC-721 ownership on chain and leaves the NFT in its owner's wallet. Accrued rewards follow the NFT's current owner. Each reward token has its own cumulative reward-per-weight index, cap and funded reserve. At a checkpoint the ledger applies the existing distinct-wallet threshold and available-inventory limit, divides the interval emission by total NFT power, and reserves the index increment multiplied by total power. Each NFT realizes its weighted index change when touched. Division truncates fewer than `totalWeight` scaled subunits per token per checkpoint. Payouts round down to whole ERC-20 base units. Polygon checkpoints never read the list of active NFTs.
+
+Eligibility and payouts check the NFT's current owner in the transaction. Transfers update observed wallet counts once the affected position is reconciled. Anyone can submit up to 32 position keys per reconciliation. Keys are processed in order, releasing their old seats and checking the receiving wallet's limits before admitting them. A position dropped by a cap can re-enroll if eligible, with its vested rewards attached to its NFT identity. The ledger exposes paginated pool and wallet history and constant-time counts of recorded seats. The 65,535-position encoding limit is distinct from the largest benchmarked pool.
+
+Isolated remote seats retain a separate 32-seat bound. A checkpoint advances to each due proof expiry before dropping the seat and applying the updated weight and wallet threshold for the subsequent interval. Preview reads can conservatively stop at the earliest overdue proof until a checkpoint catches up. The production Polygon build cannot enable the remote verifier.
 
 A pool can take a single budget asset and allocate it across reward tokens. Native POL can enter through the configured wrapped asset. A same-asset allocation moves funds into the reward reserve directly. A cross-asset allocation uses an enabled adapter route. Each token can be replenished once per funding epoch when its conditions are met. The application or an operator can submit eligible replenishment transactions.
 
@@ -61,9 +65,20 @@ npm run --workspaces=false inspect:polygon-market -- 97638790
 
 The fork reads from an HTTPS Polygon archive RPC and executes transactions on a disposable loopback Anvil with chain ID 31337. Market inspection only reads Polygon. If the default endpoint cannot serve the pinned block, set `COINCOLLECT_V3_POLYGON_RPC` to an archive-capable endpoint. The other optional variables are documented in [`.env.example`](.env.example). Export values in your shell or load a local file explicitly, for example `node --env-file=.env --test scripts/polygon-fork.cjs`. The workflow's manually triggered fork test can read the archive URL from a GitHub Actions secret.
 
+### V3.2 gas measurements
+
+Run `node --test test/scalability.test.cjs` to reproduce the measurements on isolated Anvil. The benchmark uses one pool, four reward tokens and two NFT weights, with eight positions per wallet. Each row measures a single additional position, including claiming all four rewards and settling one expired reward token. The different initialization cost in the first row comes from creating index and payout storage.
+
+| Active NFTs | Join | Checkpoint, four rewards | Reconcile one NFT | Claim | Exit | Settle one token |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 32 | 582,427 | 110,264 | 367,557 | 365,481 | 302,986 | 94,862 |
+| 128 | 428,527 | 110,264 | 350,457 | 297,081 | 302,986 | 94,862 |
+| 512 | 427,863 | 109,600 | 349,793 | 296,417 | 302,322 | 94,862 |
+| 1,024 | 427,863 | 109,600 | 349,793 | 296,417 | 302,322 | 94,862 |
+
 ## Frontend ABI
 
-Export the three TypeScript ABIs and compare them against the frontend's `pool-management` checkout. From this directory, with both repositories cloned into the same parent directory, run:
+Export the TypeScript ABIs and compare them against the frontend's `pool-management` checkout. From this directory, with both repositories cloned into the same parent directory, run:
 
 ```sh
 abi_dir=$(mktemp -d)

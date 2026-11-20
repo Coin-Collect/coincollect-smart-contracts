@@ -2,6 +2,10 @@
 
 Universal Rewards V3 creates numbered NFT reward pools in a shared settlement contract on Polygon. V2 pools continue to use their existing contracts and custody rules.
 
+## V3.5 Polygon release candidate
+
+See the [audit package and compatibility matrix](V3.5.md), [release manifest](release-manifest.json) and [deployment and incident runbook](V3.5-operations.md).
+
 ## V3.4 compatibility and hardening
 
 The [V3.4 operating report](V3.4.md) covers the supported collection model, transfer failure behavior, source reconciliation, measured gas and isolated deployment gates.
@@ -71,7 +75,7 @@ npm run --workspaces=false test:polygon-fork
 npm run --workspaces=false inspect:polygon-market -- 97638790
 ```
 
-The fork reads from an HTTPS Polygon archive RPC and executes transactions on a disposable loopback Anvil with chain ID 31337. Market inspection only reads Polygon. If the default endpoint cannot serve the pinned block, set `COINCOLLECT_V3_POLYGON_RPC` to an archive-capable endpoint. The other optional variables are documented in [`.env.example`](.env.example). Export values in your shell or load a local file explicitly, for example `node --env-file=.env --test scripts/polygon-fork.cjs`. The workflow's manually triggered fork test can read the archive URL from a GitHub Actions secret.
+The fork reads from an HTTPS Polygon archive RPC and executes transactions on a disposable loopback Anvil with chain ID 31337. Market inspection only reads Polygon. If the default endpoint cannot serve the pinned block, set `COINCOLLECT_V3_POLYGON_RPC` to an archive-capable endpoint. The other optional variables are documented in [`.env.example`](.env.example). Export values in your shell or load a local file explicitly, for example `node --env-file=.env --test scripts/polygon-fork.cjs`. The required fork workflow can read the archive URL from a GitHub Actions secret.
 
 ### V3.2 gas measurements
 

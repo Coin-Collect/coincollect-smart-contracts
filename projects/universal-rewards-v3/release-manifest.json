@@ -1,0 +1,804 @@
+{
+  "release": "3.5-rc",
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "chainId": 137,
+  "packageLockSha256": "29b5344c0eff0716f6a38f8d2ed2ce9c5c1bd139efc3edf9db4608c7a4fba5a6",
+  "standardInputSha256": "d4a8549e6b7de37f7624fdd8060d193bff83437b60e955fffeaeb95a425e067d",
+  "contracts": [
+    {
+      "name": "ManagedRewardPositions",
+      "source": "contracts/ManagedRewardPositions.sol",
+      "artifact": "contracts/ManagedRewardPositions.json",
+      "tier": "polygon",
+      "artifactSha256": "90331afcecd8d4827e036ee362cf86d75af1a6c0eafaafd370622ee58e6c8e85",
+      "abiSha256": "0f752106da2e5e8a0bbdb9e13bf26a5a0fd1c58ccbd956d405739b96ece7fa0e",
+      "creationTemplateSha256": "95bb7b7f5553ded14698a44c6355d4e313d2b99b20d3e229783282b65d9ff9a2",
+      "runtimeTemplateSha256": "8ebda6cf3c7ac634ff8c1dca3e1abca0ed515852d790d13715160eb83c4bc02d",
+      "runtimeBytes": 3563,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "library_deploy_address": [
+          {
+            "length": 32,
+            "start": 621
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardSwapAdapter",
+      "source": "contracts/RewardSwapAdapter.sol",
+      "artifact": "contracts/RewardSwapAdapter.json",
+      "tier": "polygon",
+      "artifactSha256": "424a1e2a48292ad50c2119de2d35ec051fba8db36add9f6f82b8b36abcaa17a8",
+      "abiSha256": "5f64e342b29e89bf19815efea4147c977c17e3b2f616feaa5137e3d605167fdb",
+      "creationTemplateSha256": "a64b9ce146930babc1cc81831b2d154a4fd6fb682a68bc8a58e7655f58ad63a7",
+      "runtimeTemplateSha256": "f9a1834dcb3984df50fcf890b9220b8444e87228c8a43613dbf4937b1c5183ca",
+      "runtimeBytes": 6593,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "12681": [
+          {
+            "length": 32,
+            "start": 346
+          },
+          {
+            "length": 32,
+            "start": 3066
+          },
+          {
+            "length": 32,
+            "start": 4075
+          }
+        ],
+        "12684": [
+          {
+            "length": 32,
+            "start": 272
+          },
+          {
+            "length": 32,
+            "start": 723
+          },
+          {
+            "length": 32,
+            "start": 5059
+          }
+        ],
+        "12687": [
+          {
+            "length": 32,
+            "start": 2667
+          },
+          {
+            "length": 32,
+            "start": 3730
+          },
+          {
+            "length": 32,
+            "start": 3882
+          },
+          {
+            "length": 32,
+            "start": 5888
+          }
+        ],
+        "12689": [
+          {
+            "length": 32,
+            "start": 1792
+          }
+        ],
+        "12691": [
+          {
+            "length": 32,
+            "start": 2738
+          },
+          {
+            "length": 32,
+            "start": 5104
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardRoutePlanner",
+      "source": "contracts/RewardRoutePlanner.sol",
+      "artifact": "contracts/RewardRoutePlanner.json",
+      "tier": "polygon",
+      "artifactSha256": "d654ab2ec65b90d3db459a8413971458df93506f7a92c0337bb92b256a0ca47e",
+      "abiSha256": "058c9706a20182d44d7982744389c51be7305af8c1832de92170b320f9095580",
+      "creationTemplateSha256": "e595c08193c78a29f23bbbe5f62cd89e66f23721d462171fae4bce5d32074e09",
+      "runtimeTemplateSha256": "85fc2f26e95bf936311b31d3dbd2c496e88ac1715c60d77abf62be966d85d5ff",
+      "runtimeBytes": 8186,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "11353": [
+          {
+            "length": 32,
+            "start": 2089
+          },
+          {
+            "length": 32,
+            "start": 2294
+          },
+          {
+            "length": 32,
+            "start": 2886
+          },
+          {
+            "length": 32,
+            "start": 3300
+          },
+          {
+            "length": 32,
+            "start": 4029
+          }
+        ],
+        "11355": [
+          {
+            "length": 32,
+            "start": 2756
+          },
+          {
+            "length": 32,
+            "start": 3508
+          }
+        ]
+      }
+    },
+    {
+      "name": "UniversalRewardsV33",
+      "source": "contracts/UniversalRewardsV33.sol",
+      "artifact": "contracts/UniversalRewardsV33.json",
+      "tier": "polygon",
+      "artifactSha256": "f280410e9fbb66815324cf9115483fc3aaead8a85907e4f17320ba3273912d27",
+      "abiSha256": "9bd14e807fd3ad62f41b6db478aa5b0216234d622715c64ae0e12892e58db64b",
+      "creationTemplateSha256": "748297233e921af615b392362a15cb8d7467a1329e36a5912622c940da5fcd78",
+      "runtimeTemplateSha256": "ad0b3b435f8d701989fc8c3bb910f4aae0b54205c671efa64373f2e5efbd8c89",
+      "runtimeBytes": 24206,
+      "runtimeLinkReferences": {
+        "contracts/ManagedRewardPositions.sol": {
+          "ManagedRewardPositions": [
+            {
+              "length": 20,
+              "start": 6009
+            },
+            {
+              "length": 20,
+              "start": 9192
+            }
+          ]
+        }
+      },
+      "immutableReferences": {
+        "14700": [
+          {
+            "length": 32,
+            "start": 898
+          },
+          {
+            "length": 32,
+            "start": 3470
+          },
+          {
+            "length": 32,
+            "start": 5288
+          },
+          {
+            "length": 32,
+            "start": 6423
+          },
+          {
+            "length": 32,
+            "start": 8804
+          },
+          {
+            "length": 32,
+            "start": 9118
+          },
+          {
+            "length": 32,
+            "start": 10732
+          },
+          {
+            "length": 32,
+            "start": 11111
+          }
+        ],
+        "14702": [
+          {
+            "length": 32,
+            "start": 3755
+          },
+          {
+            "length": 32,
+            "start": 7752
+          },
+          {
+            "length": 32,
+            "start": 8890
+          },
+          {
+            "length": 32,
+            "start": 14572
+          }
+        ],
+        "14704": [
+          {
+            "length": 32,
+            "start": 1191
+          },
+          {
+            "length": 32,
+            "start": 3959
+          },
+          {
+            "length": 32,
+            "start": 10191
+          },
+          {
+            "length": 32,
+            "start": 10314
+          }
+        ],
+        "14707": [
+          {
+            "length": 32,
+            "start": 2163
+          },
+          {
+            "length": 32,
+            "start": 7831
+          },
+          {
+            "length": 32,
+            "start": 17095
+          }
+        ],
+        "14710": [
+          {
+            "length": 32,
+            "start": 8598
+          },
+          {
+            "length": 32,
+            "start": 23996
+          }
+        ]
+      }
+    },
+    {
+      "name": "TreasuryVault",
+      "source": "contracts/TreasuryVault.sol",
+      "artifact": "contracts/TreasuryVault.json",
+      "tier": "polygon",
+      "artifactSha256": "4ae3a44d547e12ce3eca1428b21426ddb98ed7f711afd1cefd01a5643ee580b8",
+      "abiSha256": "74a1cc21ebe11e527f748b63b03f6cd59adc836ecc48e11e6dbb85d299679858",
+      "creationTemplateSha256": "cf702541927cc971c20d0288a4c16484d4aa9d78188bc190f2088dc289f296b1",
+      "runtimeTemplateSha256": "d1911d17bddc978231bcc448f3bfcf6aa1547536d0e71a61f1bf3f5450863006",
+      "runtimeBytes": 3529,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "13785": [
+          {
+            "length": 32,
+            "start": 824
+          },
+          {
+            "length": 32,
+            "start": 1106
+          },
+          {
+            "length": 32,
+            "start": 1293
+          },
+          {
+            "length": 32,
+            "start": 1474
+          },
+          {
+            "length": 32,
+            "start": 2268
+          }
+        ],
+        "13787": [
+          {
+            "length": 32,
+            "start": 184
+          },
+          {
+            "length": 32,
+            "start": 757
+          },
+          {
+            "length": 32,
+            "start": 1366
+          },
+          {
+            "length": 32,
+            "start": 2498
+          }
+        ],
+        "13789": [
+          {
+            "length": 32,
+            "start": 457
+          },
+          {
+            "length": 32,
+            "start": 1889
+          }
+        ]
+      }
+    },
+    {
+      "name": "ManagedNftCollection",
+      "source": "contracts/ManagedNftCollection.sol",
+      "artifact": "contracts/ManagedNftCollection.json",
+      "tier": "polygon",
+      "artifactSha256": "b93f4e55fed0f52be9bc7cff030a4ddcd35b37e0884a878e73c5cb220291c49f",
+      "abiSha256": "cc84455711738ac3f30abbfeb3ff8f5778ff925de89534fa5341a427d2f8bd82",
+      "creationTemplateSha256": "c89aaa4fae4708a1676266dfbd3d4b6892e63c0f288ed3a4d36c6fe0b0668dcd",
+      "runtimeTemplateSha256": "e499a947355c4c4aee524037a14353f1356fb826b0a8432cd56a4b9ee743c066",
+      "runtimeBytes": 9882,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "8735": [
+          {
+            "length": 32,
+            "start": 528
+          },
+          {
+            "length": 32,
+            "start": 770
+          },
+          {
+            "length": 32,
+            "start": 3203
+          },
+          {
+            "length": 32,
+            "start": 3348
+          },
+          {
+            "length": 32,
+            "start": 4561
+          },
+          {
+            "length": 32,
+            "start": 7233
+          },
+          {
+            "length": 32,
+            "start": 8140
+          },
+          {
+            "length": 32,
+            "start": 9381
+          }
+        ],
+        "8737": [
+          {
+            "length": 32,
+            "start": 2299
+          },
+          {
+            "length": 32,
+            "start": 3891
+          },
+          {
+            "length": 32,
+            "start": 5626
+          },
+          {
+            "length": 32,
+            "start": 5916
+          },
+          {
+            "length": 32,
+            "start": 6133
+          }
+        ],
+        "8739": [
+          {
+            "length": 32,
+            "start": 1851
+          },
+          {
+            "length": 32,
+            "start": 1997
+          },
+          {
+            "length": 32,
+            "start": 2345
+          },
+          {
+            "length": 32,
+            "start": 2436
+          },
+          {
+            "length": 32,
+            "start": 4079
+          },
+          {
+            "length": 32,
+            "start": 5736
+          },
+          {
+            "length": 32,
+            "start": 6198
+          },
+          {
+            "length": 32,
+            "start": 6315
+          }
+        ],
+        "8741": [
+          {
+            "length": 32,
+            "start": 3145
+          }
+        ],
+        "8743": [
+          {
+            "length": 32,
+            "start": 3742
+          },
+          {
+            "length": 32,
+            "start": 4965
+          },
+          {
+            "length": 32,
+            "start": 6419
+          }
+        ],
+        "8745": [
+          {
+            "length": 32,
+            "start": 391
+          },
+          {
+            "length": 32,
+            "start": 2948
+          },
+          {
+            "length": 32,
+            "start": 5999
+          }
+        ],
+        "8747": [
+          {
+            "length": 32,
+            "start": 2379
+          },
+          {
+            "length": 32,
+            "start": 5023
+          },
+          {
+            "length": 32,
+            "start": 6349
+          }
+        ],
+        "8749": [
+          {
+            "length": 32,
+            "start": 857
+          },
+          {
+            "length": 32,
+            "start": 7721
+          },
+          {
+            "length": 32,
+            "start": 9093
+          }
+        ]
+      }
+    },
+    {
+      "name": "FinalizedNftJournal",
+      "source": "contracts/FinalizedNftJournal.sol",
+      "artifact": "contracts/FinalizedNftJournal.json",
+      "tier": "isolated",
+      "artifactSha256": "ee563ece7fdcf2ff37f3c49e20226766e5174967309e5f95f59cac911ad451ad",
+      "abiSha256": "5760ab0c27bbc8c5ec993b79d00e30b4cf863d3c16cb196418b80f3dfe5f3c5a",
+      "creationTemplateSha256": "f73b962b5af26a240ee4b2b5c9387816b87f179b1531279b9335acc93badf717",
+      "runtimeTemplateSha256": "835cac3b27b9399dc34082315dae94be42196016318489c269ec25cb0cf80c9e",
+      "runtimeBytes": 6618,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "3129": [
+          {
+            "length": 32,
+            "start": 5500
+          }
+        ],
+        "3131": [
+          {
+            "length": 32,
+            "start": 5689
+          }
+        ],
+        "3133": [
+          {
+            "length": 32,
+            "start": 5446
+          }
+        ],
+        "3135": [
+          {
+            "length": 32,
+            "start": 5579
+          }
+        ],
+        "3137": [
+          {
+            "length": 32,
+            "start": 5617
+          }
+        ],
+        "3140": [
+          {
+            "length": 32,
+            "start": 950
+          }
+        ],
+        "3143": [
+          {
+            "length": 32,
+            "start": 991
+          }
+        ],
+        "7258": [
+          {
+            "length": 32,
+            "start": 320
+          },
+          {
+            "length": 32,
+            "start": 416
+          },
+          {
+            "length": 32,
+            "start": 786
+          }
+        ],
+        "7260": [
+          {
+            "length": 32,
+            "start": 2108
+          },
+          {
+            "length": 32,
+            "start": 4667
+          }
+        ]
+      }
+    },
+    {
+      "name": "NftSourceJournal",
+      "source": "contracts/NftSourceJournal.sol",
+      "artifact": "contracts/NftSourceJournal.json",
+      "tier": "isolated",
+      "artifactSha256": "ea1d062f20b3e0f82a05d07e6ee9eb35150b7a57b353573d40df3fde76c7fae8",
+      "abiSha256": "9895da5d48814c0a4a2489621678fb8fa5bc433c247bd6182c1d1413ce77139b",
+      "creationTemplateSha256": "e9e37205101aed7c45df029ff86325bc8dae181e24f40dd630fb1446a848b870",
+      "runtimeTemplateSha256": "792dc01ad62eff37eb0635c560ff50af01f2b8adfed3c0f3614b3851f5f18a1d",
+      "runtimeBytes": 1523,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "11035": [
+          {
+            "length": 32,
+            "start": 236
+          },
+          {
+            "length": 32,
+            "start": 493
+          },
+          {
+            "length": 32,
+            "start": 704
+          },
+          {
+            "length": 32,
+            "start": 1045
+          }
+        ],
+        "11037": [
+          {
+            "length": 32,
+            "start": 119
+          }
+        ],
+        "11039": [
+          {
+            "length": 32,
+            "start": 627
+          },
+          {
+            "length": 32,
+            "start": 1287
+          }
+        ]
+      }
+    },
+    {
+      "name": "FinalizedOwnershipVerifier",
+      "source": "contracts/FinalizedOwnershipVerifier.sol",
+      "artifact": "contracts/FinalizedOwnershipVerifier.json",
+      "tier": "isolated",
+      "artifactSha256": "2535b9f78f689096d3aed5582e91df18e372bc3f5c4a61ed7d857858d1489f84",
+      "abiSha256": "e0fc0fef6120f109c2bdcf244ec53333f04c18c9e8f71b6c7d3a293c2d76502e",
+      "creationTemplateSha256": "d3bcf3fc9715ca6cdec9847643cdecea0f61ec6d910431c3d131ff740422c7ef",
+      "runtimeTemplateSha256": "e0704ea1b6fa1f0e374c8484dea2afb654b4deab47a80c0aff609a48505739ae",
+      "runtimeBytes": 4258,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "3129": [
+          {
+            "length": 32,
+            "start": 3638
+          }
+        ],
+        "3131": [
+          {
+            "length": 32,
+            "start": 3821
+          }
+        ],
+        "3133": [
+          {
+            "length": 32,
+            "start": 3584
+          }
+        ],
+        "3135": [
+          {
+            "length": 32,
+            "start": 3717
+          }
+        ],
+        "3137": [
+          {
+            "length": 32,
+            "start": 3755
+          }
+        ],
+        "3140": [
+          {
+            "length": 32,
+            "start": 1970
+          }
+        ],
+        "3143": [
+          {
+            "length": 32,
+            "start": 2011
+          }
+        ],
+        "8129": [
+          {
+            "length": 32,
+            "start": 929
+          },
+          {
+            "length": 32,
+            "start": 2508
+          }
+        ]
+      }
+    },
+    {
+      "name": "UniversalRewards",
+      "source": "contracts/UniversalRewards.sol",
+      "artifact": "contracts/UniversalRewards.json",
+      "tier": "legacy",
+      "artifactSha256": "32763caf88063e91a7ce2293e9774bf4f42cb91c45560d30f91597baa0b6d9bc",
+      "abiSha256": "7273f42700e08968bc4e9be6ddb531daef08438ada9d293d0957d03b531fcc28",
+      "creationTemplateSha256": "b807f7564bbc10f744b8b5b09fd6def8e9041912fe6bbe73d51e91c121cd75c5",
+      "runtimeTemplateSha256": "7109a7c80f6d58cd4a9abbd13e0b94dd4f4f6b309663b6561db0b4e09eabf029",
+      "runtimeBytes": 23456,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "14700": [
+          {
+            "length": 32,
+            "start": 843
+          },
+          {
+            "length": 32,
+            "start": 3343
+          },
+          {
+            "length": 32,
+            "start": 5102
+          },
+          {
+            "length": 32,
+            "start": 5773
+          },
+          {
+            "length": 32,
+            "start": 8094
+          },
+          {
+            "length": 32,
+            "start": 9733
+          },
+          {
+            "length": 32,
+            "start": 10112
+          }
+        ],
+        "14702": [
+          {
+            "length": 32,
+            "start": 3540
+          },
+          {
+            "length": 32,
+            "start": 7102
+          },
+          {
+            "length": 32,
+            "start": 8180
+          },
+          {
+            "length": 32,
+            "start": 13586
+          }
+        ],
+        "14704": [
+          {
+            "length": 32,
+            "start": 1136
+          },
+          {
+            "length": 32,
+            "start": 3744
+          },
+          {
+            "length": 32,
+            "start": 9192
+          },
+          {
+            "length": 32,
+            "start": 9315
+          }
+        ],
+        "14707": [
+          {
+            "length": 32,
+            "start": 2099
+          },
+          {
+            "length": 32,
+            "start": 7181
+          },
+          {
+            "length": 32,
+            "start": 16039
+          }
+        ],
+        "14710": [
+          {
+            "length": 32,
+            "start": 7885
+          },
+          {
+            "length": 32,
+            "start": 18692
+          },
+          {
+            "length": 32,
+            "start": 21060
+          }
+        ]
+      }
+    }
+  ]
+}

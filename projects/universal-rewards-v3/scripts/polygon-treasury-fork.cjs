@@ -1,3 +1,5 @@
+const fs = require('node:fs')
+const { recordDeployment } = require('./build-release.cjs')
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { Contract, ContractFactory, constants, utils } = require('ethers')
@@ -36,15 +38,22 @@ test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
   const admin = provider.getSigner(operator)
   const treasurySigner = provider.getSigner(owner)
   const trader = provider.getSigner(executor)
-  const entries = compile([
-    v33 ? 'contracts/UniversalRewardsV33.sol' : 'contracts/UniversalRewards.sol',
-    'contracts/RewardRoutePlanner.sol', 'test/Fixtures.sol',
-  ])
+  const entries = { ...compile(undefined, () => {}), ...Object.fromEntries(
+    Object.entries(compile(['test/Fixtures.sol', 'test/ManagedFixtures.sol'])).filter(([file]) => file.startsWith('test/')),
+  ) }
   const links = {}
+  const deployments = []
+  const gasMeasurements = {}
   const deploy = async (file, name, ...args) => {
     const artifact = entries[file][name]
     const contract = await (await new ContractFactory(artifact.abi, linkBytecode(artifact, links), admin).deploy(...args, gas)).deployed()
+    const receipt = await contract.deployTransaction.wait()
+    assert.equal(receipt.status, 1)
+    assert.equal(contract.deployTransaction.data, linkBytecode(artifact, links) + contract.interface.encodeDeploy(args).slice(2))
+    const verified = recordDeployment(artifact, links, await provider.getCode(contract.address), contract.address)
     links[file + ':' + name] = contract.address
+    deployments.push({ file, name, address: contract.address, args, transaction: receipt.transactionHash,
+      block: receipt.blockNumber, gasUsed: receipt.gasUsed.toNumber(), ...verified })
     return contract
   }
   const send = async (tx) => (await tx).wait()
@@ -57,7 +66,13 @@ test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
   const adapters = []
   for (const [router, routerHash, factory] of ROUTERS) {
     assert.equal(await hash(router), routerHash)
-    adapters.push(await deploy('contracts/RewardSwapAdapter.sol', 'RewardSwapAdapter', operator, router, routerHash, factory, WPOL))
+    const adapter = await deploy('contracts/RewardSwapAdapter.sol', 'RewardSwapAdapter', operator, router, routerHash, factory, WPOL)
+    assert.equal(await adapter.admin(), operator)
+    assert.equal(await adapter.router(), utils.getAddress(router))
+    assert.equal(await adapter.routerCodeHash(), routerHash)
+    assert.equal(await adapter.factory(), utils.getAddress(factory))
+    assert.equal(await adapter.wrappedNative(), utils.getAddress(WPOL))
+    adapters.push(adapter)
   }
   const [quick, coinCollect] = adapters
   const planner = await deploy('contracts/RewardRoutePlanner.sol', 'RewardRoutePlanner', operator, WPOL)
@@ -103,6 +118,7 @@ test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
   for (const [adapter, input, output] of legs) {
     observationGas.push((await send(adapter.observe(input, output))).gasUsed.toNumber())
   }
+  gasMeasurements.observationGas = observationGas
   t.diagnostic(JSON.stringify({ observationGas, totalObservationGas: observationGas.reduce((sum, gas) => sum + gas, 0) }))
   await assert.rejects(planner.preview(USDT, COLLECT, usd(5), 0), { errorName: 'NoApprovedRoute' })
   assert.equal((await planner.bestRoute(USDT, SHIB, usd(2), 0)).index, 1)
@@ -132,6 +148,7 @@ test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
   ))
 
   let totalSpent = constants.Zero
+  gasMeasurements.purchases = []
   for (const [token] of caps) {
     const [epoch, amount] = await ledger.nextReplenishment(1, token)
     const [index, quoted, minimum] = await planner.bestRoute(USDT, token, amount, 0)
@@ -140,6 +157,7 @@ test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
     assert.ok(result.received.gte(minimum) && result.received.lte(quoted))
     assert.equal((await ledger.rewardState(1, token)).inventory.toString(), result.received.toString())
     assert.equal((await stable.allowance(ledger.address, planner.address)).toString(), '0')
+    gasMeasurements.purchases.push({ token, path: index, input: amount.toString(), gasUsed: receipt.gasUsed.toNumber() })
     totalSpent = totalSpent.add(amount)
     t.diagnostic(`Token ${token} path ${index}, input ${utils.formatUnits(amount, 6)} USDT, gas ${receipt.gasUsed}, fee ${utils.formatEther(receipt.gasUsed.mul(receipt.effectiveGasPrice))} POL`)
   }
@@ -147,17 +165,49 @@ test((v33 ? 'V3.4' : 'V3.2') + ' acquires WPOL, COLLECT and SHIB with real pinne
   assert.equal((await vault.balance(USDT)).allocated.toString(), usd(10).sub(totalSpent).toString())
   await send(nft.mint(user, 1))
   await advance(start)
-  await send(ledger.connect(provider.getSigner(user)).join(1, 137, nft.address, 1, gas))
+  gasMeasurements.erc721Join = (await send(ledger.connect(provider.getSigner(user)).join(1, 137, nft.address, 1, gas))).gasUsed.toNumber()
   await advance(start + day)
-  await send(ledger.connect(provider.getSigner(user)).claim(1, 137, nft.address, 1, gas))
+  gasMeasurements.erc721Claim = (await send(ledger.connect(provider.getSigner(user)).claim(1, 137, nft.address, 1, gas))).gasUsed.toNumber()
   for (const [token] of caps) assert.ok((await new Contract(token, tokenAbi, provider).balanceOf(user)).gt(0))
   await advance(end)
-  await send(ledger.connect(trader).recoverBudget(1))
+  gasMeasurements.budgetRecovery = (await send(ledger.connect(trader).recoverBudget(1))).gasUsed.toNumber()
   assert.equal((await vault.balance(USDT)).available.toString(), usd(10).sub(totalSpent).toString())
   await advance(end + 30 * day)
+  gasMeasurements.expiredRecovery = []
   for (const [token] of caps) {
-    await send(ledger.connect(trader).recoverExpiredRewards(1, token))
+    const recovered = await send(ledger.connect(trader).recoverExpiredRewards(1, token))
+    gasMeasurements.expiredRecovery.push(recovered.gasUsed.toNumber())
     assert.ok((await vault.balance(token)).rewardsReturned.gt(0))
     assert.equal((await ledger.rewardState(1, token)).inventory.toString(), '0')
+  }
+  if (v33) {
+    const collection = await deploy('test/ManagedFixtures.sol', 'Hooked1155Fixture')
+    const managed = await deploy('contracts/ManagedNftCollection.sol', 'ManagedNftCollection',
+      ledger.address, 137, collection.address, 1155, 25, zero)
+    await send(collection.setHook(managed.address))
+    await send(ledger.approveManagedCollection(managed.address))
+    assert.equal(await collection.rewardsHook(), managed.address)
+    assert.equal(await managed.sourceCollection(), collection.address)
+    assert.equal(await managed.ledger(), ledger.address)
+    assert.equal(await managed.journal(), zero)
+    assert.equal(await managed.hasLocalHook(), true)
+  }
+  assert.equal(await ledger.admin(), operator)
+  assert.equal(await ledger.treasury(), owner)
+  assert.equal(await ledger.remoteVerifier(), zero)
+  assert.equal(await ledger.swapAdapter(), planner.address)
+  assert.equal(await vault.owner(), owner)
+  assert.equal(await vault.ledger(), ledger.address)
+  const externalRuntime = await Promise.all(
+    [...new Set([...ROUTERS.flatMap(([router, , factory]) => [router, factory]), ...legs.map((leg) => leg[3]), USDT, WPOL, COLLECT, SHIB])]
+      .map(async (address) => ({ address, runtimeKeccak256: await hash(address) })),
+  )
+  t.diagnostic(JSON.stringify(gasMeasurements))
+  if (process.env.COINCOLLECT_RELEASE_FORK_MANIFEST) {
+    fs.writeFileSync(process.env.COINCOLLECT_RELEASE_FORK_MANIFEST, JSON.stringify({
+      scope: 'isolated Polygon fork', forkChainId: 31337, sourceChainId: 137,
+      sourceBlock: block, sourceBlockHash: (await provider.getBlock(block)).hash,
+      compiler: require('solc').version(), deployments, externalRuntime, gasMeasurements,
+    }, null, 2) + '\n')
   }
 })

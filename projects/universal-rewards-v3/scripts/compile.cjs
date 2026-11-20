@@ -4,7 +4,7 @@ const solc = require('solc')
 
 const root = path.resolve(__dirname, '..')
 
-function compile(entries = [
+const releaseEntries = [
   'contracts/UniversalRewards.sol',
   'contracts/UniversalRewardsV33.sol',
   'contracts/ManagedNftCollection.sol',
@@ -14,7 +14,10 @@ function compile(entries = [
   'contracts/FinalizedOwnershipVerifier.sol',
   'contracts/TreasuryVault.sol',
   'contracts/RewardRoutePlanner.sol',
-]) {
+]
+
+function compile(entries = releaseEntries, exportInput) {
+  const imported = {}
   const input = {
     language: 'Solidity',
     sources: Object.fromEntries(entries.map((file) => [file, { content: fs.readFileSync(path.join(root, file), 'utf8') }])),
@@ -22,14 +25,17 @@ function compile(entries = [
       optimizer: { enabled: true, runs: 200 },
       viaIR: true,
       evmVersion: 'paris',
-      outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences', 'evm.deployedBytecode.object'] } },
+      outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences', 'evm.deployedBytecode.object',
+        'evm.deployedBytecode.linkReferences', 'evm.deployedBytecode.immutableReferences', 'metadata'] } },
     },
   }
   const output = JSON.parse(solc.compile(JSON.stringify(input), {
     import: (name) => {
       const location = name.startsWith('@') ? path.join(root, 'node_modules', name) : path.join(root, name)
       try {
-        return { contents: fs.readFileSync(location, 'utf8') }
+        const contents = fs.readFileSync(location, 'utf8')
+        imported[name] = { content: contents }
+        return { contents }
       } catch {
         return { error: 'Unavailable import: ' + name }
       }
@@ -37,6 +43,14 @@ function compile(entries = [
   }))
   const errors = (output.errors || []).filter(({ severity }) => severity === 'error')
   if (errors.length) throw new Error(errors.map(({ formattedMessage }) => formattedMessage).join('\n'))
+  if (exportInput) {
+    input.sources = Object.fromEntries(Object.entries({ ...input.sources, ...imported }).sort(([a], [b]) => a.localeCompare(b, 'en')))
+    const reproduced = JSON.parse(solc.compile(JSON.stringify(input)))
+    const failures = (reproduced.errors || []).filter(({ severity }) => severity === 'error')
+    if (failures.length) throw new Error(failures.map(({ formattedMessage }) => formattedMessage).join('\n'))
+    exportInput(input)
+    return reproduced.contracts
+  }
   return output.contracts
 }
 

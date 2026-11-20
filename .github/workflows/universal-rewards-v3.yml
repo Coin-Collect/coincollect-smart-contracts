@@ -31,9 +31,18 @@ jobs:
       - run: npm ci --workspaces=false --ignore-scripts
       - run: npm run --workspaces=false compile
       - run: npm test --workspaces=false
+      - name: Reproduce release artifacts
+        run: |
+          node scripts/build-release.cjs "$RUNNER_TEMP/universal-rewards-v35"
+          cmp release-manifest.json "$RUNNER_TEMP/universal-rewards-v35/manifest.json"
+          node scripts/export-abi.cjs "$RUNNER_TEMP/universal-rewards-v35/frontend-abi.ts"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: universal-rewards-v35-solidity
+          path: ${{ runner.temp }}/universal-rewards-v35
+          if-no-files-found: error
 
   polygon-fork:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -46,6 +55,14 @@ jobs:
           cache: npm
           cache-dependency-path: projects/universal-rewards-v3/package-lock.json
       - run: npm ci --workspaces=false --ignore-scripts
-      - run: npm run --workspaces=false test:polygon-fork
+      - name: Run pinned Polygon fork verification
+        run: npm run --workspaces=false test:polygon-fork
         env:
+          COINCOLLECT_V34_FIXTURE: '1'
+          COINCOLLECT_RELEASE_FORK_MANIFEST: ${{ runner.temp }}/polygon-fork-manifest.json
           COINCOLLECT_V3_POLYGON_RPC: ${{ secrets.COINCOLLECT_V3_POLYGON_RPC }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: universal-rewards-v35-polygon-fork
+          path: ${{ runner.temp }}/polygon-fork-manifest.json
+          if-no-files-found: error

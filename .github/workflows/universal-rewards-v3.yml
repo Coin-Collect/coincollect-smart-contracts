@@ -28,9 +28,9 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: projects/universal-rewards-v3/package-lock.json
-      - run: npm ci --ignore-scripts
-      - run: npm run compile
-      - run: npm test
+      - run: npm ci --workspaces=false --ignore-scripts
+      - run: npm run --workspaces=false compile
+      - run: npm test --workspaces=false
 
   polygon-fork:
     if: github.event_name == 'workflow_dispatch'
@@ -45,7 +45,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: projects/universal-rewards-v3/package-lock.json
-      - run: npm ci --ignore-scripts
-      - run: npm run test:polygon-fork
+      - run: npm ci --workspaces=false --ignore-scripts
+      - run: npm run --workspaces=false test:polygon-fork
         env:
           COINCOLLECT_V3_POLYGON_RPC: ${{ secrets.COINCOLLECT_V3_POLYGON_RPC }}

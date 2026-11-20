@@ -16,12 +16,12 @@ A pool can take a single budget asset and allocate it across reward tokens. Nati
 
 ## Install, compile and test
 
-Use Node.js 22, as configured in the repository's GitHub Actions workflow. From `projects/universal-rewards-v3`, run:
+Use Node.js 22, as configured in the repository's GitHub Actions workflow. From `projects/universal-rewards-v3`, run these commands. The workspace flag selects this project's own lockfile inside the repository.
 
 ```sh
-npm ci --ignore-scripts
-npm run compile
-npm test
+npm ci --workspaces=false --ignore-scripts
+npm run --workspaces=false compile
+npm test --workspaces=false
 ```
 
 The lockfile pins Solidity 0.8.30, OpenZeppelin Contracts 5.4.0, ethers 5.8.0, and Anvil 1.7.1. The compiler uses the optimizer, IR, and the Paris EVM target. The isolated test suite starts temporary loopback Anvil instances and covers settlement, funding, swap restrictions, and local ownership verification. The GitHub workflow has read-only repository permissions and runs the compiler and isolated tests automatically for V3 changes on `pool-management`.
@@ -29,8 +29,8 @@ The lockfile pins Solidity 0.8.30, OpenZeppelin Contracts 5.4.0, ethers 5.8.0, a
 To verify the reviewed WPOL-to-COLLECT route using Polygon state at block `97638790`, run:
 
 ```sh
-npm run test:polygon-fork
-npm run inspect:polygon-market -- 97638790
+npm run --workspaces=false test:polygon-fork
+npm run --workspaces=false inspect:polygon-market -- 97638790
 ```
 
 The fork reads from an HTTPS Polygon archive RPC and executes transactions on a disposable loopback Anvil with chain ID 31337. Market inspection only reads Polygon. If the default endpoint cannot serve the pinned block, set `COINCOLLECT_V3_POLYGON_RPC` to an archive-capable endpoint. The other optional variables are documented in [`.env.example`](.env.example). Export values in your shell or load a local file explicitly, for example `node --env-file=.env --test scripts/polygon-fork.cjs`. The workflow's manually triggered fork test can read the archive URL from a GitHub Actions secret.
@@ -59,4 +59,4 @@ The fixture requires a loopback HTTP RPC, checks chain ID and Anvil identity, an
 
 This publication is for source review and local verification. Before using real assets, independently review contract invariants, supported tokens and collections, operator and treasury assignments, each enabled swap route, and the execution and recovery procedures. The cross-chain verifier remains an isolated prototype with an explicit quorum and RPC trust model. Keep private keys, seed phrases, signer configuration, API tokens, and authenticated RPC URLs outside Git. The template contains no credentials.
 
-The publication dependency audit reported 17 affected npm packages, including high-severity findings for the transitive `tmp` and `ws` packages. The existing lockfile is pinned for source and ABI reproduction. Run `npm audit` for the current advisory list and address these findings before relying on the tooling in a production environment.
+The publication dependency audit reported 17 affected npm packages, including high-severity findings for the transitive `tmp` and `ws` packages. The existing lockfile is pinned for source and ABI reproduction. Run `npm audit --workspaces=false` for the current advisory list and address these findings before relying on the tooling in a production environment.

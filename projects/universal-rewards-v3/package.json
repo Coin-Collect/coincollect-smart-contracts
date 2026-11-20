@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "compile": "node scripts/compile.cjs",
-    "test": "node --test"
+    "test": "node --test",
+    "test:polygon-fork": "node --test scripts/polygon-fork.cjs",
+    "inspect:polygon-market": "node scripts/polygon-market.cjs"
   },
   "dependencies": {
     "@foundry-rs/anvil": "1.7.1",

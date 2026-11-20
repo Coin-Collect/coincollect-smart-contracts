@@ -25,7 +25,7 @@ async function startLocalAnvil(fork = []) {
   })
   let spawnError
   child.on('error', (error) => { spawnError = error })
-  const provider = new providers.StaticJsonRpcProvider({ url, timeout: 1_000 }, 31337)
+  const provider = new providers.StaticJsonRpcProvider({ url, timeout: fork.length ? 15_000 : 1_000 }, 31337)
   provider.pollingInterval = 50
   const close = () => child.kill()
   try {

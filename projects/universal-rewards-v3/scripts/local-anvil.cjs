@@ -15,8 +15,9 @@ async function freePort() {
 }
 
 async function startLocalAnvil(fork = []) {
+  const architecture = process.arch === 'x64' ? 'amd64' : process.arch
   const binary = process.env.ANVIL_BIN || require.resolve(
-    '@foundry-rs/anvil-' + process.platform + '-' + process.arch + '/bin/anvil',
+    '@foundry-rs/anvil-' + process.platform + '-' + architecture + '/bin/anvil',
   )
   const port = await freePort()
   const url = 'http://127.0.0.1:' + port

@@ -1,0 +1,1065 @@
+# V3.5.4 compiler input to V3.6.1 compiler input
+--- v354/compiler-settings.json
++++ v361/compiler-settings.json
+@@ -1,10 +1,10 @@
+ {
+   "optimizer": {
+     "enabled": true,
+-    "runs": 200
++    "runs": 1
+   },
+   "viaIR": true,
+-  "evmVersion": "paris",
++  "evmVersion": "shanghai",
+   "outputSelection": {
+     "*": {
+       "*": [
+--- /dev/null
++++ v361/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: MIT
++// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/extensions/IERC20Metadata.sol)
++
++pragma solidity >=0.6.2;
++
++import {IERC20} from "../IERC20.sol";
++
++/**
++ * @dev Interface for the optional metadata functions from the ERC-20 standard.
++ */
++interface IERC20Metadata is IERC20 {
++    /**
++     * @dev Returns the name of the token.
++     */
++    function name() external view returns (string memory);
++
++    /**
++     * @dev Returns the symbol of the token.
++     */
++    function symbol() external view returns (string memory);
++
++    /**
++     * @dev Returns the decimals places of the token.
++     */
++    function decimals() external view returns (uint8);
++}
+--- v354/contracts/FinalizedNftJournal.sol
++++ /dev/null
+@@ -1,157 +0,0 @@
+-// SPDX-License-Identifier: MIT
+-pragma solidity 0.8.30;
+-
+-import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+-import {ManagedNftCollection} from "./ManagedNftCollection.sol";
+-
+-/// @notice Isolated verifier for an ordered stream from one reviewed source journal per collection.
+-contract FinalizedNftJournal is EIP712, ReentrancyGuard {
+-    uint256 public constant MAX_BATCH = 32;
+-    uint256 public constant MAX_OBSERVATION_AGE = 2 hours;
+-    bytes32 private constant BATCH_TYPEHASH = keccak256(
+-        "JournalBatch(address adapter,address sourceJournal,uint256 chain,address collection,uint64 first,uint64 sourceBlock,bytes32 sourceHash,uint64 finalizedAt,uint64 sourceSequence,bytes32 entriesHash)"
+-    );
+-
+-    struct Entry {
+-        ManagedNftCollection.Action action;
+-        uint256 poolId;
+-        uint256 tokenId;
+-        address from;
+-        address to;
+-        uint128 amount;
+-        uint128 balance;
+-        uint64 occurredAt;
+-    }
+-
+-    struct Batch {
+-        uint64 first;
+-        uint64 sourceBlock;
+-        bytes32 sourceHash;
+-        uint64 finalizedAt;
+-        uint64 sourceSequence;
+-    }
+-
+-    struct Stream {
+-        address sourceJournal;
+-        uint64 next;
+-        uint64 sourceBlock;
+-        uint64 finalizedAt;
+-        bytes32 sourceHash;
+-        uint64 occurredAt;
+-        bool paused;
+-    }
+-
+-    error Unauthorized();
+-    error InvalidBatch();
+-    error InvalidWitnesses();
+-
+-    event EntriesApplied(address indexed adapter, uint64 first, uint64 next, bytes32 sourceHash);
+-    event IntentSkipped(address indexed adapter, uint64 indexed sequence);
+-    event StreamPaused(address indexed adapter, bool paused);
+-
+-    address public immutable admin;
+-    uint256 public immutable quorum;
+-    mapping(address => bool) public isWitness;
+-    mapping(address => Stream) public streams;
+-    mapping(address => uint64) public finalizedSequence;
+-
+-    constructor(address governor, address[] memory witnesses, uint256 threshold) EIP712("CoinCollect NFT Journal", "3.4") {
+-        if (block.chainid != 31337 || governor == address(0) || witnesses.length > 9
+-            || threshold < 2 || threshold > witnesses.length || 2 * threshold <= witnesses.length) revert InvalidWitnesses();
+-        admin = governor;
+-        quorum = threshold;
+-        for (uint256 i; i < witnesses.length; ++i) {
+-            address witness = witnesses[i];
+-            if (witness == address(0) || isWitness[witness]) revert InvalidWitnesses();
+-            isWitness[witness] = true;
+-        }
+-    }
+-
+-    function register(ManagedNftCollection adapter, address sourceJournal) external {
+-        if (msg.sender != admin) revert Unauthorized();
+-        Stream storage stream = streams[address(adapter)];
+-        if (adapter.journal() != address(this) || stream.next != 0 || sourceJournal == address(0)) revert InvalidBatch();
+-        stream.sourceJournal = sourceJournal;
+-        stream.next = 1;
+-    }
+-
+-    function setPaused(ManagedNftCollection adapter, bool paused) external {
+-        if (msg.sender != admin) revert Unauthorized();
+-        streams[address(adapter)].paused = paused;
+-        emit StreamPaused(address(adapter), paused);
+-    }
+-
+-    function allowsClaims(address adapter) external view returns (bool) {
+-        Stream storage stream = streams[adapter];
+-        return stream.next != 0 && !stream.paused && stream.sourceBlock != 0
+-            && stream.next - 1 == finalizedSequence[adapter]
+-            && block.timestamp - stream.finalizedAt < MAX_OBSERVATION_AGE;
+-    }
+-
+-    function applyBatch(ManagedNftCollection adapter, Batch calldata batch, Entry[] calldata entries, bytes[] calldata signatures)
+-        external nonReentrant
+-    {
+-        Stream storage stream = streams[address(adapter)];
+-        uint64 knownTip = finalizedSequence[address(adapter)];
+-        if (entries.length > MAX_BATCH || stream.next == 0 || stream.paused || batch.first != stream.next
+-            || batch.sourceBlock == 0 || batch.sourceBlock < stream.sourceBlock
+-            || batch.sourceHash == bytes32(0) || batch.finalizedAt < stream.finalizedAt
+-            || batch.finalizedAt > block.timestamp || block.timestamp - batch.finalizedAt >= MAX_OBSERVATION_AGE
+-            || batch.sourceSequence < knownTip || batch.sourceSequence == type(uint64).max
+-            || uint256(batch.first) - 1 + entries.length > batch.sourceSequence) revert InvalidBatch();
+-        if (batch.sourceBlock == stream.sourceBlock && (batch.sourceHash != stream.sourceHash
+-            || batch.finalizedAt != stream.finalizedAt || batch.sourceSequence != knownTip)) revert InvalidBatch();
+-        if (entries.length == 0 && (batch.sourceBlock == stream.sourceBlock || batch.sourceSequence != stream.next - 1)) {
+-            revert InvalidBatch();
+-        }
+-        bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
+-            BATCH_TYPEHASH, address(adapter), stream.sourceJournal, adapter.sourceChainId(), adapter.sourceCollection(),
+-            batch.first, batch.sourceBlock, batch.sourceHash, batch.finalizedAt, batch.sourceSequence, keccak256(abi.encode(entries))
+-        )));
+-        if (signatures.length != quorum) revert InvalidWitnesses();
+-        address last;
+-        for (uint256 i; i < signatures.length; ++i) {
+-            address signer = ECDSA.recover(digest, signatures[i]);
+-            if (signer <= last || !isWitness[signer]) revert InvalidWitnesses();
+-            last = signer;
+-        }
+-
+-        for (uint256 i; i < entries.length; ++i) {
+-            Entry calldata entry = entries[i];
+-            if (entry.occurredAt < stream.occurredAt || entry.occurredAt > batch.finalizedAt) revert InvalidBatch();
+-            stream.occurredAt = entry.occurredAt;
+-            if (entry.action == ManagedNftCollection.Action.Transfer) {
+-                adapter.applyObservation(entry.action, 0, entry.tokenId, entry.from, entry.to, entry.amount, 0);
+-            } else if (block.timestamp - entry.occurredAt < MAX_OBSERVATION_AGE) {
+-                // A failed user intent can be resubmitted on the source. A transfer can never be skipped.
+-                if (gasleft() < 1_150_000) revert InvalidBatch();
+-                try adapter.applyObservation{gas: 1_000_000}(
+-                    entry.action, entry.poolId, entry.tokenId, entry.from, address(0), entry.amount, entry.balance
+-                ) {} catch (bytes memory reason) {
+-                    // Unknown failures and exhausted gas must keep the sequence retryable.
+-                    if (!_knownIntentFailure(reason)) revert InvalidBatch();
+-                    emit IntentSkipped(address(adapter), batch.first + uint64(i));
+-                }
+-            } else emit IntentSkipped(address(adapter), batch.first + uint64(i));
+-        }
+-        stream.sourceBlock = batch.sourceBlock;
+-        stream.sourceHash = batch.sourceHash;
+-        stream.finalizedAt = batch.finalizedAt;
+-        stream.next += uint64(entries.length);
+-        finalizedSequence[address(adapter)] = batch.sourceSequence;
+-        emit EntriesApplied(address(adapter), batch.first, stream.next, batch.sourceHash);
+-    }
+-
+-    function _knownIntentFailure(bytes memory reason) private pure returns (bool) {
+-        if (reason.length != 4) return false;
+-        bytes4 selector = bytes4(reason);
+-        return selector == ManagedNftCollection.InvalidQuantity.selector
+-            || selector == ManagedNftCollection.IntentUnavailable.selector
+-            || selector == ManagedNftCollection.NoSeat.selector
+-            || selector == ManagedNftCollection.PoolLimit.selector
+-            || selector == ManagedNftCollection.UnsupportedCollection.selector
+-            || selector == bytes4(keccak256("UnavailablePool()"));
+-    }
+-}
+--- v354/contracts/NftSourceJournal.sol
++++ /dev/null
+@@ -1,46 +0,0 @@
+-// SPDX-License-Identifier: MIT
+-pragma solidity 0.8.30;
+-
+-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+-import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+-
+-/// @notice Collection-authenticated transfer stream and holder intents for a single settlement ledger.
+-/// The reviewed NFT collection must call onTransfer for every transfer, mint and burn.
+-contract NftSourceJournal {
+-    error InvalidAction();
+-
+-    event Observation(
+-        uint64 indexed sequence, uint8 action, uint256 indexed poolId, uint256 indexed tokenId,
+-        address from, address to, uint128 amount, uint128 balance, uint64 occurredAt
+-    );
+-
+-    address public immutable collection;
+-    address public immutable settlementLedger;
+-    uint16 public immutable standard;
+-    uint64 public sequence;
+-
+-    constructor(address nft, address settlement, uint16 tokenStandard) {
+-        if (nft.code.length == 0 || settlement == address(0) || (tokenStandard != 721 && tokenStandard != 1155)) {
+-            revert InvalidAction();
+-        }
+-        collection = nft;
+-        settlementLedger = settlement;
+-        standard = tokenStandard;
+-    }
+-
+-    function onTransfer(address from, address to, uint256 tokenId, uint256 amount) external {
+-        if (msg.sender != collection) revert InvalidAction();
+-        // A position can hold at most uint128 units. Larger transfers move its entire entitlement.
+-        uint128 moved = amount > type(uint128).max ? type(uint128).max : uint128(amount);
+-        emit Observation(++sequence, 0, 0, tokenId, from, to, moved, 0, uint64(block.timestamp));
+-    }
+-
+-    function request(uint8 action, uint256 poolId, uint256 tokenId, uint32 amount) external {
+-        if (action == 0 || action > 3 || poolId == 0 || (action == 3 ? amount != 0 : amount == 0)) revert InvalidAction();
+-        uint256 owned = standard == 1155 ? IERC1155(collection).balanceOf(msg.sender, tokenId)
+-            : IERC721(collection).ownerOf(tokenId) == msg.sender ? 1 : 0;
+-        if (owned == 0 || amount > owned) revert InvalidAction();
+-        uint128 boundedBalance = owned > type(uint128).max ? type(uint128).max : uint128(owned);
+-        emit Observation(++sequence, action, poolId, tokenId, msg.sender, address(0), amount, boundedBalance, uint64(block.timestamp));
+-    }
+-}
+--- v354/contracts/RewardRoutePlanner.sol
++++ v361/contracts/RewardRoutePlanner.sol
+@@ -156,6 +156,7 @@
+     ) external returns (uint256 received) {
+         if (msg.sender != address(this)) revert Unauthorized();
+         Path storage path = paths[input][output][index];
++        _validatePath(input, output, path);
+         IERC20 reward = IERC20(output);
+         uint256 beforeReward = reward.balanceOf(address(this));
+         if (path.intermediate == address(0)) {
+@@ -182,23 +183,29 @@
+         uint256 beforeInput = asset.balanceOf(address(this));
+         uint256 beforeOutput = IERC20(output).balanceOf(address(this));
+         asset.forceApprove(address(adapter), amount);
++        if (asset.allowance(address(this), address(adapter)) != amount) revert UnexpectedTransfer();
+         received = adapter.swapExact(input, output, amount, minimum, deadline);
+         asset.forceApprove(address(adapter), 0);
++        if (asset.allowance(address(this), address(adapter)) != 0) revert UnexpectedTransfer();
+         if (asset.balanceOf(address(this)) != beforeInput - amount || IERC20(output).balanceOf(address(this)) != beforeOutput + received) {
+             revert UnexpectedTransfer();
+         }
+     }
+ 
+     function _validatePath(address input, address output, Path memory path) private view {
+-        if (!path.enabled || !approvedAsset[input] || !approvedAsset[output] || !_approved(path.first)) revert InvalidRoute();
++        if (!path.enabled || !_assetAllowed(input) || !_assetAllowed(output) || !_approved(path.first)) revert InvalidRoute();
+         if (path.intermediate == address(0)) {
+             if (address(path.second) != address(0)) revert InvalidRoute();
+         } else if (
+-            path.intermediate == input || path.intermediate == output || !approvedAsset[path.intermediate]
++            path.intermediate == input || path.intermediate == output || !_assetAllowed(path.intermediate)
+                 || !_approved(path.second)
+         ) revert InvalidRoute();
+     }
+ 
++    function _assetAllowed(address token) internal view virtual returns (bool) {
++        return approvedAsset[token];
++    }
++
+     function _approved(RewardSwapAdapter adapter) private view returns (bool) {
+         bytes32 expected = approvedAdapterHash[address(adapter)];
+         return expected != 0 && address(adapter).codehash == expected;
+--- v354/contracts/RewardSwapAdapter.sol
++++ v361/contracts/RewardSwapAdapter.sol
+@@ -202,8 +202,10 @@
+         if (asset.balanceOf(address(this)) != startInput + amount) revert UnexpectedTransfer();
+ 
+         asset.forceApprove(address(router), amount);
++        if (asset.allowance(address(this), address(router)) != amount) revert UnexpectedTransfer();
+         router.swapExactTokensForTokens(amount, minimum, _path(input, output), msg.sender, deadline);
+         asset.forceApprove(address(router), 0);
++        if (asset.allowance(address(this), address(router)) != 0) revert UnexpectedTransfer();
+         if (asset.balanceOf(address(this)) != startInput) revert UnexpectedTransfer();
+         received = reward.balanceOf(msg.sender) - startOutput;
+         if (received < minimum) revert InsufficientOutput();
+--- v354/contracts/UniversalRewards.sol
++++ v361/contracts/UniversalRewards.sol
+@@ -185,7 +185,7 @@
+     FinalizedOwnershipVerifier public immutable remoteVerifier;
+     TreasuryVault public treasuryVault;
+     uint256 public poolCount;
+-    mapping(address => bool) public supportedTokens;
++    mapping(address => bool) private bootstrapTokens;
+     address[] private fundingAssets;
+     mapping(uint256 => Pool) internal pools;
+ 
+@@ -207,11 +207,11 @@
+         admin = poolAdmin;
+         treasury = surplusTreasury;
+         for (uint256 i; i < tokens.length; ++i) {
+-            if (tokens[i].code.length == 0 || supportedTokens[tokens[i]]) revert InvalidToken();
+-            supportedTokens[tokens[i]] = true;
++            if (tokens[i].code.length == 0 || bootstrapTokens[tokens[i]]) revert InvalidToken();
++            bootstrapTokens[tokens[i]] = true;
+             fundingAssets.push(tokens[i]);
+         }
+-        if (wrapped != address(0) && !supportedTokens[wrapped]) revert InvalidToken();
++        if (wrapped != address(0) && !bootstrapTokens[wrapped]) revert InvalidToken();
+         if (address(adapter) != address(0) && (wrapped == address(0) || adapter.wrappedNative() != wrapped)) {
+             revert InvalidConfiguration();
+         }
+@@ -247,6 +247,7 @@
+             address(treasuryVault) != address(0) || address(vault.ledger()) != address(this)
+                 || vault.owner() != treasury || vault.wrappedNative() != wrappedNative
+         ) revert InvalidConfiguration();
++        _validateTreasury(vault);
+         treasuryVault = vault;
+         emit TreasuryVaultAttached(address(vault));
+     }
+@@ -294,7 +295,17 @@
+         emit BudgetFunded(poolId, plan.asset, address(treasuryVault), amount);
+     }
+ 
+-    function supportedAssets() external view returns (address[] memory) {
++    function _validateTreasury(TreasuryVault) internal view virtual {}
++
++    function _assetAllowed(address token, bool) internal view virtual returns (bool) {
++        return bootstrapTokens[token];
++    }
++
++    function supportedTokens(address token) external view returns (bool) {
++        return _assetAllowed(token, true);
++    }
++
++    function supportedAssets() external view virtual returns (address[] memory) {
+         return fundingAssets;
+     }
+ 
+@@ -324,7 +335,7 @@
+         }
+         for (uint256 i; i < rewards.length; ++i) {
+             RewardConfig calldata reward = rewards[i];
+-            if (!supportedTokens[reward.token] || reward.cap == 0 || pool.rewards[reward.token].cap != 0) {
++            if (!_assetAllowed(reward.token, true) || reward.cap == 0 || pool.rewards[reward.token].cap != 0) {
+                 revert InvalidToken();
+             }
+             pool.rewardTokens.push(reward.token);
+@@ -450,7 +461,7 @@
+     {
+         Pool storage pool = _pool(poolId);
+         if (
+-            pool.funding.asset != address(0) || !supportedTokens[asset] || budget == 0
++            pool.funding.asset != address(0) || !_assetAllowed(asset, false) || budget == 0
+                 || block.timestamp >= pool.config.start || interval < MIN_REPLENISH_INTERVAL
+                 || interval > MAX_REPLENISH_INTERVAL || interval > pool.config.end - pool.config.start
+                 || splits.length != pool.rewardTokens.length
+@@ -548,8 +559,10 @@
+             uint256 inputBefore = source.balanceOf(address(this));
+             uint256 outputBefore = output.balanceOf(address(this));
+             source.forceApprove(address(swapAdapter), amount);
++        if (source.allowance(address(this), address(swapAdapter)) != amount) revert InvalidReceipt();
+             received = swapAdapter.swapExact(plan.asset, rewardToken, amount, minimum, deadline);
+             source.forceApprove(address(swapAdapter), 0);
++        if (source.allowance(address(this), address(swapAdapter)) != 0) revert InvalidReceipt();
+             if (
+                 inputBefore - source.balanceOf(address(this)) != amount
+                     || output.balanceOf(address(this)) - outputBefore != received
+@@ -913,7 +926,7 @@
+ 
+     function _canSeat(Pool storage pool, address owner, uint64 expiry) internal view returns (bool) {
+         uint256 count = pool.seatsByWallet[owner];
+-        return pool.activeNfts < MAX_POSITIONS && (expiry == 0 || pool.remoteSeats.length < MAX_REMOTE_POSITIONS)
++        return pool.activeNfts < MAX_POSITIONS
+             && count < pool.config.maxNftsPerWallet && (count != 0 || pool.activeWallets < pool.config.maxWallets);
+     }
+ 
+@@ -924,10 +937,6 @@
+         pool.powerByWallet[owner] += position.weight;
+         position.seatOwner = owner;
+         position.seatExpiry = expiry;
+-        if (expiry != 0) {
+-            pool.remoteSeats.push(key);
+-            pool.remoteSlot[key] = uint8(pool.remoteSeats.length);
+-        }
+         for (uint256 i; i < pool.rewardTokens.length; ++i) {
+             RewardIndex storage index = pool.indexes[pool.rewardTokens[i]];
+             if (index.debt[key] != index.perWeight) index.debt[key] = index.perWeight;
+@@ -946,15 +955,6 @@
+         --pool.activeNfts;
+         pool.totalWeight -= position.weight;
+         position.seatOwner = address(0);
+-        if (position.seatExpiry != 0) {
+-            position.seatExpiry = 0;
+-            uint8 slot = pool.remoteSlot[key];
+-            bytes32 last = pool.remoteSeats[pool.remoteSeats.length - 1];
+-            pool.remoteSeats[slot - 1] = last;
+-            pool.remoteSlot[last] = slot;
+-            pool.remoteSeats.pop();
+-            delete pool.remoteSlot[key];
+-        }
+     }
+ 
+     function _leave(uint256 poolId, Pool storage pool, bytes32 key) private {
+--- /dev/null
++++ v361/contracts/v36/RewardRoutePlannerV36.sol
+@@ -0,0 +1,37 @@
++// SPDX-License-Identifier: MIT
++pragma solidity 0.8.30;
++
++import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
++import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
++import {RewardRoutePlanner} from "../RewardRoutePlanner.sol";
++import {TreasuryAssetsV36} from "./TreasuryAssetsV36.sol";
++
++/// @notice Adds registry checks to every route leg and exact route execution for Treasury quotes.
++contract RewardRoutePlannerV36 is RewardRoutePlanner {
++    using SafeERC20 for IERC20;
++    TreasuryAssetsV36 public immutable registry;
++
++    constructor(TreasuryAssetsV36 assets, address wrapped) RewardRoutePlanner(assets.admin(), wrapped) {
++        registry = assets;
++    }
++
++    function _assetAllowed(address token) internal view override returns (bool) {
++        return super._assetAllowed(token) && registry.permitted(token, 4);
++    }
++
++    function swapExactPath(address input, address output, uint8 index, uint256 amount, uint256 callerMinimum, uint256 deadline)
++        external nonReentrant returns (uint256 received)
++    {
++        if (deadline < block.timestamp || deadline - block.timestamp > 5 minutes) revert InvalidDeadline();
++        if (callerMinimum == 0) revert InvalidRoute();
++        (, uint256 minimum) = this.quotePath(input, output, index, amount, callerMinimum);
++        IERC20 asset = IERC20(input);
++        uint256 starting = asset.balanceOf(address(this));
++        asset.safeTransferFrom(msg.sender, address(this), amount);
++        if (asset.balanceOf(address(this)) != starting + amount) revert UnexpectedTransfer();
++
++        received = this.executePath(input, output, index, amount, minimum, deadline, msg.sender);
++        if (asset.balanceOf(address(this)) != starting || received < minimum) revert UnexpectedTransfer();
++        emit Swapped(msg.sender, input, output, index, amount, received);
++    }
++}
+--- /dev/null
++++ v361/contracts/v36/TreasuryAssetsV36.sol
+@@ -0,0 +1,129 @@
++// SPDX-License-Identifier: MIT
++pragma solidity 0.8.30;
++
++import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
++import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
++import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
++import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
++
++/// @notice Admin-reviewed assets. Known proxies must expose a live implementation identity.
++contract TreasuryAssetsV36 is ReentrancyGuard {
++    using SafeERC20 for IERC20;
++
++    uint8 public constant DEPOSIT = 1;
++    uint8 public constant REWARD = 2;
++    uint8 public constant SWAP = 4;
++    uint256 public constant MAX_ASSETS = 64;
++    bytes4 private constant IMPLEMENTATION = bytes4(keccak256("implementation()"));
++
++    struct Review {
++        bytes32 runtimeHash;
++        address implementation;
++        bytes32 implementationHash;
++        bytes32 evidenceHash;
++        uint8 decimals;
++    }
++
++    struct Asset {
++        Review review;
++        uint8 permissions;
++    }
++
++    error Unauthorized();
++    error InvalidAssetReview();
++    error InexactAssetTransfer();
++
++    event AssetReviewed(address indexed token, bytes32 indexed evidenceHash, bytes32 runtimeHash, address implementation);
++    event AssetPermissionsChanged(address indexed token, uint8 permissions);
++
++    address public immutable admin;
++    mapping(address => Asset) private assets;
++    address[] private listed;
++
++    constructor(address governor) {
++        if ((block.chainid != 137 && block.chainid != 31337) || governor == address(0)) revert InvalidAssetReview();
++        admin = governor;
++    }
++
++    modifier onlyAdmin() {
++        if (msg.sender != admin) revert Unauthorized();
++        _;
++    }
++
++    function registeredAssets() external view returns (address[] memory) {
++        return listed;
++    }
++
++    function assetState(address token) external view returns (Asset memory entry, bool identityValid) {
++        entry = assets[token];
++        identityValid = _validIdentity(token, entry.review);
++    }
++
++    function permitted(address token, uint8 permissions) external view returns (bool) {
++        Asset storage entry = assets[token];
++        return (entry.permissions & permissions) == permissions && permissions != 0 && _validIdentity(token, entry.review);
++    }
++
++    /// @notice A review binds a supported runtime, decimal scale, risk evidence and nonzero exact round-trip.
++    /// @dev Re-review requires a prior quarantine. Existing pools retain the original scale and token address.
++    function reviewAsset(address token, Review calldata review, uint256 probe, uint8 permissions)
++        external onlyAdmin nonReentrant
++    {
++        Asset storage entry = assets[token];
++        if (review.evidenceHash == 0 || review.decimals > 36 || permissions > 7 || probe == 0
++            || !_validIdentity(token, review)) revert InvalidAssetReview();
++
++        if (entry.review.evidenceHash == 0) {
++            if (listed.length == MAX_ASSETS) revert InvalidAssetReview();
++            listed.push(token);
++        } else if (entry.permissions != 0 || entry.review.decimals != review.decimals) {
++            revert InvalidAssetReview();
++        }
++
++        IERC20 asset = IERC20(token);
++        uint256 beforeRegistry = asset.balanceOf(address(this));
++        uint256 beforeAdmin = asset.balanceOf(admin);
++        asset.safeTransferFrom(admin, address(this), probe);
++        if (asset.balanceOf(address(this)) != beforeRegistry + probe || asset.balanceOf(admin) != beforeAdmin - probe) {
++            revert InexactAssetTransfer();
++        }
++        asset.safeTransfer(admin, probe);
++        if (asset.balanceOf(address(this)) != beforeRegistry || asset.balanceOf(admin) != beforeAdmin) {
++            revert InexactAssetTransfer();
++        }
++
++        entry.review = review;
++        entry.permissions = permissions;
++        emit AssetReviewed(token, review.evidenceHash, review.runtimeHash, review.implementation);
++        emit AssetPermissionsChanged(token, permissions);
++    }
++
++    function setPermissions(address token, uint8 permissions) external onlyAdmin nonReentrant {
++        Asset storage entry = assets[token];
++        if (entry.review.evidenceHash == 0 || permissions > 7
++            || (permissions & ~entry.permissions != 0 && !_validIdentity(token, entry.review))) revert InvalidAssetReview();
++        entry.permissions = permissions;
++        emit AssetPermissionsChanged(token, permissions);
++    }
++
++    function _validIdentity(address token, Review memory review) private view returns (bool) {
++        if (review.runtimeHash == 0 || token.code.length == 0 || token.codehash != review.runtimeHash
++            || _readWord(token, IERC20Metadata.decimals.selector) != review.decimals) return false;
++        uint256 exposed = _readWord(token, IMPLEMENTATION);
++        if (review.implementation == address(0)) {
++            return review.implementationHash == 0 && (exposed == type(uint256).max || exposed == 0);
++        }
++        return exposed == uint160(review.implementation) && review.implementation.code.length != 0
++            && review.implementation.codehash == review.implementationHash;
++    }
++
++    /// @dev Bounds callee gas and copied return data, including when inspecting untrusted candidates.
++    function _readWord(address token, bytes4 selector) private view returns (uint256 value) {
++        bytes memory input = abi.encodeWithSelector(selector);
++        assembly ("memory-safe") {
++            let ok := staticcall(30000, token, add(input, 32), 4, 0, 32)
++            value := not(0)
++            if and(ok, eq(returndatasize(), 32)) { value := mload(0) }
++        }
++    }
++}
+--- /dev/null
++++ v361/contracts/v36/TreasuryVaultV36.sol
+@@ -0,0 +1,232 @@
++// SPDX-License-Identifier: MIT
++pragma solidity 0.8.30;
++
++import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
++import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
++import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
++import {ITreasuryLedger, ITreasuryWrappedNative} from "../TreasuryVault.sol";
++import {TreasuryAssetsV36} from "./TreasuryAssetsV36.sol";
++import {RewardRoutePlannerV36} from "./RewardRoutePlannerV36.sol";
++
++interface IV36TreasuryLedger is ITreasuryLedger {
++    function registry() external view returns (TreasuryAssetsV36);
++    function swapAdapter() external view returns (address);
++}
++
++interface IUnwrapNative {
++    function withdraw(uint256 amount) external;
++}
++
++/// @notice Available balances live here. Allocated funds live in the rewards ledger.
++contract TreasuryVaultV36 is ReentrancyGuard {
++    using SafeERC20 for IERC20;
++
++    struct Balance {
++        uint256 available;
++        uint256 deposited;
++        uint256 allocated;
++        uint256 spent;
++        uint256 fundingReturned;
++        uint256 rewardsReturned;
++        uint256 withdrawn;
++    }
++
++    struct SwapTotals {
++        uint256 swappedIn;
++        uint256 swappedOut;
++    }
++
++    error Unauthorized();
++    error InvalidAsset();
++    error InsufficientAvailable();
++    error InvalidTransfer();
++    error TreasuryPaused();
++    error InvalidSwap();
++    error InvalidDeadline();
++
++    event Deposited(address indexed token, uint256 amount);
++    event Allocated(uint256 indexed poolId, address indexed token, uint256 amount);
++    event Spent(uint256 indexed poolId, address indexed token, uint256 amount);
++    event Recovered(uint256 indexed poolId, address indexed token, uint256 amount, bool reward);
++    event Withdrawn(address indexed token, uint256 amount);
++    event NativeWithdrawn(address indexed token, uint256 amount);
++    event PauseChanged(bool paused);
++    event TreasurySwap(address indexed input, address indexed output, uint8 route, uint256 amountIn, uint256 amountOut);
++
++    IV36TreasuryLedger public immutable ledger;
++    TreasuryAssetsV36 public immutable registry;
++    RewardRoutePlannerV36 public immutable planner;
++    address public immutable owner;
++    address public immutable wrappedNative;
++    bool public paused;
++    mapping(address => Balance) private balances;
++    mapping(address => SwapTotals) public swapTotals;
++
++    constructor(IV36TreasuryLedger rewardsLedger) {
++        ledger = rewardsLedger;
++        owner = rewardsLedger.treasury();
++        wrappedNative = rewardsLedger.wrappedNative();
++        registry = rewardsLedger.registry();
++        planner = RewardRoutePlannerV36(rewardsLedger.swapAdapter());
++        if (registry.admin() != owner || planner.admin() != owner || planner.registry() != registry
++            || planner.wrappedNative() != wrappedNative) revert InvalidAsset();
++    }
++
++    receive() external payable {
++        if (msg.sender != wrappedNative) revert Unauthorized();
++    }
++
++    modifier onlyOwner() {
++        if (msg.sender != owner) revert Unauthorized();
++        _;
++    }
++
++    modifier onlyLedger() {
++        if (msg.sender != address(ledger)) revert Unauthorized();
++        _;
++    }
++
++    modifier whenRunning() {
++        if (paused) revert TreasuryPaused();
++        _;
++    }
++
++    function balance(address token) external view returns (Balance memory) {
++        return balances[token];
++    }
++
++    function setPaused(bool value) external onlyOwner {
++        paused = value;
++        emit PauseChanged(value);
++    }
++
++    function deposit(address token, uint256 amount) external payable onlyOwner whenRunning nonReentrant {
++        if (!registry.permitted(token, 1) || amount == 0) revert InvalidAsset();
++        IERC20 asset = IERC20(token);
++        uint256 previous = asset.balanceOf(address(this));
++        if (msg.value == 0) {
++            uint256 beforeOwner = asset.balanceOf(owner);
++            asset.safeTransferFrom(owner, address(this), amount);
++            if (asset.balanceOf(owner) != beforeOwner - amount) revert InvalidTransfer();
++        } else {
++            if (token != wrappedNative || msg.value != amount) revert InvalidAsset();
++            ITreasuryWrappedNative(token).deposit{value: amount}();
++        }
++        if (asset.balanceOf(address(this)) != previous + amount) revert InvalidTransfer();
++        balances[token].available += amount;
++        balances[token].deposited += amount;
++        emit Deposited(token, amount);
++    }
++
++    function withdraw(address token, uint256 amount) external onlyOwner whenRunning nonReentrant {
++        _withdraw(token, amount);
++        _transferExact(token, owner, amount);
++    }
++
++    function withdrawNative(uint256 amount) external onlyOwner whenRunning nonReentrant {
++        address token = wrappedNative;
++        // Unwrap crosses a second trust boundary. ERC-20 withdrawal remains possible if a reviewed identity drifts.
++        (, bool valid) = registry.assetState(token);
++        if (!valid) revert InvalidAsset();
++        _withdraw(token, amount);
++        IERC20 wrapped = IERC20(token);
++        uint256 previous = wrapped.balanceOf(address(this));
++        uint256 beforeNative = address(this).balance;
++        IUnwrapNative(token).withdraw(amount);
++        if (wrapped.balanceOf(address(this)) != previous - amount || address(this).balance != beforeNative + amount) {
++            revert InvalidTransfer();
++        }
++        (bool sent,) = owner.call{value: amount}("");
++        if (!sent || address(this).balance != beforeNative) revert InvalidTransfer();
++        emit NativeWithdrawn(token, amount);
++    }
++
++    function _withdraw(address token, uint256 amount) private {
++        _debit(token, amount);
++        balances[token].withdrawn += amount;
++        emit Withdrawn(token, amount);
++    }
++
++    function allocate(uint256 poolId, address token, uint256 amount) external onlyLedger whenRunning nonReentrant {
++        // Continue honoring existing pool plans after permission changes.
++        _debit(token, amount);
++        balances[token].allocated += amount;
++        _transferExact(token, address(ledger), amount);
++        emit Allocated(poolId, token, amount);
++    }
++
++    function recordSpend(uint256 poolId, address token, uint256 amount) external onlyLedger whenRunning nonReentrant {
++        balances[token].allocated -= amount;
++        balances[token].spent += amount;
++        emit Spent(poolId, token, amount);
++    }
++
++    function recordRecovery(uint256 poolId, address token, uint256 amount, bool reward) external onlyLedger nonReentrant {
++        Balance storage funds = balances[token];
++        if (reward) funds.rewardsReturned += amount;
++        else {
++            funds.allocated -= amount;
++            funds.fundingReturned += amount;
++        }
++        funds.available += amount;
++        if (IERC20(token).balanceOf(address(this)) < funds.available) revert InvalidTransfer();
++        emit Recovered(poolId, token, amount, reward);
++    }
++
++    function quoteTreasurySwap(address input, address output, uint256 amount)
++        external view whenRunning returns (uint8 route, uint256 quoted, uint256 minimum)
++    {
++        _checkSwap(input, output, amount);
++        return planner.bestRoute(input, output, amount, 0);
++    }
++
++    function swapTreasury(address input, address output, uint8 route, uint256 amount, uint256 minimum, uint256 deadline)
++        external onlyOwner whenRunning nonReentrant returns (uint256 received)
++    {
++        if (minimum == 0) revert InvalidSwap();
++        if (deadline < block.timestamp || deadline - block.timestamp > 5 minutes) revert InvalidDeadline();
++        _checkSwap(input, output, amount);
++        _debit(input, amount);
++
++        IERC20 source = IERC20(input);
++        IERC20 target = IERC20(output);
++        uint256 sourceBefore = source.balanceOf(address(this));
++        uint256 targetBefore = target.balanceOf(address(this));
++        source.forceApprove(address(planner), amount);
++        if (source.allowance(address(this), address(planner)) != amount) revert InvalidTransfer();
++        received = planner.swapExactPath(input, output, route, amount, minimum, deadline);
++        source.forceApprove(address(planner), 0);
++        if (source.allowance(address(this), address(planner)) != 0) revert InvalidTransfer();
++        if (received < minimum || source.balanceOf(address(this)) != sourceBefore - amount
++            || target.balanceOf(address(this)) != targetBefore + received) revert InvalidTransfer();
++
++        balances[output].available += received;
++        swapTotals[input].swappedOut += amount;
++        swapTotals[output].swappedIn += received;
++        emit TreasurySwap(input, output, route, amount, received);
++    }
++
++    function _checkSwap(address input, address output, uint256 amount) private view {
++        if (input == output || !registry.permitted(input, 4) || !registry.permitted(output, 4)) revert InvalidSwap();
++        if (amount == 0 || amount > balances[input].available) revert InsufficientAvailable();
++        if (IERC20(input).balanceOf(address(this)) < balances[input].available
++            || IERC20(output).balanceOf(address(this)) < balances[output].available) revert InvalidTransfer();
++    }
++
++    function _debit(address token, uint256 amount) private {
++        Balance storage funds = balances[token];
++        if (amount == 0 || amount > funds.available) revert InsufficientAvailable();
++        if (IERC20(token).balanceOf(address(this)) < funds.available) revert InvalidTransfer();
++        funds.available -= amount;
++    }
++
++    function _transferExact(address token, address receiver, uint256 amount) private {
++        IERC20 asset = IERC20(token);
++        uint256 previous = asset.balanceOf(address(this));
++        uint256 receiverPrevious = asset.balanceOf(receiver);
++        asset.safeTransfer(receiver, amount);
++        if (asset.balanceOf(address(this)) != previous - amount || asset.balanceOf(receiver) != receiverPrevious + amount) {
++            revert InvalidTransfer();
++        }
++    }
++}
+--- /dev/null
++++ v361/contracts/v36/UniversalRewardsV36.sol
+@@ -0,0 +1,40 @@
++// SPDX-License-Identifier: MIT
++pragma solidity 0.8.30;
++
++import {UniversalRewardsV33} from "../UniversalRewardsV33.sol";
++import {TreasuryVault} from "../TreasuryVault.sol";
++import {RewardSwapAdapter} from "../RewardSwapAdapter.sol";
++import {TreasuryAssetsV36} from "./TreasuryAssetsV36.sol";
++import {RewardRoutePlannerV36} from "./RewardRoutePlannerV36.sol";
++import {TreasuryVaultV36} from "./TreasuryVaultV36.sol";
++
++/// @notice V3.5 settlement with live asset permission checks for newly configured pools.
++contract UniversalRewardsV36 is UniversalRewardsV33 {
++    TreasuryAssetsV36 public immutable registry;
++
++    constructor(RewardRoutePlannerV36 planner)
++        UniversalRewardsV33(planner.admin(), _bootstrap(planner.wrappedNative()), planner.wrappedNative(), RewardSwapAdapter(address(planner)))
++    {
++        registry = planner.registry();
++    }
++
++    function _bootstrap(address wrapped) private pure returns (address[] memory assets) {
++        assets = new address[](1);
++        assets[0] = wrapped;
++    }
++
++    function supportedAssets() external view override returns (address[] memory) {
++        return registry.registeredAssets();
++    }
++
++    function _assetAllowed(address token, bool reward) internal view override returns (bool) {
++        return registry.permitted(token, reward ? 2 : 1);
++    }
++
++    function _validateTreasury(TreasuryVault vault) internal view override {
++        TreasuryVaultV36 candidate = TreasuryVaultV36(payable(address(vault)));
++        if (candidate.registry() != registry || address(candidate.planner()) != address(swapAdapter)) {
++            revert InvalidConfiguration();
++        }
++    }
++}
+
+# V3.6.1 compiler overlays compared with pristine tracked sources
+--- tracked/contracts/RewardRoutePlanner.sol
++++ compiled/contracts/RewardRoutePlanner.sol
+@@ -156,6 +156,7 @@
+     ) external returns (uint256 received) {
+         if (msg.sender != address(this)) revert Unauthorized();
+         Path storage path = paths[input][output][index];
++        _validatePath(input, output, path);
+         IERC20 reward = IERC20(output);
+         uint256 beforeReward = reward.balanceOf(address(this));
+         if (path.intermediate == address(0)) {
+@@ -182,23 +183,29 @@
+         uint256 beforeInput = asset.balanceOf(address(this));
+         uint256 beforeOutput = IERC20(output).balanceOf(address(this));
+         asset.forceApprove(address(adapter), amount);
++        if (asset.allowance(address(this), address(adapter)) != amount) revert UnexpectedTransfer();
+         received = adapter.swapExact(input, output, amount, minimum, deadline);
+         asset.forceApprove(address(adapter), 0);
++        if (asset.allowance(address(this), address(adapter)) != 0) revert UnexpectedTransfer();
+         if (asset.balanceOf(address(this)) != beforeInput - amount || IERC20(output).balanceOf(address(this)) != beforeOutput + received) {
+             revert UnexpectedTransfer();
+         }
+     }
+ 
+     function _validatePath(address input, address output, Path memory path) private view {
+-        if (!path.enabled || !approvedAsset[input] || !approvedAsset[output] || !_approved(path.first)) revert InvalidRoute();
++        if (!path.enabled || !_assetAllowed(input) || !_assetAllowed(output) || !_approved(path.first)) revert InvalidRoute();
+         if (path.intermediate == address(0)) {
+             if (address(path.second) != address(0)) revert InvalidRoute();
+         } else if (
+-            path.intermediate == input || path.intermediate == output || !approvedAsset[path.intermediate]
++            path.intermediate == input || path.intermediate == output || !_assetAllowed(path.intermediate)
+                 || !_approved(path.second)
+         ) revert InvalidRoute();
+     }
+ 
++    function _assetAllowed(address token) internal view virtual returns (bool) {
++        return approvedAsset[token];
++    }
++
+     function _approved(RewardSwapAdapter adapter) private view returns (bool) {
+         bytes32 expected = approvedAdapterHash[address(adapter)];
+         return expected != 0 && address(adapter).codehash == expected;
+--- tracked/contracts/RewardSwapAdapter.sol
++++ compiled/contracts/RewardSwapAdapter.sol
+@@ -202,8 +202,10 @@
+         if (asset.balanceOf(address(this)) != startInput + amount) revert UnexpectedTransfer();
+ 
+         asset.forceApprove(address(router), amount);
++        if (asset.allowance(address(this), address(router)) != amount) revert UnexpectedTransfer();
+         router.swapExactTokensForTokens(amount, minimum, _path(input, output), msg.sender, deadline);
+         asset.forceApprove(address(router), 0);
++        if (asset.allowance(address(this), address(router)) != 0) revert UnexpectedTransfer();
+         if (asset.balanceOf(address(this)) != startInput) revert UnexpectedTransfer();
+         received = reward.balanceOf(msg.sender) - startOutput;
+         if (received < minimum) revert InsufficientOutput();
+--- tracked/contracts/UniversalRewards.sol
++++ compiled/contracts/UniversalRewards.sol
+@@ -185,7 +185,7 @@
+     FinalizedOwnershipVerifier public immutable remoteVerifier;
+     TreasuryVault public treasuryVault;
+     uint256 public poolCount;
+-    mapping(address => bool) public supportedTokens;
++    mapping(address => bool) private bootstrapTokens;
+     address[] private fundingAssets;
+     mapping(uint256 => Pool) internal pools;
+ 
+@@ -207,11 +207,11 @@
+         admin = poolAdmin;
+         treasury = surplusTreasury;
+         for (uint256 i; i < tokens.length; ++i) {
+-            if (tokens[i].code.length == 0 || supportedTokens[tokens[i]]) revert InvalidToken();
+-            supportedTokens[tokens[i]] = true;
++            if (tokens[i].code.length == 0 || bootstrapTokens[tokens[i]]) revert InvalidToken();
++            bootstrapTokens[tokens[i]] = true;
+             fundingAssets.push(tokens[i]);
+         }
+-        if (wrapped != address(0) && !supportedTokens[wrapped]) revert InvalidToken();
++        if (wrapped != address(0) && !bootstrapTokens[wrapped]) revert InvalidToken();
+         if (address(adapter) != address(0) && (wrapped == address(0) || adapter.wrappedNative() != wrapped)) {
+             revert InvalidConfiguration();
+         }
+@@ -247,6 +247,7 @@
+             address(treasuryVault) != address(0) || address(vault.ledger()) != address(this)
+                 || vault.owner() != treasury || vault.wrappedNative() != wrappedNative
+         ) revert InvalidConfiguration();
++        _validateTreasury(vault);
+         treasuryVault = vault;
+         emit TreasuryVaultAttached(address(vault));
+     }
+@@ -294,7 +295,17 @@
+         emit BudgetFunded(poolId, plan.asset, address(treasuryVault), amount);
+     }
+ 
+-    function supportedAssets() external view returns (address[] memory) {
++    function _validateTreasury(TreasuryVault) internal view virtual {}
++
++    function _assetAllowed(address token, bool) internal view virtual returns (bool) {
++        return bootstrapTokens[token];
++    }
++
++    function supportedTokens(address token) external view returns (bool) {
++        return _assetAllowed(token, true);
++    }
++
++    function supportedAssets() external view virtual returns (address[] memory) {
+         return fundingAssets;
+     }
+ 
+@@ -324,7 +335,7 @@
+         }
+         for (uint256 i; i < rewards.length; ++i) {
+             RewardConfig calldata reward = rewards[i];
+-            if (!supportedTokens[reward.token] || reward.cap == 0 || pool.rewards[reward.token].cap != 0) {
++            if (!_assetAllowed(reward.token, true) || reward.cap == 0 || pool.rewards[reward.token].cap != 0) {
+                 revert InvalidToken();
+             }
+             pool.rewardTokens.push(reward.token);
+@@ -450,7 +461,7 @@
+     {
+         Pool storage pool = _pool(poolId);
+         if (
+-            pool.funding.asset != address(0) || !supportedTokens[asset] || budget == 0
++            pool.funding.asset != address(0) || !_assetAllowed(asset, false) || budget == 0
+                 || block.timestamp >= pool.config.start || interval < MIN_REPLENISH_INTERVAL
+                 || interval > MAX_REPLENISH_INTERVAL || interval > pool.config.end - pool.config.start
+                 || splits.length != pool.rewardTokens.length
+@@ -548,8 +559,10 @@
+             uint256 inputBefore = source.balanceOf(address(this));
+             uint256 outputBefore = output.balanceOf(address(this));
+             source.forceApprove(address(swapAdapter), amount);
++        if (source.allowance(address(this), address(swapAdapter)) != amount) revert InvalidReceipt();
+             received = swapAdapter.swapExact(plan.asset, rewardToken, amount, minimum, deadline);
+             source.forceApprove(address(swapAdapter), 0);
++        if (source.allowance(address(this), address(swapAdapter)) != 0) revert InvalidReceipt();
+             if (
+                 inputBefore - source.balanceOf(address(this)) != amount
+                     || output.balanceOf(address(this)) - outputBefore != received
+@@ -913,7 +926,7 @@
+ 
+     function _canSeat(Pool storage pool, address owner, uint64 expiry) internal view returns (bool) {
+         uint256 count = pool.seatsByWallet[owner];
+-        return pool.activeNfts < MAX_POSITIONS && (expiry == 0 || pool.remoteSeats.length < MAX_REMOTE_POSITIONS)
++        return pool.activeNfts < MAX_POSITIONS
+             && count < pool.config.maxNftsPerWallet && (count != 0 || pool.activeWallets < pool.config.maxWallets);
+     }
+ 
+@@ -924,10 +937,6 @@
+         pool.powerByWallet[owner] += position.weight;
+         position.seatOwner = owner;
+         position.seatExpiry = expiry;
+-        if (expiry != 0) {
+-            pool.remoteSeats.push(key);
+-            pool.remoteSlot[key] = uint8(pool.remoteSeats.length);
+-        }
+         for (uint256 i; i < pool.rewardTokens.length; ++i) {
+             RewardIndex storage index = pool.indexes[pool.rewardTokens[i]];
+             if (index.debt[key] != index.perWeight) index.debt[key] = index.perWeight;
+@@ -946,15 +955,6 @@
+         --pool.activeNfts;
+         pool.totalWeight -= position.weight;
+         position.seatOwner = address(0);
+-        if (position.seatExpiry != 0) {
+-            position.seatExpiry = 0;
+-            uint8 slot = pool.remoteSlot[key];
+-            bytes32 last = pool.remoteSeats[pool.remoteSeats.length - 1];
+-            pool.remoteSeats[slot - 1] = last;
+-            pool.remoteSlot[last] = slot;
+-            pool.remoteSeats.pop();
+-            delete pool.remoteSlot[key];
+-        }
+     }
+ 
+     function _leave(uint256 poolId, Pool storage pool, bytes32 key) private {
+--- tracked/contracts/v36/TreasuryVaultV36.sol
++++ compiled/contracts/v36/TreasuryVaultV36.sol
+@@ -193,8 +193,10 @@
+         uint256 sourceBefore = source.balanceOf(address(this));
+         uint256 targetBefore = target.balanceOf(address(this));
+         source.forceApprove(address(planner), amount);
++        if (source.allowance(address(this), address(planner)) != amount) revert InvalidTransfer();
+         received = planner.swapExactPath(input, output, route, amount, minimum, deadline);
+         source.forceApprove(address(planner), 0);
++        if (source.allowance(address(this), address(planner)) != 0) revert InvalidTransfer();
+         if (received < minimum || source.balanceOf(address(this)) != sourceBefore - amount
+             || target.balanceOf(address(this)) != targetBefore + received) revert InvalidTransfer();
+ 

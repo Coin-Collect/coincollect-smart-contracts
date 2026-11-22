@@ -1,0 +1,2372 @@
+{
+  "chainId": 137,
+  "number": 97760618,
+  "blockHash": "0x733852fbeb2d58b98bdd80ad1a8a999de23443ed28dcf4f767cab0f628f29278",
+  "timestamp": "2026-11-22T11:19:56.000Z",
+  "latestGasPriceGweiAtRead": "281.101884273",
+  "onePolQuoteUsdt": "0.075344",
+  "assets": {
+    "WPOL": {
+      "address": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+      "decimals": 18,
+      "runtimeHash": "0xae820ea59b005f58a45eea35b374afbd5dc503d4f219a6b670cd3453f1142ed5",
+      "visibleRoles": {},
+      "implementation": null,
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": null,
+      "implementationEvidence": "UNKNOWN_IF_CUSTOM_PROXY"
+    },
+    "COLLECT": {
+      "address": "0x56633733fc8baf9f730ad2b6b9956ae22c6d4148",
+      "decimals": 18,
+      "runtimeHash": "0x3d34462c9ca75095634a42f3e34145a181aecf31b9fa970cf97f9cfda5519449",
+      "visibleRoles": {
+        "owner": "0xd10948dD87dDAac8269Abd4a24BeBEeC4Db2C589"
+      },
+      "implementation": null,
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": null,
+      "implementationEvidence": "UNKNOWN_IF_CUSTOM_PROXY"
+    },
+    "WETH": {
+      "address": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+      "decimals": 18,
+      "runtimeHash": "0x06025eef5a4b1b3cb0031bce61d6a571f478e213d24984621eafcb59b8d71473",
+      "visibleRoles": {},
+      "implementation": null,
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": null,
+      "implementationEvidence": "UNKNOWN_IF_CUSTOM_PROXY"
+    },
+    "USDC": {
+      "address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+      "decimals": 6,
+      "runtimeHash": "0x7dbf0ee7d6d69b563891ceb7056cf0ff0fa09d21a48e5f812d89981c2ef95944",
+      "visibleRoles": {
+        "owner": "0xAEE29e350Dbb28Ce77D0595D898be658626d2BCC",
+        "admin": "0x9238E612387eBBA4D4Fa0d76DbFbA99b453417b3",
+        "implementation": "0x235AE97b28466Db30469b89A9fe4cFf0659f82Cb",
+        "masterMinter": "0x067b07ED153F2D4640638f7d2945fBe4ED1bF1ac",
+        "pauser": "0xA2fB1d6BC5b7aEeC5E7eF7FCA16D60880C5C8Ae1",
+        "blacklister": "0xe99Cf1D0418302535936F96eA6625C71BF1695b6"
+      },
+      "implementation": "0x235AE97b28466Db30469b89A9fe4cFf0659f82Cb",
+      "implementation1967": null,
+      "legacyImplementation": "0x235AE97b28466Db30469b89A9fe4cFf0659f82Cb",
+      "admin1967": null,
+      "legacyAdmin": "0x9238E612387eBBA4D4Fa0d76DbFbA99b453417b3",
+      "beacon": null,
+      "implementationRuntimeHash": "0x39ec98a4509fb2d4380a9cd4623e7b20cf651cb58edb8d8332bfad9c3d698143",
+      "implementationEvidence": "DISCOVERED"
+    },
+    "USDT": {
+      "address": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+      "decimals": 6,
+      "runtimeHash": "0x8cb0cfc9b3aa516d8c5a1cdf94a2c60b668a903e21711cb6f3f3501fdd8478b5",
+      "visibleRoles": {
+        "implementation": "0x90040487A6C9F949C4F07CaDCFB0f3B8EEAb4229",
+        "proxyOwner": "0x4DFF9b5b0143E642a3F63a5bcf2d1C328e600bf8"
+      },
+      "implementation": "0x90040487A6C9F949C4F07CaDCFB0f3B8EEAb4229",
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": "0x6d850049a76c4c4f44783ddfe28b88984e7301767c363105afe4e18908b1d056",
+      "implementationEvidence": "DISCOVERED"
+    },
+    "USDC.e": {
+      "address": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      "decimals": 6,
+      "runtimeHash": "0xa97604bff5b11d790aca38bf9f6189369ea260f08365b428fc2ef73390fddcef",
+      "visibleRoles": {
+        "implementation": "0xDD9185DB084f5C4fFf3b4f70E7bA62123b812226",
+        "proxyOwner": "0x355b8E02e7F5301E6fac9b7cAc1D6D9c86C0343f"
+      },
+      "implementation": "0xDD9185DB084f5C4fFf3b4f70E7bA62123b812226",
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": "0x6c32454db1ae150566833039d7172656e03f7fc718e96d2a4c4fd842f700e3c8",
+      "implementationEvidence": "DISCOVERED"
+    },
+    "SHIB": {
+      "address": "0x6f8a06447ff6fcf75d803135a7de15ce88c1d4ec",
+      "decimals": 18,
+      "runtimeHash": "0xe0039e200dc94a84760089ea18de72126e37d0c2aabbd11ca76d4b258f2249ff",
+      "visibleRoles": {
+        "implementation": "0x0ED3D66Dd0c9be71C8bf280A010B96881C69e7B6",
+        "proxyOwner": "0x355b8E02e7F5301E6fac9b7cAc1D6D9c86C0343f"
+      },
+      "implementation": "0x0ED3D66Dd0c9be71C8bf280A010B96881C69e7B6",
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": "0x2f4a87e3179f89023084e46fe7c926f5e9dcb4a967b86b82ec7d131dedc9aba9",
+      "implementationEvidence": "DISCOVERED"
+    },
+    "WBTC": {
+      "address": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
+      "decimals": 8,
+      "runtimeHash": "0x8cb0cfc9b3aa516d8c5a1cdf94a2c60b668a903e21711cb6f3f3501fdd8478b5",
+      "visibleRoles": {
+        "implementation": "0x7FFB3d637014488b63fb9858E279385685AFc1e2",
+        "proxyOwner": "0x355b8E02e7F5301E6fac9b7cAc1D6D9c86C0343f"
+      },
+      "implementation": "0x7FFB3d637014488b63fb9858E279385685AFc1e2",
+      "implementation1967": null,
+      "legacyImplementation": null,
+      "admin1967": null,
+      "legacyAdmin": null,
+      "beacon": null,
+      "implementationRuntimeHash": "0xea84159f1c7b531fa7b6f95678e15546c9c08b9e585ac526960865ff8828cf1d",
+      "implementationEvidence": "DISCOVERED"
+    }
+  },
+  "routers": {
+    "CoinCollect": {
+      "address": "0xCc2a5477978A23282b80a66aAa2903b71f702040",
+      "runtimeHash": "0x62983b1c9e3c0cece7438c16cf954aac862ba329b7d57e0e6cb886edc75e7363",
+      "factoryAddress": "0x2bc17223A99B6e2857796a5F64A1ED91067b5657",
+      "factoryRuntimeHash": "0x1545aa0cbfe7d22ffe2b435cbbf9a39b317238187427188a8b65af9d6d0508ab",
+      "factoryRoles": {
+        "feeToSetter": "0x8fC2e77C47D5D9fDe1ff35098d6e22EB6F9e8258",
+        "feeTo": "0x0000000000000000000000000000000000000000"
+      },
+      "wrappedNative": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
+    },
+    "QuickSwapV2": {
+      "address": "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
+      "runtimeHash": "0xf1ce1bb9d7403281292baa290f5c56136484cc34395dc3666ad7f94c79f99b71",
+      "factoryAddress": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
+      "factoryRuntimeHash": "0xbab145d02e7005f0d84c6c1639d39b799b0ea16df99ebbdaf5a14d9da820b4e0",
+      "factoryRoles": {
+        "feeToSetter": "0xDA1077c4b0dd6da1BDF166F30aa4BDbF517d637b",
+        "feeTo": "0x98081c719F3f77E997833b709448180d1C393348"
+      },
+      "wrappedNative": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
+    }
+  },
+  "pairs": [
+    {
+      "router": "CoinCollect",
+      "funding": "COLLECT",
+      "reward": "USDT",
+      "status": "PAIR",
+      "pair": "0x0cCc84b6506003487AEC687085e82C2f912E607B",
+      "pairCodeHash": "0x693110e0dd495664e2e6bab84e8b7b5180d3fb2d7eeaf993214a9483c9c2f1ef",
+      "reserveIn": "5289315.054400391205286333",
+      "reserveOut": "727.338398",
+      "maximumTradeAtModel50Bps": "26446.575272001956026431",
+      "lastPairUpdateUnix": 1795341379,
+      "cumulativePrice": [
+        "529730543674533077646223847",
+        "1529315519891727273109815707158872772848193631305743054719"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "713997339955253098"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "COLLECT",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0xFb09801B10298dB9663D2790F5D5Bc6aFa354497",
+      "pairCodeHash": "0x693110e0dd495664e2e6bab84e8b7b5180d3fb2d7eeaf993214a9483c9c2f1ef",
+      "reserveIn": "1083819.618620073452584504",
+      "reserveOut": "1956.205518815558024245",
+      "maximumTradeAtModel50Bps": "5419.098093100367262922",
+      "lastPairUpdateUnix": 1795234163,
+      "cumulativePrice": [
+        "313829050224576566933557340901855329803414300",
+        "1187581255290178043794218166934979522586"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "9371669967486592234879141893583"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDC.e",
+      "reward": "COLLECT",
+      "status": "PAIR",
+      "pair": "0xd495c3E919C481289B929aCE198f04032cF05A38",
+      "pairCodeHash": "0x693110e0dd495664e2e6bab84e8b7b5180d3fb2d7eeaf993214a9483c9c2f1ef",
+      "reserveIn": "15.349027",
+      "reserveOut": "111682.404205152089775305",
+      "maximumTradeAtModel50Bps": "0.076745",
+      "lastPairUpdateUnix": 1795268236,
+      "cumulativePrice": [
+        "1519707885004783179284350983771354596238239756355180606002",
+        "502810774865012924048891817"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "37780127463977229210820718506441328370518528093444"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDC.e",
+      "reward": "SHIB",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDC.e",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0x00d36E10FfCAef2bB83b02531650a986Bf838c80",
+      "pairCodeHash": "0x693110e0dd495664e2e6bab84e8b7b5180d3fb2d7eeaf993214a9483c9c2f1ef",
+      "reserveIn": "0.000001",
+      "reserveOut": "0.000000052339324726",
+      "maximumTradeAtModel50Bps": "0.0",
+      "lastPairUpdateUnix": 1737518359,
+      "cumulativePrice": [
+        "77227050637883168263179035423448",
+        "240415441112562627231010083733155052786567359740073811"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "271761311352644027830094149569001606868893696"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDC",
+      "reward": "COLLECT",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDC",
+      "reward": "SHIB",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDC",
+      "reward": "WPOL",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDT",
+      "reward": "COLLECT",
+      "status": "PAIR",
+      "pair": "0x0cCc84b6506003487AEC687085e82C2f912E607B",
+      "pairCodeHash": "0x693110e0dd495664e2e6bab84e8b7b5180d3fb2d7eeaf993214a9483c9c2f1ef",
+      "reserveIn": "727.338398",
+      "reserveOut": "5289315.054400391205286333",
+      "maximumTradeAtModel50Bps": "3.636691",
+      "lastPairUpdateUnix": 1795341379,
+      "cumulativePrice": [
+        "529730543674533077646223847",
+        "1529315519891727273109815707158872772848193631305743054719"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "37759169619371755148660079729882574487686703367323"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDT",
+      "reward": "SHIB",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "USDT",
+      "reward": "WPOL",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "WPOL",
+      "reward": "COLLECT",
+      "status": "PAIR",
+      "pair": "0xFb09801B10298dB9663D2790F5D5Bc6aFa354497",
+      "pairCodeHash": "0x693110e0dd495664e2e6bab84e8b7b5180d3fb2d7eeaf993214a9483c9c2f1ef",
+      "reserveIn": "1956.205518815558024245",
+      "reserveOut": "1083819.618620073452584504",
+      "maximumTradeAtModel50Bps": "9.781027594077790121",
+      "lastPairUpdateUnix": 1795234163,
+      "cumulativePrice": [
+        "313829050224576566933557340901855329803414300",
+        "1187581255290178043794218166934979522586"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "2876749475886748951069616961291069791"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "WPOL",
+      "reward": "SHIB",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "CoinCollect",
+      "funding": "WPOL",
+      "reward": "USDT",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "SHIB",
+      "reward": "USDT",
+      "status": "PAIR",
+      "pair": "0xa09E6A33b1Ff289F7046B13D25e1659eC892eD58",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "530434.062627154593251327",
+      "reserveOut": "1.907118",
+      "maximumTradeAtModel50Bps": "2652.170313135772966256",
+      "lastPairUpdateUnix": 1795190695,
+      "cumulativePrice": [
+        "12512322089314375206514142",
+        "88738781712583772047625227361612586029815703206712590389761"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "18668338815215997"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "SHIB",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0x5FB641De2663e8a94C9dea0a539817850d996e99",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "272167147.888689866748597364",
+      "reserveOut": "13022.409014143551865041",
+      "maximumTradeAtModel50Bps": "1360835.739443449333742986",
+      "lastPairUpdateUnix": 1795339994,
+      "cumulativePrice": [
+        "48478443573116756095827456509682431575863951050",
+        "28959103778586757810464914351225961630"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "248436352216714522468141051912"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDC.e",
+      "reward": "COLLECT",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDC.e",
+      "reward": "SHIB",
+      "status": "PAIR",
+      "pair": "0xD18d83EFf262723BE3609baaa6C05044BF956459",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "0.625162",
+      "reserveOut": "153542.814301621814570586",
+      "maximumTradeAtModel50Bps": "0.003125",
+      "lastPairUpdateUnix": 1795116112,
+      "cumulativePrice": [
+        "89128219032513645781071386321093224787991280153282286271949",
+        "12860569248233528039809696"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "1275253250115821741164605459103022223971630296272840"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDC.e",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0x6e7a5FAFcec6BB1e78bAE2A1F0B612012BF14827",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "264232.060317",
+      "reserveOut": "3501512.3201157195101695",
+      "maximumTradeAtModel50Bps": "1321.160301",
+      "lastPairUpdateUnix": 1795345859,
+      "cumulativePrice": [
+        "646505100599327538278200902441",
+        "6115201262914525009569462386332069949957634133699918514"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 9,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "68872530382877541712765515970164873715808583507"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDC",
+      "reward": "COLLECT",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDC",
+      "reward": "SHIB",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDC",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0x6D9e8dbB2779853db00418D4DcF96F3987CFC9D2",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "608.666403",
+      "reserveOut": "8081.583082437791055868",
+      "maximumTradeAtModel50Bps": "3.043332",
+      "lastPairUpdateUnix": 1795346270,
+      "cumulativePrice": [
+        "182632454118109140922206731017",
+        "2694042212160729317338024749154645405858297622621292000"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 8,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "68998843513656346615174032464170022069812452940"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDT",
+      "reward": "COLLECT",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDT",
+      "reward": "SHIB",
+      "status": "PAIR",
+      "pair": "0xa09E6A33b1Ff289F7046B13D25e1659eC892eD58",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "1.907118",
+      "reserveOut": "530434.062627154593251327",
+      "maximumTradeAtModel50Bps": "0.009535",
+      "lastPairUpdateUnix": 1795190695,
+      "cumulativePrice": [
+        "12512322089314375206514142",
+        "88738781712583772047625227361612586029815703206712590389761"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "1444153490784964963796582617879693888970509095522577"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDT",
+      "reward": "WBTC",
+      "status": "PAIR",
+      "pair": "0x7847350B4C25f564B5a165389fDCeEA99e1ED3BD",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "94.939778",
+      "reserveOut": "0.00155247",
+      "maximumTradeAtModel50Bps": "0.474698",
+      "lastPairUpdateUnix": 1795346393,
+      "cumulativePrice": [
+        "557792336137961681965319267951274561387489378",
+        "2379188052739005967292616813580256291543"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 14,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "8478317013972970564681777499732"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDT",
+      "reward": "WETH",
+      "status": "PAIR",
+      "pair": "0xF6422B997c7F54D1c6a6e103bcb1499EeA0a7046",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "65558.058577",
+      "reserveOut": "38.284474206654294504",
+      "maximumTradeAtModel50Bps": "327.790292",
+      "lastPairUpdateUnix": 1795344575,
+      "cumulativePrice": [
+        "2530114610484824607716853643295217",
+        "443816504121054056898539890568217095712963261753047"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "3032187948646927342257921415663634360790974"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "USDT",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0x604229c960e5CACF2aaEAc8Be68Ac07BA9dF81c3",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "52051.324509",
+      "reserveOut": "688769.288522750565725588",
+      "maximumTradeAtModel50Bps": "260.256622",
+      "lastPairUpdateUnix": 1795346344,
+      "cumulativePrice": [
+        "646480263206032887168608448183",
+        "6086285122086996977138687332159868370176898646382758426"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 11,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "68786730430622430169028594388330128432517166359"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WBTC",
+      "reward": "USDT",
+      "status": "PAIR",
+      "pair": "0x7847350B4C25f564B5a165389fDCeEA99e1ED3BD",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "0.00155247",
+      "reserveOut": "94.939778",
+      "maximumTradeAtModel50Bps": "0.00000776",
+      "lastPairUpdateUnix": 1795346393,
+      "cumulativePrice": [
+        "557792336137961681965319267951274561387489378",
+        "2379188052739005967292616813580256291543"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 14,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "3179870098734660589920792443111325123"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WBTC",
+      "reward": "WPOL",
+      "status": "PAIR",
+      "pair": "0xf6B87181BF250af082272E3f448eC3238746Ce3D",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "0.0646459",
+      "reserveOut": "52246.054517704163941012",
+      "maximumTradeAtModel50Bps": "0.00032322",
+      "lastPairUpdateUnix": 1795344575,
+      "cumulativePrice": [
+        "468340289867598607397921206807",
+        "2341846732601557583485418367350848380879417952578600509226"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "41963531290169162969687520335313709295312719632909"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WETH",
+      "reward": "USDT",
+      "status": "PAIR",
+      "pair": "0xF6422B997c7F54D1c6a6e103bcb1499EeA0a7046",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "38.284474206654294504",
+      "reserveOut": "65558.058577",
+      "maximumTradeAtModel50Bps": "0.191422371033271472",
+      "lastPairUpdateUnix": 1795344575,
+      "cumulativePrice": [
+        "2530114610484824607716853643295217",
+        "443816504121054056898539890568217095712963261753047"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "8891251836543031426463004"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WPOL",
+      "reward": "COLLECT",
+      "status": "NO_PAIR"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WPOL",
+      "reward": "SHIB",
+      "status": "PAIR",
+      "pair": "0x5FB641De2663e8a94C9dea0a539817850d996e99",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "13022.409014143551865041",
+      "reserveOut": "272167147.888689866748597364",
+      "maximumTradeAtModel50Bps": "65.112045070717759325",
+      "lastPairUpdateUnix": 1795339994,
+      "cumulativePrice": [
+        "48478443573116756095827456509682431575863951050",
+        "28959103778586757810464914351225961630"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "108518525677084081976904229962006763269"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WPOL",
+      "reward": "USDT",
+      "status": "PAIR",
+      "pair": "0x604229c960e5CACF2aaEAc8Be68Ac07BA9dF81c3",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "688769.288522750565725588",
+      "reserveOut": "52051.324509",
+      "maximumTradeAtModel50Bps": "3443.846442613752828627",
+      "lastPairUpdateUnix": 1795346344,
+      "cumulativePrice": [
+        "646480263206032887168608448183",
+        "6086285122086996977138687332159868370176898646382758426"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 11,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "391935934300874274522"
+    },
+    {
+      "router": "QuickSwapV2",
+      "funding": "WPOL",
+      "reward": "WBTC",
+      "status": "PAIR",
+      "pair": "0xf6B87181BF250af082272E3f448eC3238746Ce3D",
+      "pairCodeHash": "0x5b83bdbcc56b2e630f2807bbadd2b0c21619108066b92a58de081261089e9ce5",
+      "reserveIn": "52246.054517704163941012",
+      "reserveOut": "0.0646459",
+      "maximumTradeAtModel50Bps": "261.230272588520819705",
+      "lastPairUpdateUnix": 1795344575,
+      "cumulativePrice": [
+        "468340289867598607397921206807",
+        "2341846732601557583485418367350848380879417952578600509226"
+      ],
+      "reviewedPairBytecode": true,
+      "reservePolicyMet": true,
+      "driftBps": 0,
+      "spotDeviationExceeded": false,
+      "historicalTwapQ112": "642461342939138502"
+    }
+  ],
+  "publicTwapReference": {
+    "block": 97759418,
+    "hash": "0x4032f27099471a7b23d99565d1ee065c8a941d020bb4bc720ff2dd69438166a9",
+    "elapsed": 1800
+  },
+  "liveAdapterApprovalAndTwap": "BLOCKED_NO_PRODUCTION_V36_DEPLOYMENT",
+  "quotes": [
+    {
+      "route": "Direct CoinCollect COLLECT",
+      "budget": 10,
+      "scenario": "single",
+      "input": "10.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "71558.333011119244943832",
+      "spotGapBps": 159
+    },
+    {
+      "route": "Direct CoinCollect COLLECT",
+      "budget": 10,
+      "scenario": "basket",
+      "input": "5.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "36022.840248948769440304",
+      "spotGapBps": 92
+    },
+    {
+      "route": "Direct CoinCollect COLLECT",
+      "budget": 100,
+      "scenario": "single",
+      "input": "100.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "637911.471074025418413996",
+      "spotGapBps": 1228
+    },
+    {
+      "route": "Direct CoinCollect COLLECT",
+      "budget": 100,
+      "scenario": "basket",
+      "input": "50.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "339423.624215777494051454",
+      "spotGapBps": 665
+    },
+    {
+      "route": "Direct CoinCollect COLLECT",
+      "budget": 1000,
+      "scenario": "single",
+      "input": "1000.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "3058890.486715840278547136",
+      "spotGapBps": 5793
+    },
+    {
+      "route": "Direct CoinCollect COLLECT",
+      "budget": 1000,
+      "scenario": "basket",
+      "input": "500.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "2151595.176730638237094352",
+      "spotGapBps": 4082
+    },
+    {
+      "route": "QuickSwap WPOL",
+      "budget": 10,
+      "scenario": "single",
+      "input": "10.0",
+      "reward": "WPOL",
+      "status": "WITHIN_MODEL_RESERVE_CAP",
+      "quoted": "131.902786347056699928",
+      "spotGapBps": 31
+    },
+    {
+      "route": "QuickSwap WPOL",
+      "budget": 10,
+      "scenario": "basket",
+      "input": "3.0",
+      "reward": "WPOL",
+      "status": "WITHIN_MODEL_RESERVE_CAP",
+      "quoted": "39.576141225319957786",
+      "spotGapBps": 30
+    },
+    {
+      "route": "QuickSwap WPOL",
+      "budget": 100,
+      "scenario": "single",
+      "input": "100.0",
+      "reward": "WPOL",
+      "status": "WITHIN_MODEL_RESERVE_CAP",
+      "quoted": "1316.758370755830617786",
+      "spotGapBps": 49
+    },
+    {
+      "route": "QuickSwap WPOL",
+      "budget": 100,
+      "scenario": "basket",
+      "input": "30.0",
+      "reward": "WPOL",
+      "status": "WITHIN_MODEL_RESERVE_CAP",
+      "quoted": "395.55685678217665347",
+      "spotGapBps": 35
+    },
+    {
+      "route": "QuickSwap WPOL",
+      "budget": 1000,
+      "scenario": "single",
+      "input": "1000.0",
+      "reward": "WPOL",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "12944.857109307544671738",
+      "spotGapBps": 217
+    },
+    {
+      "route": "QuickSwap WPOL",
+      "budget": 1000,
+      "scenario": "basket",
+      "input": "300.0",
+      "reward": "WPOL",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "3935.228723154625722282",
+      "spotGapBps": 86
+    },
+    {
+      "route": "Via WPOL to COLLECT",
+      "budget": 10,
+      "scenario": "single",
+      "input": "10.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "68302.948436641201751652",
+      "spotGapBps": 683
+    },
+    {
+      "route": "Via WPOL to COLLECT",
+      "budget": 10,
+      "scenario": "basket",
+      "input": "5.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "35265.87631825088701698",
+      "spotGapBps": 379
+    },
+    {
+      "route": "Via WPOL to COLLECT",
+      "budget": 100,
+      "scenario": "single",
+      "input": "100.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "435383.346276456614209535",
+      "spotGapBps": 4061
+    },
+    {
+      "route": "Via WPOL to COLLECT",
+      "budget": 100,
+      "scenario": "basket",
+      "input": "50.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "272601.146979523281748575",
+      "spotGapBps": 2563
+    },
+    {
+      "route": "Via WPOL to COLLECT",
+      "budget": 1000,
+      "scenario": "single",
+      "input": "1000.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "941226.530445745544362493",
+      "spotGapBps": 8716
+    },
+    {
+      "route": "Via WPOL to COLLECT",
+      "budget": 1000,
+      "scenario": "basket",
+      "input": "500.0",
+      "reward": "COLLECT",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "833613.180057211572807099",
+      "spotGapBps": 7725
+    },
+    {
+      "route": "Direct QuickSwap SHIB",
+      "budget": 10,
+      "scenario": "single",
+      "input": "10.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "445261.855981622081612368",
+      "spotGapBps": 8399
+    },
+    {
+      "route": "Direct QuickSwap SHIB",
+      "budget": 10,
+      "scenario": "basket",
+      "input": "2.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "271123.693484418122944024",
+      "spotGapBps": 5126
+    },
+    {
+      "route": "Direct QuickSwap SHIB",
+      "budget": 100,
+      "scenario": "single",
+      "input": "100.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "520478.063790051725974132",
+      "spotGapBps": 9812
+    },
+    {
+      "route": "Direct QuickSwap SHIB",
+      "budget": 100,
+      "scenario": "basket",
+      "input": "20.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "484130.456419261459998131",
+      "spotGapBps": 9129
+    },
+    {
+      "route": "Direct QuickSwap SHIB",
+      "budget": 1000,
+      "scenario": "single",
+      "input": "1000.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "529421.355509124652640199",
+      "spotGapBps": 9980
+    },
+    {
+      "route": "Direct QuickSwap SHIB",
+      "budget": 1000,
+      "scenario": "basket",
+      "input": "200.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "525408.903265182237094639",
+      "spotGapBps": 9905
+    },
+    {
+      "route": "Via WPOL to SHIB",
+      "budget": 10,
+      "scenario": "single",
+      "input": "10.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "2721007.652206612439024051",
+      "spotGapBps": 161
+    },
+    {
+      "route": "Via WPOL to SHIB",
+      "budget": 10,
+      "scenario": "basket",
+      "input": "2.0",
+      "reward": "SHIB",
+      "status": "WITHIN_MODEL_RESERVE_CAP",
+      "quoted": "548673.062894703534008093",
+      "spotGapBps": 80
+    },
+    {
+      "route": "Via WPOL to SHIB",
+      "budget": 100,
+      "scenario": "single",
+      "input": "100.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "24924856.901717136593123394",
+      "spotGapBps": 987
+    },
+    {
+      "route": "Via WPOL to SHIB",
+      "budget": 100,
+      "scenario": "basket",
+      "input": "20.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "5387135.736990067982494976",
+      "spotGapBps": 260
+    },
+    {
+      "route": "Via WPOL to SHIB",
+      "budget": 1000,
+      "scenario": "single",
+      "input": "1000.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "135472727.599731429335179538",
+      "spotGapBps": 5101
+    },
+    {
+      "route": "Via WPOL to SHIB",
+      "budget": 1000,
+      "scenario": "basket",
+      "input": "200.0",
+      "reward": "SHIB",
+      "status": "OVER_MODEL_RESERVE_CAP",
+      "quoted": "45594977.245484282457206936",
+      "spotGapBps": 1756
+    }
+  ],
+  "treasuryQuotes": [
+    {
+      "from": "COLLECT",
+      "to": "USDT",
+      "path": [
+        "CoinCollect/COLLECT/USDT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "72440.36414039817418519",
+      "output": "9.802519",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/COLLECT/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "9802519",
+      "spotGapBps": 159
+    },
+    {
+      "from": "COLLECT",
+      "to": "USDT",
+      "path": [
+        "CoinCollect/COLLECT/USDT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "724403.6414039817418519",
+      "output": "87.421396",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/COLLECT/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "87421396",
+      "spotGapBps": 1223
+    },
+    {
+      "from": "COLLECT",
+      "to": "USDT",
+      "path": [
+        "CoinCollect/COLLECT/USDT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "7244036.414039817418519",
+      "output": "419.943452",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/COLLECT/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "419943452",
+      "spotGapBps": 5784
+    },
+    {
+      "from": "USDT",
+      "to": "COLLECT",
+      "path": [
+        "CoinCollect/USDT/COLLECT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "10.0",
+      "output": "71558.333011119244943832",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/USDT/COLLECT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "71558333011119244943832",
+      "spotGapBps": 159
+    },
+    {
+      "from": "USDT",
+      "to": "COLLECT",
+      "path": [
+        "CoinCollect/USDT/COLLECT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "100.0",
+      "output": "637911.471074025418413996",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/USDT/COLLECT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "637911471074025418413996",
+      "spotGapBps": 1228
+    },
+    {
+      "from": "USDT",
+      "to": "COLLECT",
+      "path": [
+        "CoinCollect/USDT/COLLECT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "1000.0",
+      "output": "3058890.486715840278547136",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/USDT/COLLECT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "3058890486715840278547136",
+      "spotGapBps": 5793
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "2746185.88245466029935628",
+      "output": "9.77024",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/USDT",
+          "driftBps": 11,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "9770240",
+      "spotGapBps": 160
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "27461858.8245466029935628",
+      "output": "89.527723",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/USDT",
+          "driftBps": 11,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "89527723",
+      "spotGapBps": 983
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "274618588.245466029935628",
+      "output": "487.439939",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/USDT",
+          "driftBps": 11,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP"
+          ]
+        }
+      ],
+      "quotedRaw": "487439939",
+      "spotGapBps": 5091
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "usdtEquivalent": 10,
+      "input": "10.0",
+      "output": "2721007.652206612439024051",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WPOL",
+          "driftBps": 11,
+          "problems": []
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP"
+          ]
+        }
+      ],
+      "quotedRaw": "2721007652206612439024051",
+      "spotGapBps": 161
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "usdtEquivalent": 100,
+      "input": "100.0",
+      "output": "24924856.901717136593123394",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WPOL",
+          "driftBps": 11,
+          "problems": []
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "24924856901717136593123394",
+      "spotGapBps": 987
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "1000.0",
+      "output": "135472727.599731429335179538",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WPOL",
+          "driftBps": 11,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "135472727599731429335179538",
+      "spotGapBps": 5101
+    },
+    {
+      "from": "COLLECT",
+      "to": "WBTC",
+      "path": [
+        "CoinCollect/COLLECT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "usdtEquivalent": 10,
+      "input": "72440.36414039817418519",
+      "output": "0.00015048",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/COLLECT/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/WBTC",
+          "driftBps": 0,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "15048",
+      "spotGapBps": 698
+    },
+    {
+      "from": "COLLECT",
+      "to": "WBTC",
+      "path": [
+        "CoinCollect/COLLECT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "usdtEquivalent": 100,
+      "input": "724403.6414039817418519",
+      "output": "0.00095112",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/COLLECT/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/WBTC",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "95112",
+      "spotGapBps": 4120
+    },
+    {
+      "from": "COLLECT",
+      "to": "WBTC",
+      "path": [
+        "CoinCollect/COLLECT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "7244036.414039817418519",
+      "output": "0.00203249",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "CoinCollect/COLLECT/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/WBTC",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "203249",
+      "spotGapBps": 8743
+    },
+    {
+      "from": "WBTC",
+      "to": "COLLECT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "CoinCollect/WPOL/COLLECT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "0.0001627",
+      "output": "67752.841995343248210367",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/WPOL",
+          "driftBps": 0,
+          "problems": []
+        },
+        {
+          "leg": "CoinCollect/WPOL/COLLECT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "67752841995343248210367",
+      "spotGapBps": 699
+    },
+    {
+      "from": "WBTC",
+      "to": "COLLECT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "CoinCollect/WPOL/COLLECT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "0.001627",
+      "output": "427803.991268722701586907",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "CoinCollect/WPOL/COLLECT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "427803991268722701586907",
+      "spotGapBps": 4127
+    },
+    {
+      "from": "WBTC",
+      "to": "COLLECT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "CoinCollect/WPOL/COLLECT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "0.01627",
+      "output": "912976.735730394566869265",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "CoinCollect/WPOL/COLLECT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "912976735730394566869265",
+      "spotGapBps": 8746
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "usdtEquivalent": 10,
+      "input": "10.0",
+      "output": "0.0001623",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "WITHIN_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WPOL",
+          "driftBps": 11,
+          "problems": []
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/WBTC",
+          "driftBps": 0,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "16230",
+      "spotGapBps": 87
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "usdtEquivalent": 100,
+      "input": "100.0",
+      "output": "0.00158456",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WPOL",
+          "driftBps": 11,
+          "problems": []
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/WBTC",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "158456",
+      "spotGapBps": 322
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "1000.0",
+      "output": "0.01280575",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WPOL",
+          "driftBps": 11,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/WBTC",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "1280575",
+      "spotGapBps": 2178
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "0.0001627",
+      "output": "9.850943",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "WITHIN_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/WPOL",
+          "driftBps": 0,
+          "problems": []
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/USDT",
+          "driftBps": 11,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "9850943",
+      "spotGapBps": 86
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "0.001627",
+      "output": "96.179423",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/USDT",
+          "driftBps": 11,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "96179423",
+      "spotGapBps": 321
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "0.01627",
+      "output": "777.819427",
+      "gasModel": 710000,
+      "feePOL": "0.19958233783383",
+      "feeUSDT": "0.015037",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        },
+        {
+          "leg": "QuickSwapV2/WPOL/USDT",
+          "driftBps": 11,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "777819427",
+      "spotGapBps": 2172
+    },
+    {
+      "from": "SHIB",
+      "to": "WPOL",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL"
+      ],
+      "usdtEquivalent": 10,
+      "input": "2746185.88245466029935628",
+      "output": "129.698105068334878799",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP"
+          ]
+        }
+      ],
+      "quotedRaw": "129698105068334878799",
+      "spotGapBps": 129
+    },
+    {
+      "from": "SHIB",
+      "to": "WPOL",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL"
+      ],
+      "usdtEquivalent": 100,
+      "input": "27461858.8245466029935628",
+      "output": "1190.287835246255225058",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "1190287835246255225058",
+      "spotGapBps": 941
+    },
+    {
+      "from": "SHIB",
+      "to": "WPOL",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "274618588.245466029935628",
+      "output": "6530.615269090837011022",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/WPOL",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "6530615269090837011022",
+      "spotGapBps": 5029
+    },
+    {
+      "from": "WPOL",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "usdtEquivalent": 10,
+      "input": "131.92552430893007186",
+      "output": "2721472.020804186836089676",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WPOL/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP"
+          ]
+        }
+      ],
+      "quotedRaw": "2721472020804186836089676",
+      "spotGapBps": 129
+    },
+    {
+      "from": "WPOL",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "usdtEquivalent": 100,
+      "input": "1319.2552430893007186",
+      "output": "24967784.300118392600988565",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WPOL/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "24967784300118392600988565",
+      "spotGapBps": 944
+    },
+    {
+      "from": "WPOL",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "13192.552430893007186",
+      "output": "136762374.122623703358193737",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WPOL/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "136762374122623703358193737",
+      "spotGapBps": 5039
+    },
+    {
+      "from": "WETH",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WETH/USDT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "0.00582217367960763",
+      "output": "9.938431",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "WITHIN_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WETH/USDT",
+          "driftBps": 0,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "9938431",
+      "spotGapBps": 31
+    },
+    {
+      "from": "WETH",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WETH/USDT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "0.0582217367960763",
+      "output": "99.248906",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "WITHIN_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WETH/USDT",
+          "driftBps": 0,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "99248906",
+      "spotGapBps": 45
+    },
+    {
+      "from": "WETH",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WETH/USDT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "0.582217367960763",
+      "output": "979.148002",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WETH/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "979148002",
+      "spotGapBps": 178
+    },
+    {
+      "from": "USDT",
+      "to": "WETH",
+      "path": [
+        "QuickSwapV2/USDT/WETH"
+      ],
+      "usdtEquivalent": 10,
+      "input": "10.0",
+      "output": "0.005821376913781955",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "WITHIN_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WETH",
+          "driftBps": 0,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "5821376913781955",
+      "spotGapBps": 31
+    },
+    {
+      "from": "USDT",
+      "to": "WETH",
+      "path": [
+        "QuickSwapV2/USDT/WETH"
+      ],
+      "usdtEquivalent": 100,
+      "input": "100.0",
+      "output": "0.058134212332684168",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "WITHIN_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WETH",
+          "driftBps": 0,
+          "problems": []
+        }
+      ],
+      "quotedRaw": "58134212332684168",
+      "spotGapBps": 45
+    },
+    {
+      "from": "USDT",
+      "to": "WETH",
+      "path": [
+        "QuickSwapV2/USDT/WETH"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "1000.0",
+      "output": "0.573504427764487513",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WETH",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "573504427764487513",
+      "spotGapBps": 179
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WBTC"
+      ],
+      "usdtEquivalent": 10,
+      "input": "10.0",
+      "output": "0.00014753",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WBTC",
+          "driftBps": 14,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "14753",
+      "spotGapBps": 977
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WBTC"
+      ],
+      "usdtEquivalent": 100,
+      "input": "100.0",
+      "output": "0.00079521",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WBTC",
+          "driftBps": 14,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "79521",
+      "spotGapBps": 5136
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WBTC"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "1000.0",
+      "output": "0.00141748",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/WBTC",
+          "driftBps": 14,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "141748",
+      "spotGapBps": 9133
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/USDT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "0.0001627",
+      "output": "8.981468",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/USDT",
+          "driftBps": 14,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "8981468",
+      "spotGapBps": 973
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/USDT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "0.001627",
+      "output": "48.511356",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/USDT",
+          "driftBps": 14,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "48511356",
+      "spotGapBps": 5124
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/USDT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "0.01627",
+      "output": "86.647104",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/WBTC/USDT",
+          "driftBps": 14,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "86647104",
+      "spotGapBps": 9129
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/SHIB"
+      ],
+      "usdtEquivalent": 10,
+      "input": "10.0",
+      "output": "445261.855981622081612368",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "445261855981622081612368",
+      "spotGapBps": 8399
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/SHIB"
+      ],
+      "usdtEquivalent": 100,
+      "input": "100.0",
+      "output": "520478.063790051725974132",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "520478063790051725974132",
+      "spotGapBps": 9812
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/SHIB"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "1000.0",
+      "output": "529421.355509124652640199",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/USDT/SHIB",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "529421355509124652640199",
+      "spotGapBps": 9980
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/USDT"
+      ],
+      "usdtEquivalent": 10,
+      "input": "2746185.88245466029935628",
+      "output": "1.597606",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "1597606",
+      "spotGapBps": 8381
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/USDT"
+      ],
+      "usdtEquivalent": 100,
+      "input": "27461858.8245466029935628",
+      "output": "1.870872",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "1870872",
+      "spotGapBps": 9810
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/USDT"
+      ],
+      "usdtEquivalent": 1000,
+      "input": "274618588.245466029935628",
+      "output": "1.90343",
+      "gasModel": 490000,
+      "feePOL": "0.13773992329377",
+      "feeUSDT": "0.010377",
+      "status": "OUTSIDE_OR_MISSING_OBSERVED_MODEL",
+      "diagnostics": [
+        {
+          "leg": "QuickSwapV2/SHIB/USDT",
+          "driftBps": 0,
+          "problems": [
+            "OVER_50_BPS_INPUT_CAP",
+            "BELOW_MODEL_TWAP_MINIMUM"
+          ]
+        }
+      ],
+      "quotedRaw": "1903430",
+      "spotGapBps": 9980
+    }
+  ],
+  "operationCosts": {
+    "joinAndHarvest": {
+      "gas": 821325,
+      "pol": "0.230876005100521725",
+      "usdtAtOnePolQuote": "0.017395"
+    },
+    "threePurchasesAndObservations": {
+      "gas": 2322873,
+      "pol": "0.652963977226876329",
+      "usdtAtOnePolQuote": "0.049196"
+    },
+    "thirteenWindows": {
+      "gas": 30197349,
+      "pol": "8.488531703949392277",
+      "usdtAtOnePolQuote": "0.639559"
+    }
+  }
+}

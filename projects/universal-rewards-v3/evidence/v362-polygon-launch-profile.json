@@ -1,0 +1,1136 @@
+{
+  "version": "3.6.2-audit-only",
+  "sourceRelease": "3.6.1-rc",
+  "chainId": 137,
+  "block": 97760618,
+  "blockHash": "0x733852fbeb2d58b98bdd80ad1a8a999de23443ed28dcf4f767cab0f628f29278",
+  "executionEnabled": false,
+  "automationEnabled": false,
+  "liveAdapterTwap": "Missing TWAP",
+  "bounds": {
+    "maxHops": 2,
+    "maxTradeShareBps": 50,
+    "maxSpotTwapDeviationBps": 100,
+    "maxTwapSlippageBps": 150
+  },
+  "assets": [
+    {
+      "symbol": "COLLECT",
+      "address": "0x56633733fc8baf9f730ad2b6b9956ae22c6d4148",
+      "decimals": 18,
+      "runtimeHash": "0x3d34462c9ca75095634a42f3e34145a181aecf31b9fa970cf97f9cfda5519449",
+      "observedImplementation": null,
+      "implementationRuntimeHash": null,
+      "visibleRoles": {
+        "owner": "0xd10948dD87dDAac8269Abd4a24BeBEeC4Db2C589"
+      },
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Requires external review"
+    },
+    {
+      "symbol": "SHIB",
+      "address": "0x6f8a06447ff6fcf75d803135a7de15ce88c1d4ec",
+      "decimals": 18,
+      "runtimeHash": "0xe0039e200dc94a84760089ea18de72126e37d0c2aabbd11ca76d4b258f2249ff",
+      "observedImplementation": "0x0ED3D66Dd0c9be71C8bf280A010B96881C69e7B6",
+      "implementationRuntimeHash": "0x2f4a87e3179f89023084e46fe7c926f5e9dcb4a967b86b82ec7d131dedc9aba9",
+      "visibleRoles": {
+        "implementation": "0x0ED3D66Dd0c9be71C8bf280A010B96881C69e7B6",
+        "proxyOwner": "0x355b8E02e7F5301E6fac9b7cAc1D6D9c86C0343f"
+      },
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Requires external review"
+    },
+    {
+      "symbol": "USDC",
+      "address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+      "decimals": 6,
+      "runtimeHash": "0x7dbf0ee7d6d69b563891ceb7056cf0ff0fa09d21a48e5f812d89981c2ef95944",
+      "observedImplementation": "0x235AE97b28466Db30469b89A9fe4cFf0659f82Cb",
+      "implementationRuntimeHash": "0x39ec98a4509fb2d4380a9cd4623e7b20cf651cb58edb8d8332bfad9c3d698143",
+      "visibleRoles": {
+        "owner": "0xAEE29e350Dbb28Ce77D0595D898be658626d2BCC",
+        "admin": "0x9238E612387eBBA4D4Fa0d76DbFbA99b453417b3",
+        "implementation": "0x235AE97b28466Db30469b89A9fe4cFf0659f82Cb",
+        "masterMinter": "0x067b07ED153F2D4640638f7d2945fBe4ED1bF1ac",
+        "pauser": "0xA2fB1d6BC5b7aEeC5E7eF7FCA16D60880C5C8Ae1",
+        "blacklister": "0xe99Cf1D0418302535936F96eA6625C71BF1695b6"
+      },
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Requires external review"
+    },
+    {
+      "symbol": "USDC.e",
+      "address": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      "decimals": 6,
+      "runtimeHash": "0xa97604bff5b11d790aca38bf9f6189369ea260f08365b428fc2ef73390fddcef",
+      "observedImplementation": "0xDD9185DB084f5C4fFf3b4f70E7bA62123b812226",
+      "implementationRuntimeHash": "0x6c32454db1ae150566833039d7172656e03f7fc718e96d2a4c4fd842f700e3c8",
+      "visibleRoles": {
+        "implementation": "0xDD9185DB084f5C4fFf3b4f70E7bA62123b812226",
+        "proxyOwner": "0x355b8E02e7F5301E6fac9b7cAc1D6D9c86C0343f"
+      },
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Requires external review"
+    },
+    {
+      "symbol": "USDT",
+      "address": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+      "decimals": 6,
+      "runtimeHash": "0x8cb0cfc9b3aa516d8c5a1cdf94a2c60b668a903e21711cb6f3f3501fdd8478b5",
+      "observedImplementation": "0x90040487A6C9F949C4F07CaDCFB0f3B8EEAb4229",
+      "implementationRuntimeHash": "0x6d850049a76c4c4f44783ddfe28b88984e7301767c363105afe4e18908b1d056",
+      "visibleRoles": {
+        "implementation": "0x90040487A6C9F949C4F07CaDCFB0f3B8EEAb4229",
+        "proxyOwner": "0x4DFF9b5b0143E642a3F63a5bcf2d1C328e600bf8"
+      },
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Requires external review"
+    },
+    {
+      "symbol": "WBTC",
+      "address": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
+      "decimals": 8,
+      "runtimeHash": "0x8cb0cfc9b3aa516d8c5a1cdf94a2c60b668a903e21711cb6f3f3501fdd8478b5",
+      "observedImplementation": "0x7FFB3d637014488b63fb9858E279385685AFc1e2",
+      "implementationRuntimeHash": "0xea84159f1c7b531fa7b6f95678e15546c9c08b9e585ac526960865ff8828cf1d",
+      "visibleRoles": {
+        "implementation": "0x7FFB3d637014488b63fb9858E279385685AFc1e2",
+        "proxyOwner": "0x355b8E02e7F5301E6fac9b7cAc1D6D9c86C0343f"
+      },
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Requires external review"
+    },
+    {
+      "symbol": "WETH",
+      "address": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+      "decimals": 18,
+      "runtimeHash": "0x06025eef5a4b1b3cb0031bce61d6a571f478e213d24984621eafcb59b8d71473",
+      "observedImplementation": null,
+      "implementationRuntimeHash": null,
+      "visibleRoles": {},
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Approved candidate"
+    },
+    {
+      "symbol": "WPOL",
+      "address": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+      "decimals": 18,
+      "runtimeHash": "0xae820ea59b005f58a45eea35b374afbd5dc503d4f219a6b670cd3453f1142ed5",
+      "observedImplementation": null,
+      "implementationRuntimeHash": null,
+      "visibleRoles": {},
+      "permissions": {
+        "funding": false,
+        "reward": false,
+        "swap": false
+      },
+      "status": "Approved candidate"
+    }
+  ],
+  "routes": [
+    {
+      "from": "COLLECT",
+      "to": "USDT",
+      "path": [
+        "CoinCollect/COLLECT/USDT"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/COLLECT/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/COLLECT/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/COLLECT/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDT",
+      "to": "COLLECT",
+      "path": [
+        "CoinCollect/USDT/COLLECT"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/USDT/COLLECT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/USDT/COLLECT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/USDT/COLLECT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/USDT",
+              "driftBps": 11,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/USDT",
+              "driftBps": 11,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/USDT",
+              "driftBps": 11,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WPOL",
+              "driftBps": 11,
+              "problems": []
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WPOL",
+              "driftBps": 11,
+              "problems": []
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WPOL",
+              "driftBps": 11,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "COLLECT",
+      "to": "WBTC",
+      "path": [
+        "CoinCollect/COLLECT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/COLLECT/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/WBTC",
+              "driftBps": 0,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/COLLECT/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/WBTC",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "CoinCollect/COLLECT/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/WBTC",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WBTC",
+      "to": "COLLECT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "CoinCollect/WPOL/COLLECT"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/WPOL",
+              "driftBps": 0,
+              "problems": []
+            },
+            {
+              "leg": "CoinCollect/WPOL/COLLECT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "CoinCollect/WPOL/COLLECT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "CoinCollect/WPOL/COLLECT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WPOL",
+        "QuickSwapV2/WPOL/WBTC"
+      ],
+      "enabled": false,
+      "status": "Approved candidate",
+      "initialReviewLimitUSDT": 10,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Approved candidate",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WPOL",
+              "driftBps": 11,
+              "problems": []
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/WBTC",
+              "driftBps": 0,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WPOL",
+              "driftBps": 11,
+              "problems": []
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/WBTC",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WPOL",
+              "driftBps": 11,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/WBTC",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/WPOL",
+        "QuickSwapV2/WPOL/USDT"
+      ],
+      "enabled": false,
+      "status": "Approved candidate",
+      "initialReviewLimitUSDT": 10,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Approved candidate",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/WPOL",
+              "driftBps": 0,
+              "problems": []
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/USDT",
+              "driftBps": 11,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/USDT",
+              "driftBps": 11,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            },
+            {
+              "leg": "QuickSwapV2/WPOL/USDT",
+              "driftBps": 11,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "SHIB",
+      "to": "WPOL",
+      "path": [
+        "QuickSwapV2/SHIB/WPOL"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/WPOL",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WPOL",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/WPOL/SHIB"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WPOL/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WPOL/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WPOL/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WETH",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WETH/USDT"
+      ],
+      "enabled": false,
+      "status": "Approved candidate",
+      "initialReviewLimitUSDT": 10,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Approved candidate",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WETH/USDT",
+              "driftBps": 0,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Approved candidate",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WETH/USDT",
+              "driftBps": 0,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WETH/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDT",
+      "to": "WETH",
+      "path": [
+        "QuickSwapV2/USDT/WETH"
+      ],
+      "enabled": false,
+      "status": "Approved candidate",
+      "initialReviewLimitUSDT": 10,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Approved candidate",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WETH",
+              "driftBps": 0,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Approved candidate",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WETH",
+              "driftBps": 0,
+              "problems": []
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WETH",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "path": [
+        "QuickSwapV2/USDT/WBTC"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WBTC",
+              "driftBps": 14,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WBTC",
+              "driftBps": 14,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/WBTC",
+              "driftBps": 14,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/WBTC/USDT"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/USDT",
+              "driftBps": 14,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/USDT",
+              "driftBps": 14,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/WBTC/USDT",
+              "driftBps": 14,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "path": [
+        "QuickSwapV2/USDT/SHIB"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/USDT/SHIB",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "path": [
+        "QuickSwapV2/SHIB/USDT"
+      ],
+      "enabled": false,
+      "status": "Insufficient liquidity",
+      "initialReviewLimitUSDT": null,
+      "scenarios": [
+        {
+          "inputUSDT": 10,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 100,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        },
+        {
+          "inputUSDT": 1000,
+          "result": "Insufficient liquidity",
+          "diagnostics": [
+            {
+              "leg": "QuickSwapV2/SHIB/USDT",
+              "driftBps": 0,
+              "problems": [
+                "OVER_50_BPS_INPUT_CAP",
+                "BELOW_MODEL_TWAP_MINIMUM"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "USDC",
+      "to": "USDT",
+      "status": "Unsupported",
+      "enabled": false,
+      "reason": "No adapter path was evaluated in this launch profile."
+    },
+    {
+      "from": "WPOL",
+      "to": "USDT",
+      "status": "Requires external review",
+      "enabled": false,
+      "reason": "Observed path leg. Standalone directional route approval and size acceptance are outside the 12-direction fork matrix."
+    }
+  ]
+}

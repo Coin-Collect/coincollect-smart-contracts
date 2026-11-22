@@ -23,6 +23,8 @@ jobs:
         working-directory: projects/universal-rewards-v3
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -64,6 +66,16 @@ jobs:
         with:
           name: universal-rewards-v361-solidity
           path: ${{ runner.temp }}/universal-rewards-v361
+          if-no-files-found: error
+      - name: Export exact audited compiler sources and transformation diff
+        run: |
+          node scripts/export-audit-sources.cjs "$RUNNER_TEMP/universal-rewards-v35" \
+            "$RUNNER_TEMP/universal-rewards-v361" "$RUNNER_TEMP/universal-rewards-audit-sources"
+          cmp evidence/v362-compiler-input.diff "$RUNNER_TEMP/universal-rewards-audit-sources/compiler-input.diff"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: universal-rewards-audit-sources
+          path: ${{ runner.temp }}/universal-rewards-audit-sources
           if-no-files-found: error
 
   polygon-fork:

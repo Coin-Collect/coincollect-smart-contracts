@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
+const { setTimeout: delay } = require('node:timers/promises')
 const { ContractFactory, constants, utils } = require('ethers')
 const { compileV36 } = require('../scripts/compile-v36.cjs')
 const { linkBytecode } = require('../scripts/link-bytecode.cjs')
@@ -16,7 +17,32 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
   t.after(local.close)
   const { provider } = local
   const [owner, alice, bob, caro] = await provider.listAccounts()
-  const signer = provider.getSigner(owner)
+  const fixtureSigner = (address) => {
+    const signer = provider.getSigner(address)
+    // Restoring snapshots invalidates Ethers' cached block notifications. Poll the
+    // actual Anvil receipt with a deadline so a missing or reverted write fails the test.
+    signer.sendTransaction = async (request) => {
+      const transactionHash = await signer.sendUncheckedTransaction(request)
+      const deadline = Date.now() + 10_000
+      let receipt
+      do {
+        receipt = await provider.send('eth_getTransactionReceipt', [transactionHash])
+        if (receipt) break
+        await delay(50)
+      } while (Date.now() < deadline)
+      assert.ok(receipt, `Missing Anvil receipt for ${transactionHash}`)
+      const response = await provider.send('eth_getTransactionByHash', [transactionHash])
+      assert.ok(response, `Missing Anvil transaction for ${transactionHash}`)
+      const transaction = provider.formatter.transactionResponse(response)
+      transaction.wait = async () => {
+        assert.equal(receipt.status, '0x1', `Transaction reverted: ${transactionHash}`)
+        return provider.formatter.receipt({ ...receipt, confirmations: 1 })
+      }
+      return transaction
+    }
+    return signer
+  }
+  const signer = fixtureSigner(owner)
   const links = {}
   const deploy = async (name, file, ...args) => {
     const artifact = compiled[file][name]
@@ -42,7 +68,7 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     error.errorName === errorName || error.data === utils.id(errorName + '()').slice(0, 10))
   const scoped = async (name, run) => t.test(name, async () => {
     const snapshot = await provider.send('evm_snapshot', [])
-    try { await run() } finally { await provider.send('evm_revert', [snapshot]) }
+    try { await run() } finally { assert.equal(await provider.send('evm_revert', [snapshot]), true) }
   })
   assert.ok((await provider.getCode(ledger.address)).length / 2 - 1 <= 24_576)
   await send(ledger.attachTreasuryVault(vault.address))
@@ -160,7 +186,9 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     await expectRevert(vault.callStatic.swapTreasury(wrapped.address, stable.address, route, one, floor, await now() - 1), 'InvalidDeadline')
     await expectRevert(vault.callStatic.swapTreasury(wrapped.address, stable.address, route, one, floor, await now() + 301), 'InvalidDeadline')
     await send(router.setUnderpay(true))
-    await assert.rejects(vault.swapTreasury(wrapped.address, stable.address, route, one, floor, await deadline(), { gasLimit: 5_000_000 }).then((transaction) => transaction.wait()))
+    await assert.rejects(send(vault.swapTreasury(
+      wrapped.address, stable.address, route, one, floor, await deadline(), { gasLimit: 5_000_000 },
+    )), /Transaction reverted:/)
     equal(await available(wrapped), input)
     equal((await vault.swapTotals(wrapped.address)).swappedOut, 0)
     await send(router.setUnderpay(false))
@@ -190,9 +218,9 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     const starting = await available(wrapped)
     for (const address of [vault.address, planner.address, adapter.address]) {
       await send(wrapped.setAllowanceOwnerForTest(address))
-      await assert.rejects(vault.swapTreasury(
+      await assert.rejects(send(vault.swapTreasury(
         wrapped.address, stable.address, route, one, floor, await deadline(), { gasLimit: 5_000_000 },
-      ).then((transaction) => transaction.wait()))
+      )), /Transaction reverted:/)
       equal(await available(wrapped), starting)
       equal(await available(stable), 0)
       equal((await vault.swapTotals(wrapped.address)).swappedOut, 0)
@@ -212,9 +240,9 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     await send(ledger.createTreasuryFundedPool([start, start + 3600, 1, 2, 2, ''],
       [[137, nft.address, 1]], [[stable.address, stableUnit]], [wrapped.address, one, 900, [10000]], one, true))
     await send(wrapped.setAllowanceOwnerForTest(ledger.address))
-    await assert.rejects(ledger.replenish(
+    await assert.rejects(send(ledger.replenish(
       1, stable.address, 0, 0, await deadline(), { gasLimit: 5_000_000 },
-    ).then((transaction) => transaction.wait()))
+    )), /Transaction reverted:/)
     equal((await ledger.fundingState(1)).spent, 0)
     equal((await vault.balance(wrapped.address)).allocated, one)
     equal((await ledger.rewardState(1, stable.address)).inventory, 0)
@@ -298,7 +326,7 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     await send(ledger.replenish(1, wrapped.address, 0, 0, await deadline()))
     await send(collection.mint(alice, 77, 12))
     await jump(start)
-    await send(managed.connect(provider.getSigner(alice)).join(1, 77, 12))
+    await send(managed.connect(fixtureSigner(alice)).join(1, 77, 12))
     await jump(end)
     await send(ledger.checkpoint(1))
     const holders = [alice, bob, caro]
@@ -319,7 +347,7 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
       const from = eligible[(seed >>> 16) % eligible.length]
       const to = (from + 1 + ((seed >>> 12) % 2)) % holders.length
       const quantity = 1 + ((seed >>> 8) % rights[from])
-      await send(collection.connect(provider.getSigner(holders[from])).safeTransferFrom(holders[from], holders[to], 77, quantity, '0x'))
+      await send(collection.connect(fixtureSigner(holders[from])).safeTransferFrom(holders[from], holders[to], 77, quantity, '0x'))
       rights[from] -= quantity
       rights[to] += quantity
       for (let k = 0; k < holders.length; k++) {
@@ -371,7 +399,7 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     await expectRevert(ledger.callStatic.createPool(settings, [[137, nft.address, 1]], [[nextToken.address, budget]]), 'InvalidToken')
     await send(ledger.replenish(1, nextToken.address, 0, 0, await deadline()))
     await jump(start)
-    const member = ledger.connect(provider.getSigner(alice))
+    const member = ledger.connect(fixtureSigner(alice))
     await send(member.join(1, 137, nft.address, 1))
     await jump(start + 300)
     await send(member.claim(1, 137, nft.address, 1))
@@ -389,30 +417,23 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
   })
 
   await scoped('native POL unwrap is exact and rejects reentrant withdrawal by its owner', async () => {
-    const confirmNativeStep = async (pending) => {
-      const transaction = await pending
-      // Anvil has already mined this transaction. Read its receipt directly after snapshots
-      // so the provider's block and transaction polling caches are not part of the invariant.
-      const receipt = await provider.send('eth_getTransactionReceipt', [transaction.hash])
-      assert.equal(receipt?.status, '0x1', transaction.hash)
-    }
     const gasLimit = 1_000_000
     const ownerFixture = await deploy('NativeTreasuryOwnerFixtureV36', fixtures)
     const nativeRegistry = await deploy('TreasuryAssetsV36', 'contracts/v36/TreasuryAssetsV36.sol', ownerFixture.address)
     const nativePlanner = await deploy('RewardRoutePlannerV36', 'contracts/v36/RewardRoutePlannerV36.sol', nativeRegistry.address, wrapped.address)
     const nativeLedger = await deploy('UniversalRewardsV36', 'contracts/v36/UniversalRewardsV36.sol', nativePlanner.address)
     const nativeVault = await deploy('TreasuryVaultV36', 'contracts/v36/TreasuryVaultV36.sol', nativeLedger.address)
-    await confirmNativeStep(ownerFixture.execute(wrapped.address, wrapped.interface.encodeFunctionData('deposit'), {
+    await send(ownerFixture.execute(wrapped.address, wrapped.interface.encodeFunctionData('deposit'), {
       value: one, gasLimit,
     }))
-    await confirmNativeStep(ownerFixture.execute(wrapped.address,
+    await send(ownerFixture.execute(wrapped.address,
       wrapped.interface.encodeFunctionData('approve', [nativeRegistry.address, 1]), { gasLimit }))
     const review = [await hash(provider, wrapped.address), zero, constants.HashZero, utils.id('WPOL fixture review'), 18]
-    await confirmNativeStep(ownerFixture.execute(nativeRegistry.address,
+    await send(ownerFixture.execute(nativeRegistry.address,
       nativeRegistry.interface.encodeFunctionData('reviewAsset', [wrapped.address, review, 1, 7]), { gasLimit }))
-    await confirmNativeStep(ownerFixture.execute(nativeVault.address, nativeVault.interface.encodeFunctionData('deposit',
+    await send(ownerFixture.execute(nativeVault.address, nativeVault.interface.encodeFunctionData('deposit',
       [wrapped.address, one.mul(2)]), { value: one.mul(2), gasLimit }))
-    await confirmNativeStep(ownerFixture.withdrawAndCheckGuard(nativeVault.address, { gasLimit }))
+    await send(ownerFixture.withdrawAndCheckGuard(nativeVault.address, { gasLimit }))
     assert.equal(await ownerFixture.callbackRejected(), true)
     equal((await nativeVault.balance(wrapped.address)).available, one)
     equal(await wrapped.balanceOf(nativeVault.address), one)

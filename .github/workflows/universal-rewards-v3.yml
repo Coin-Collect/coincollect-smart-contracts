@@ -43,6 +43,17 @@ jobs:
           path: ${{ runner.temp }}/universal-rewards-v35
           if-no-files-found: error
 
+      - name: Reproduce V3.6 release artifacts
+        run: |
+          node scripts/build-release.cjs "$RUNNER_TEMP/universal-rewards-v36" 3.6-rc
+          cmp release-manifest-v36.json "$RUNNER_TEMP/universal-rewards-v36/manifest.json"
+          node scripts/export-v36-abi.cjs "$RUNNER_TEMP/universal-rewards-v36/frontend-abi.ts"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: universal-rewards-v36-solidity
+          path: ${{ runner.temp }}/universal-rewards-v36
+          if-no-files-found: error
+
   polygon-fork:
     runs-on: ubuntu-latest
     defaults:
@@ -66,4 +77,15 @@ jobs:
         with:
           name: universal-rewards-v35-polygon-fork
           path: ${{ runner.temp }}/polygon-fork-manifest.json
+          if-no-files-found: error
+
+      - name: Run V3.6 Treasury swaps against pinned Polygon pairs
+        run: npm run --workspaces=false test:polygon-fork:v36
+        env:
+          COINCOLLECT_V36_FORK_MANIFEST: ${{ runner.temp }}/polygon-v36-fork-manifest.json
+          COINCOLLECT_V3_POLYGON_RPC: ${{ secrets.COINCOLLECT_V3_POLYGON_RPC }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: universal-rewards-v36-polygon-fork
+          path: ${{ runner.temp }}/polygon-v36-fork-manifest.json
           if-no-files-found: error

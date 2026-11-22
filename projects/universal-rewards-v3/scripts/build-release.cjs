@@ -5,6 +5,7 @@ const { createHash } = require('node:crypto')
 const { utils } = require('ethers')
 const solc = require('solc')
 const { compile } = require('./compile.cjs')
+const { compileV36 } = require('./compile-v36.cjs')
 const { linkBytecode } = require('./link-bytecode.cjs')
 
 const sha256 = (contents) => createHash('sha256').update(contents).digest('hex')
@@ -49,7 +50,13 @@ function recordDeployment(artifact, links, code, address) {
   }
 }
 
-function buildRelease(destination) {
+function buildRelease(destination, version = '3.5-rc') {
+  const v36 = version === '3.6-rc'
+  if (!v36 && version !== '3.5-rc') throw new Error('Unknown release ' + version)
+  const polygon = v36 ? [
+    'TreasuryAssetsV36', 'RewardRoutePlannerV36', 'TreasuryVaultV36', 'UniversalRewardsV36',
+    'ManagedRewardPositions', 'RewardSwapAdapter', 'ManagedNftCollection',
+  ] : polygonContracts
   const write = (file, value) => {
     const contents = serialize(value)
     fs.writeFileSync(path.join(destination, file), contents)
@@ -57,17 +64,18 @@ function buildRelease(destination) {
   }
   fs.mkdirSync(path.join(destination, 'contracts'), { recursive: true })
   let inputHash
-  const output = compile(undefined, (input) => { inputHash = write('standard-input.json', input) })
-  const names = [...polygonContracts, ...isolatedContracts, 'UniversalRewards']
+  const recordInput = (input) => { inputHash = write('standard-input.json', input) }
+  const output = v36 ? compileV36([], recordInput) : compile(undefined, recordInput)
+  const names = v36 ? polygon : [...polygon, ...isolatedContracts, 'UniversalRewards']
   const contracts = names.map((name) => {
-    const source = 'contracts/' + name + '.sol'
+    const source = (name.endsWith('V36') ? 'contracts/v36/' : 'contracts/') + name + '.sol'
     const { abi, evm, metadata } = output[source][name]
     const { object, linkReferences, immutableReferences } = evm.deployedBytecode
     const bytes = object.length / 2
-    assert.ok(bytes > 0 && bytes <= 24_576, name + ' runtime size')
+    assert.ok(bytes > 0 && bytes <= 24_576, name + ' runtime size: ' + bytes)
     const artifact = 'contracts/' + name + '.json'
     return {
-      name, source, artifact, tier: polygonContracts.includes(name) ? 'polygon' : isolatedContracts.includes(name) ? 'isolated' : 'legacy',
+      name, source, artifact, tier: polygon.includes(name) ? 'polygon' : isolatedContracts.includes(name) ? 'isolated' : 'legacy',
       artifactSha256: write(artifact, { source, name, abi, evm, metadata: JSON.parse(metadata) }),
       abiSha256: sha256(serialize(abi)),
       creationTemplateSha256: sha256(evm.bytecode.object),
@@ -78,7 +86,7 @@ function buildRelease(destination) {
     }
   })
   write('manifest.json', {
-    release: '3.5-rc', compiler: solc.version(), chainId: 137,
+    release: version, compiler: solc.version(), chainId: 137,
     packageLockSha256: sha256(fs.readFileSync(path.join(__dirname, '..', 'package-lock.json'))),
     standardInputSha256: inputHash,
     contracts,
@@ -88,7 +96,7 @@ function buildRelease(destination) {
 if (require.main === module) {
   const destination = process.argv[2]
   if (!destination) throw new Error('Usage: node scripts/build-release.cjs <output directory>')
-  buildRelease(path.resolve(destination))
+  buildRelease(path.resolve(destination), process.argv[3])
 }
 
 module.exports = { buildRelease, recordDeployment }

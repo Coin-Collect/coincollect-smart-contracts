@@ -16,15 +16,16 @@ const releaseEntries = [
   'contracts/RewardRoutePlanner.sol',
 ]
 
-function compile(entries = releaseEntries, exportInput) {
+function compile(entries = releaseEntries, exportInput, { sources = {}, optimizerRuns = 200, evmVersion = 'paris' } = {}) {
+  const readSource = (name, location) => sources[name] ?? fs.readFileSync(location, 'utf8')
   const imported = {}
   const input = {
     language: 'Solidity',
-    sources: Object.fromEntries(entries.map((file) => [file, { content: fs.readFileSync(path.join(root, file), 'utf8') }])),
+    sources: Object.fromEntries(entries.map((file) => [file, { content: readSource(file, path.join(root, file)) }])),
     settings: {
-      optimizer: { enabled: true, runs: 200 },
+      optimizer: { enabled: true, runs: optimizerRuns },
       viaIR: true,
-      evmVersion: 'paris',
+      evmVersion,
       outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences', 'evm.deployedBytecode.object',
         'evm.deployedBytecode.linkReferences', 'evm.deployedBytecode.immutableReferences', 'metadata'] } },
     },
@@ -33,7 +34,7 @@ function compile(entries = releaseEntries, exportInput) {
     import: (name) => {
       const location = name.startsWith('@') ? path.join(root, 'node_modules', name) : path.join(root, name)
       try {
-        const contents = fs.readFileSync(location, 'utf8')
+        const contents = readSource(name, location)
         imported[name] = { content: contents }
         return { contents }
       } catch {

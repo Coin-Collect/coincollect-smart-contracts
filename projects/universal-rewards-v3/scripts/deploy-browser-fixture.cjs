@@ -1,5 +1,7 @@
 const { ContractFactory, providers, constants, utils } = require('ethers')
 const { compile } = require('./compile.cjs')
+const { compileV36 } = require('./compile-v36.cjs')
+const { deployV36Core, deployV36Market } = require('./v36-fixture.cjs')
 const { linkBytecode } = require('./link-bytecode.cjs')
 
 async function main() {
@@ -15,10 +17,11 @@ async function main() {
   const [operator, participant] = await provider.listAccounts()
   const treasury = operator
   const signer = provider.getSigner(operator)
-  const v33 = (process.env.COINCOLLECT_V34_FIXTURE ?? process.env.COINCOLLECT_V33_FIXTURE) === '1'
+  const v36 = process.env.COINCOLLECT_V36_FIXTURE === '1'
+  const v33 = v36 || (process.env.COINCOLLECT_V34_FIXTURE ?? process.env.COINCOLLECT_V33_FIXTURE) === '1'
   const entries = ['contracts/UniversalRewards.sol', 'test/Fixtures.sol', 'test/SwapFixtures.sol', 'test/ScaleFixtures.sol']
   if (v33) entries.push('contracts/ManagedNftCollection.sol', 'test/ManagedFixtures.sol')
-  const compiled = compile(entries)
+  const compiled = v36 ? compileV36([...entries, 'test/TreasuryFixturesV36.sol']) : compile(entries)
   const links = {}
   const deploy = async (name, file, ...args) => {
     const artifact = compiled[file][name]
@@ -28,13 +31,17 @@ async function main() {
     return component
   }
   const nft = await deploy('FixtureNft', 'test/Fixtures.sol')
-  const wrapped = await deploy('FixtureWrapped', 'test/SwapFixtures.sol')
-  if (v33) await deploy('ManagedRewardPositions', 'contracts/ManagedRewardPositions.sol')
-  const ledger = v33
+  const wrapped = v36
+    ? await deploy('WrappedFixtureV36', 'test/TreasuryFixturesV36.sol')
+    : await deploy('FixtureWrapped', 'test/SwapFixtures.sol')
+  const core = v36 ? await deployV36Core(deploy, operator, wrapped.address) : undefined
+  const market = core ? await deployV36Market(deploy, provider, operator, wrapped, core.registry, core.planner) : undefined
+  if (v33 && !v36) await deploy('ManagedRewardPositions', 'contracts/ManagedRewardPositions.sol')
+  const ledger = core?.ledger ?? (v33
     ? await deploy('UniversalRewardsV33', 'contracts/UniversalRewardsV33.sol',
         operator, [wrapped.address], wrapped.address, constants.AddressZero)
     : await deploy('UniversalRewards', 'contracts/UniversalRewards.sol',
-        operator, treasury, [wrapped.address], wrapped.address, constants.AddressZero, constants.AddressZero)
+        operator, treasury, [wrapped.address], wrapped.address, constants.AddressZero, constants.AddressZero))
   let managed
   if (v33) {
     const collection = await deploy('Hooked1155Fixture', 'test/ManagedFixtures.sol')
@@ -46,7 +53,7 @@ async function main() {
     const plain = await deploy('Plain1155Fixture', 'test/ManagedFixtures.sol')
     managed = { collection: collection.address, adapter: adapter.address, tokenId: 25, plainCollection: plain.address }
   }
-  const vault = await deploy('TreasuryVault', 'contracts/TreasuryVault.sol', ledger.address)
+  const vault = core?.vault ?? await deploy('TreasuryVault', 'contracts/TreasuryVault.sol', ledger.address)
   await (await ledger.attachTreasuryVault(vault.address)).wait()
   const scaleFixture = await deploy('ScaleFixtures', 'test/ScaleFixtures.sol')
 
@@ -77,7 +84,11 @@ async function main() {
     treasury,
     treasuryVault: vault.address,
     scaleFixture: scaleFixture.address,
-    version: v33 ? '3.4' : '3.2',
+    version: v36 ? '3.6' : v33 ? '3.4' : '3.2',
+    dynamic: market && {
+      registry: core.registry.address, stable: market.stable.address,
+      nextToken: market.nextToken.address, adapter: market.adapter.address,
+    },
     managed,
     poolId: 1,
     tokenId: 23,

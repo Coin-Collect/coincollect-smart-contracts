@@ -389,18 +389,30 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
   })
 
   await scoped('native POL unwrap is exact and rejects reentrant withdrawal by its owner', async () => {
+    const confirmNativeStep = async (pending) => {
+      const transaction = await pending
+      // Anvil has already mined this transaction. Read its receipt directly after snapshots
+      // so the provider's block and transaction polling caches are not part of the invariant.
+      const receipt = await provider.send('eth_getTransactionReceipt', [transaction.hash])
+      assert.equal(receipt?.status, '0x1', transaction.hash)
+    }
+    const gasLimit = 1_000_000
     const ownerFixture = await deploy('NativeTreasuryOwnerFixtureV36', fixtures)
     const nativeRegistry = await deploy('TreasuryAssetsV36', 'contracts/v36/TreasuryAssetsV36.sol', ownerFixture.address)
     const nativePlanner = await deploy('RewardRoutePlannerV36', 'contracts/v36/RewardRoutePlannerV36.sol', nativeRegistry.address, wrapped.address)
     const nativeLedger = await deploy('UniversalRewardsV36', 'contracts/v36/UniversalRewardsV36.sol', nativePlanner.address)
     const nativeVault = await deploy('TreasuryVaultV36', 'contracts/v36/TreasuryVaultV36.sol', nativeLedger.address)
-    await send(ownerFixture.execute(wrapped.address, wrapped.interface.encodeFunctionData('deposit'), { value: one }))
-    await send(ownerFixture.execute(wrapped.address, wrapped.interface.encodeFunctionData('approve', [nativeRegistry.address, 1])))
+    await confirmNativeStep(ownerFixture.execute(wrapped.address, wrapped.interface.encodeFunctionData('deposit'), {
+      value: one, gasLimit,
+    }))
+    await confirmNativeStep(ownerFixture.execute(wrapped.address,
+      wrapped.interface.encodeFunctionData('approve', [nativeRegistry.address, 1]), { gasLimit }))
     const review = [await hash(provider, wrapped.address), zero, constants.HashZero, utils.id('WPOL fixture review'), 18]
-    await send(ownerFixture.execute(nativeRegistry.address, nativeRegistry.interface.encodeFunctionData('reviewAsset', [wrapped.address, review, 1, 7])))
-    await send(ownerFixture.execute(nativeVault.address, nativeVault.interface.encodeFunctionData('deposit',
-      [wrapped.address, one.mul(2)]), { value: one.mul(2) }))
-    await send(ownerFixture.withdrawAndCheckGuard(nativeVault.address))
+    await confirmNativeStep(ownerFixture.execute(nativeRegistry.address,
+      nativeRegistry.interface.encodeFunctionData('reviewAsset', [wrapped.address, review, 1, 7]), { gasLimit }))
+    await confirmNativeStep(ownerFixture.execute(nativeVault.address, nativeVault.interface.encodeFunctionData('deposit',
+      [wrapped.address, one.mul(2)]), { value: one.mul(2), gasLimit }))
+    await confirmNativeStep(ownerFixture.withdrawAndCheckGuard(nativeVault.address, { gasLimit }))
     assert.equal(await ownerFixture.callbackRejected(), true)
     equal((await nativeVault.balance(wrapped.address)).available, one)
     equal(await wrapped.balanceOf(nativeVault.address), one)

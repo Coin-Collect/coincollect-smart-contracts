@@ -18,6 +18,7 @@ permissions:
 jobs:
   isolated-contracts:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: projects/universal-rewards-v3
@@ -33,7 +34,7 @@ jobs:
       - run: npm ci --workspaces=false --ignore-scripts
       - run: npm audit --workspaces=false --audit-level=high
       - run: npm run --workspaces=false compile
-      - run: npm test --workspaces=false
+      - run: npm test --workspaces=false -- --test-concurrency=2 --test-timeout=240000
       - name: Reproduce release artifacts
         run: |
           node scripts/build-release.cjs "$RUNNER_TEMP/universal-rewards-v35"

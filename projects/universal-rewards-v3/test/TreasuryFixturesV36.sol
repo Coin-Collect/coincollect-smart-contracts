@@ -14,6 +14,24 @@ contract WrappedFixtureV36 is FixtureWrapped {
     }
 }
 
+/// @dev Models a token with nonstandard allowance accounting for rollback regressions.
+contract StickyAllowanceFixtureV361 is WrappedFixtureV36 {
+    address private allowanceOwner;
+
+    function setAllowanceOwnerForTest(address holder) external {
+        allowanceOwner = holder;
+    }
+
+    function approve(address spender, uint256 amount) public override returns (bool) {
+        if (amount == 0 && msg.sender == allowanceOwner) return true;
+        return super.approve(spender, amount);
+    }
+
+    function _spendAllowance(address owner, address spender, uint256 amount) internal override {
+        if (owner != allowanceOwner) super._spendAllowance(owner, spender, amount);
+    }
+}
+
 contract MarketTokenFixtureV36 is FixtureToken {
     string private ticker;
 

@@ -11,11 +11,11 @@ const stableUnit = utils.parseUnits('1', 6)
 const zero = constants.AddressZero
 
 test('V3.6 Treasury assets, protected swaps and independent NFT obligations', async (t) => {
-  const compiled = compileV36(['test/TreasuryFixturesV36.sol'])
+  const compiled = compileV36(['test/TreasuryFixturesV36.sol', 'test/ManagedFixtures.sol'])
   const local = await startLocalAnvil()
   t.after(local.close)
   const { provider } = local
-  const [owner, alice] = await provider.listAccounts()
+  const [owner, alice, bob, caro] = await provider.listAccounts()
   const signer = provider.getSigner(owner)
   const links = {}
   const deploy = async (name, file, ...args) => {
@@ -25,7 +25,7 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     return contract
   }
   const fixtures = 'test/TreasuryFixturesV36.sol'
-  const wrapped = await deploy('WrappedFixtureV36', fixtures)
+  const wrapped = await deploy('StickyAllowanceFixtureV361', fixtures)
   const { ledger, vault, planner, registry } = await deployV36Core(deploy, owner, wrapped.address)
   const { stable, nextToken, router, pair, adapter } = await deployV36Market(deploy, provider, owner, wrapped, registry, planner)
   const nft = await deploy('FixtureNft', 'test/Fixtures.sol')
@@ -182,6 +182,162 @@ test('V3.6 Treasury assets, protected swaps and independent NFT obligations', as
     await send(vault.swapTreasury(stable.address, wrapped.address, back, reverseInput, backFloor, await deadline()))
     equal(await available(stable), event.amountOut.sub(reverseInput))
     equal((await vault.swapTotals(stable.address)).swappedOut, reverseInput)
+  })
+
+  await scoped('nonstandard allowance reset failures roll back every settlement layer', async () => {
+    await refreshV36Market(provider, adapter, wrapped.address, stable.address)
+    const [route, , floor] = await vault.quoteTreasurySwap(wrapped.address, stable.address, one)
+    const starting = await available(wrapped)
+    for (const address of [vault.address, planner.address, adapter.address]) {
+      await send(wrapped.setAllowanceOwnerForTest(address))
+      await assert.rejects(vault.swapTreasury(
+        wrapped.address, stable.address, route, one, floor, await deadline(), { gasLimit: 5_000_000 },
+      ).then((transaction) => transaction.wait()))
+      equal(await available(wrapped), starting)
+      equal(await available(stable), 0)
+      equal((await vault.swapTotals(wrapped.address)).swappedOut, 0)
+      for (const [from, spender] of [[vault, planner], [planner, adapter], [adapter, router]]) {
+        equal(await wrapped.allowance(from.address, spender.address), 0)
+      }
+    }
+    await send(wrapped.setAllowanceOwnerForTest(zero))
+    await send(vault.swapTreasury(wrapped.address, stable.address, route, one, floor, await deadline()))
+    equal(await available(wrapped), starting.sub(one))
+    assert.ok((await available(stable)).gt(0))
+  })
+
+  await scoped('failed ledger allowance reset restores allocated funding and reward inventory', async () => {
+    await refreshV36Market(provider, adapter, wrapped.address, stable.address)
+    const start = await now() + 180
+    await send(ledger.createTreasuryFundedPool([start, start + 3600, 1, 2, 2, ''],
+      [[137, nft.address, 1]], [[stable.address, stableUnit]], [wrapped.address, one, 900, [10000]], one, true))
+    await send(wrapped.setAllowanceOwnerForTest(ledger.address))
+    await assert.rejects(ledger.replenish(
+      1, stable.address, 0, 0, await deadline(), { gasLimit: 5_000_000 },
+    ).then((transaction) => transaction.wait()))
+    equal((await ledger.fundingState(1)).spent, 0)
+    equal((await vault.balance(wrapped.address)).allocated, one)
+    equal((await ledger.rewardState(1, stable.address)).inventory, 0)
+    equal(await wrapped.allowance(ledger.address, planner.address), 0)
+
+    await send(wrapped.setAllowanceOwnerForTest(zero))
+    await send(ledger.replenish(1, stable.address, 0, 0, await deadline()))
+    equal((await ledger.fundingState(1)).spent, one)
+    equal((await vault.balance(wrapped.address)).allocated, 0)
+    assert.ok((await ledger.rewardState(1, stable.address)).inventory.gt(0))
+  })
+
+  await scoped('seeded Treasury transitions conserve balances and independently allocated pool budgets', async () => {
+    const initial = await available(wrapped)
+    await refreshV36Market(provider, adapter, wrapped.address, stable.address)
+    const start = await now() + 3600
+    const funding = one.mul(3)
+    for (let i = 0; i < 3; i++) {
+      await send(ledger.createTreasuryFundedPool([start, start + 5400, 1, 3, 3, ''],
+        [[137, nft.address, 1]], [[wrapped.address, funding]], [wrapped.address, funding, 900, [10000]], one, true))
+    }
+    const poolAllocations = [one, one, one]
+    const balances = new Map([[wrapped.address, initial.sub(one.mul(3))], [stable.address, stableUnit.mul(20)]])
+    await send(stable.approve(vault.address, stableUnit.mul(20)))
+    await send(vault.deposit(stable.address, stableUnit.mul(20)))
+    let seed = 0x2c581e3
+    const random = (limit) => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+      return seed % limit
+    }
+    for (let n = 0; n < 32; ++n) {
+      const wrappedAvailable = balances.get(wrapped.address)
+      const amount = one.div(40).mul(1 + random(6))
+      const operation = random(19) % 4
+      if (operation === 0) {
+        await send(vault.deposit(wrapped.address, amount, { value: amount }))
+        balances.set(wrapped.address, wrappedAvailable.add(amount))
+      } else if (operation === 1) {
+        await send(vault.withdraw(wrapped.address, amount))
+        balances.set(wrapped.address, wrappedAvailable.sub(amount))
+      } else if (operation === 2) {
+        const pool = random(3)
+        await send(ledger.allocateTreasuryBudget(pool + 1, amount))
+        poolAllocations[pool] = poolAllocations[pool].add(amount)
+        balances.set(wrapped.address, wrappedAvailable.sub(amount))
+      } else {
+        const [route, , minimum] = await vault.quoteTreasurySwap(wrapped.address, stable.address, amount)
+        const receipt = await send(vault.swapTreasury(wrapped.address, stable.address, route, amount, minimum, await deadline()))
+        const { amountOut } = receipt.events.find(({ event }) => event === 'TreasurySwap').args
+        balances.set(wrapped.address, wrappedAvailable.sub(amount))
+        balances.set(stable.address, balances.get(stable.address).add(amountOut))
+      }
+      for (const token of [wrapped, stable]) {
+        const book = await vault.balance(token.address)
+        const changes = await vault.swapTotals(token.address)
+        equal(await token.balanceOf(vault.address), balances.get(token.address))
+        equal(book.available, balances.get(token.address))
+        equal(book.available.add(book.allocated), book.deposited.add(book.rewardsReturned).add(changes.swappedIn)
+          .sub(book.spent).sub(book.withdrawn).sub(changes.swappedOut))
+      }
+      for (let i = 0; i < poolAllocations.length; i++) {
+        equal((await ledger.fundingState(i + 1)).deposited, poolAllocations[i])
+      }
+      const escrow = poolAllocations.reduce((sum, amountInPool) => sum.add(amountInPool), constants.Zero)
+      equal(await wrapped.balanceOf(ledger.address), escrow)
+      equal((await vault.balance(wrapped.address)).allocated, escrow)
+    }
+  })
+
+  await scoped('seeded managed ERC-1155 transfers preserve total rights through the final claim block', async () => {
+    const collection = await deploy('Hooked1155Fixture', 'test/ManagedFixtures.sol')
+    const managed = await deploy('ManagedNftCollection', 'contracts/ManagedNftCollection.sol',
+      ledger.address, 137, collection.address, 1155, 12, zero)
+    await send(collection.setHook(managed.address))
+    await send(ledger.approveManagedCollection(managed.address))
+    const start = await now() + 60
+    const end = start + 900
+    const cap = one.mul(2)
+    await send(ledger.createTreasuryFundedPool([start, end, 1, 5, 12, ''], [[137, managed.address, 4]],
+      [[wrapped.address, cap]], [wrapped.address, cap, 900, [10000]], cap, true))
+    await send(ledger.replenish(1, wrapped.address, 0, 0, await deadline()))
+    await send(collection.mint(alice, 77, 12))
+    await jump(start)
+    await send(managed.connect(provider.getSigner(alice)).join(1, 77, 12))
+    await jump(end)
+    await send(ledger.checkpoint(1))
+    const holders = [alice, bob, caro]
+    const keys = []
+    const rights = [12, 0, 0]
+    for (const holder of holders) {
+      const id = await managed.positionId(1, 77, holder, false)
+      keys.push(await ledger.nftKey(137, managed.address, id))
+    }
+    const liability = (await ledger.rewardState(1, wrapped.address)).committed
+    const claimable = () => Promise.all(keys.map((key) => ledger.claimable(1, key, wrapped.address)))
+    const paidInFull = (await claimable())[0]
+    assert.ok(paidInFull.gt(0))
+    let seed = 0xb17107
+    for (let i = 0; i < 24; i++) {
+      seed = (Math.imul(seed, 1103515245) + 12345) >>> 0
+      const eligible = rights.map((units, index) => units ? index : -1).filter((index) => index >= 0)
+      const from = eligible[(seed >>> 16) % eligible.length]
+      const to = (from + 1 + ((seed >>> 12) % 2)) % holders.length
+      const quantity = 1 + ((seed >>> 8) % rights[from])
+      await send(collection.connect(provider.getSigner(holders[from])).safeTransferFrom(holders[from], holders[to], 77, quantity, '0x'))
+      rights[from] -= quantity
+      rights[to] += quantity
+      for (let k = 0; k < holders.length; k++) {
+        const id = await managed.positionId(1, 77, holders[k], false)
+        equal((await managed.positions(id)).entitled, rights[k])
+      }
+      const sum = (await claimable()).reduce((total, credit) => total.add(credit), constants.Zero)
+      assert.ok(paidInFull.gte(sum) && paidInFull.sub(sum).lte(2), 'Only integer payout dust may differ')
+      equal((await ledger.rewardState(1, wrapped.address)).committed, liability)
+    }
+    await jump(end + 30 * 86400 - 1)
+    assert.ok((await claimable()).some((value) => value.gt(0)))
+    await jump(end + 30 * 86400)
+    for (const credit of await claimable()) equal(credit, 0)
+    await send(ledger.recoverExpiredRewards(1, wrapped.address))
+    equal((await vault.balance(wrapped.address)).rewardsReturned, cap)
+    equal(await wrapped.balanceOf(ledger.address), 0)
+    equal(await available(wrapped), one.mul(20))
   })
 
   await scoped('quote fails for liquidity, stale observations, pause and permission changes', async () => {

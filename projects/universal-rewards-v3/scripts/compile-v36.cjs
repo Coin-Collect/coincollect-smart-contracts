@@ -12,9 +12,7 @@ const entries = [
   'contracts/ManagedNftCollection.sol',
 ]
 
-function extendFrozenSource(file, expectedSha256, replacements) {
-  let source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
-  assert.equal(createHash('sha256').update(source).digest('hex'), expectedSha256, file + ' frozen source changed')
+function replaceAnchors(file, source, replacements) {
   for (const [before, after] of replacements) {
     assert.equal(source.split(before).length, 2, file + ' extension anchor changed: ' + before)
     source = source.replace(before, after)
@@ -22,7 +20,22 @@ function extendFrozenSource(file, expectedSha256, replacements) {
   return source
 }
 
-function compileV36(additionalEntries = [], exportInput) {
+function extendFrozenSource(file, expectedSha256, replacements) {
+  const source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8')
+  assert.equal(createHash('sha256').update(source).digest('hex'), expectedSha256, file + ' frozen source changed')
+  return replaceAnchors(file, source, replacements)
+}
+
+// V3.6.1 verifies the actual allowance before and after every swap-layer approval.
+function allowanceChecks(token, spender, amount, error, indent = '        ') {
+  return [amount, '0'].map((value) => {
+    const line = `${token}.forceApprove(${spender}, ${value});`
+    return [line, line + `
+        if (${token}.allowance(address(this), ${spender}) != ${value}) revert ${error}();`]
+  })
+}
+
+function compileV36(additionalEntries = [], exportInput, harden = true) {
   const ledger = 'contracts/UniversalRewards.sol'
   const planner = 'contracts/RewardRoutePlanner.sol'
   const sources = {
@@ -76,6 +89,20 @@ function compileV36(additionalEntries = [], exportInput) {
         '    function _approved(RewardSwapAdapter adapter)',
       ].join('\n')],
     ]),
+  }
+  if (harden) {
+    const vault = 'contracts/v36/TreasuryVaultV36.sol'
+    const adapter = 'contracts/RewardSwapAdapter.sol'
+    sources[vault] = extendFrozenSource(vault, 'ddbaf2fe712227c4f2a6836d7dff2edc53f110e3f38a91c39a42e0b2ffdac8e1',
+      allowanceChecks('source', 'address(planner)', 'amount', 'InvalidTransfer'))
+    sources[adapter] = extendFrozenSource(adapter, '996e8e4f028bd602c6e2267f6f127cfb54561a68e5a2169ff70e768636f539dc',
+      allowanceChecks('asset', 'address(router)', 'amount', 'UnexpectedTransfer'))
+    sources[ledger] = replaceAnchors(ledger, sources[ledger],
+      allowanceChecks('source', 'address(swapAdapter)', 'amount', 'InvalidReceipt', '            '))
+    sources[planner] = replaceAnchors(planner, sources[planner], [
+      ...allowanceChecks('asset', 'address(adapter)', 'amount', 'UnexpectedTransfer'),
+      ['        Path storage path = paths[input][output][index];\n        IERC20 reward', '        Path storage path = paths[input][output][index];\n        _validatePath(input, output, path);\n        IERC20 reward'],
+    ])
   }
   return compile([...entries, ...additionalEntries], exportInput, { sources, optimizerRuns: 1, evmVersion: 'shanghai' })
 }

@@ -51,7 +51,8 @@ function recordDeployment(artifact, links, code, address) {
 }
 
 function buildRelease(destination, version = '3.5-rc') {
-  const v36 = version === '3.6-rc'
+  const v361 = version === '3.6.1-rc'
+  const v36 = version === '3.6-rc' || v361
   if (!v36 && version !== '3.5-rc') throw new Error('Unknown release ' + version)
   const polygon = v36 ? [
     'TreasuryAssetsV36', 'RewardRoutePlannerV36', 'TreasuryVaultV36', 'UniversalRewardsV36',
@@ -65,7 +66,7 @@ function buildRelease(destination, version = '3.5-rc') {
   fs.mkdirSync(path.join(destination, 'contracts'), { recursive: true })
   let inputHash
   const recordInput = (input) => { inputHash = write('standard-input.json', input) }
-  const output = v36 ? compileV36([], recordInput) : compile(undefined, recordInput)
+  const output = v36 ? compileV36([], recordInput, v361) : compile(undefined, recordInput)
   const names = v36 ? polygon : [...polygon, ...isolatedContracts, 'UniversalRewards']
   const contracts = names.map((name) => {
     const source = (name.endsWith('V36') ? 'contracts/v36/' : 'contracts/') + name + '.sol'

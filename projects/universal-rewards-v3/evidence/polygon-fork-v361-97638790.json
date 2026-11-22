@@ -1,0 +1,474 @@
+{
+  "sourceChain": 137,
+  "chain": 31337,
+  "block": 97638790,
+  "blockHash": "0x9cf4791f6b4aab715d03aa5f66ad39e40676b80f00620927c6ddc6827db63419",
+  "deployments": [
+    {
+      "name": "TreasuryAssetsV36",
+      "file": "contracts/v36/TreasuryAssetsV36.sol",
+      "address": "0x40351c2988cC68eE8dBc1647684e3Da4eeEbFD78",
+      "args": [
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      ],
+      "runtimeKeccak256": "0x21cde979a48277a436c9cac5047014f7f9b04e431539a2833accf28397e5ead2",
+      "immutableValues": {
+        "1904": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ]
+      }
+    },
+    {
+      "name": "RewardRoutePlannerV36",
+      "file": "contracts/v36/RewardRoutePlannerV36.sol",
+      "address": "0x474429d0Ba3Bb1928f19b2Fc64D89467F99492Fa",
+      "args": [
+        "0x40351c2988cC68eE8dBc1647684e3Da4eeEbFD78",
+        "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+      ],
+      "runtimeKeccak256": "0xdb8f2bff34c24565a2364c3f20db905091b2b8f7baf808c4b6e30310362c5ca2",
+      "immutableValues": {
+        "1648": [
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78"
+        ],
+        "5042": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "5044": [
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        ]
+      }
+    },
+    {
+      "name": "ManagedRewardPositions",
+      "file": "contracts/ManagedRewardPositions.sol",
+      "address": "0x751267dC369Aea67957ae73d1421eDCCb9891309",
+      "args": [],
+      "runtimeKeccak256": "0x0a885abd8fd961ba1593503af2368a2cf1b0cb66dfeb4065a7b806a13adec045",
+      "immutableValues": {
+        "library_deploy_address": [
+          "0x000000000000000000000000751267dc369aea67957ae73d1421edccb9891309"
+        ]
+      }
+    },
+    {
+      "name": "UniversalRewardsV36",
+      "file": "contracts/v36/UniversalRewardsV36.sol",
+      "address": "0x4DF46610F07DEa367ccf9249128DA68feDE3D8bd",
+      "args": [
+        "0x474429d0Ba3Bb1928f19b2Fc64D89467F99492Fa"
+      ],
+      "runtimeKeccak256": "0x9493624d8c4f7607605de4c8bc2b1ce06591f6c164a7ae829155fe9c06a464ac",
+      "immutableValues": {
+        "3626": [
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78"
+        ],
+        "9239": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "9241": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "9243": [
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        ],
+        "9246": [
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa",
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa",
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa",
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa"
+        ],
+        "9249": [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ]
+      }
+    },
+    {
+      "name": "TreasuryVaultV36",
+      "file": "contracts/v36/TreasuryVaultV36.sol",
+      "address": "0x9C41d0A02868D01510069E44581ac57F7A8349F0",
+      "args": [
+        "0x4DF46610F07DEa367ccf9249128DA68feDE3D8bd"
+      ],
+      "runtimeKeccak256": "0x69617d053a3a0c41f189033a97f3475ad4a45539f80bed1196504df3711fa19a",
+      "immutableValues": {
+        "2542": [
+          "0x0000000000000000000000004df46610f07dea367ccf9249128da68fede3d8bd",
+          "0x0000000000000000000000004df46610f07dea367ccf9249128da68fede3d8bd",
+          "0x0000000000000000000000004df46610f07dea367ccf9249128da68fede3d8bd",
+          "0x0000000000000000000000004df46610f07dea367ccf9249128da68fede3d8bd"
+        ],
+        "2545": [
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78",
+          "0x00000000000000000000000040351c2988cc68ee8dbc1647684e3da4eeebfd78"
+        ],
+        "2548": [
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa",
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa",
+          "0x000000000000000000000000474429d0ba3bb1928f19b2fc64d89467f99492fa"
+        ],
+        "2550": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "2552": [
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        ]
+      }
+    },
+    {
+      "name": "RewardSwapAdapter",
+      "file": "contracts/RewardSwapAdapter.sol",
+      "address": "0x55ed412dac7263308E08762B84A963721ef2ace0",
+      "args": [
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
+        "0xf1ce1bb9d7403281292baa290f5c56136484cc34395dc3666ad7f94c79f99b71",
+        "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
+        "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+      ],
+      "runtimeKeccak256": "0x8efe87ffa863fe5f15d089ec02f4df4bf593060342c99ff4db35673078b4afec",
+      "immutableValues": {
+        "7046": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "7049": [
+          "0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff",
+          "0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff",
+          "0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+        ],
+        "7052": [
+          "0x0000000000000000000000005757371414417b8c6caad45baef941abc7d3ab32",
+          "0x0000000000000000000000005757371414417b8c6caad45baef941abc7d3ab32",
+          "0x0000000000000000000000005757371414417b8c6caad45baef941abc7d3ab32",
+          "0x0000000000000000000000005757371414417b8c6caad45baef941abc7d3ab32"
+        ],
+        "7054": [
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        ],
+        "7056": [
+          "0xf1ce1bb9d7403281292baa290f5c56136484cc34395dc3666ad7f94c79f99b71",
+          "0xf1ce1bb9d7403281292baa290f5c56136484cc34395dc3666ad7f94c79f99b71"
+        ]
+      }
+    },
+    {
+      "name": "RewardSwapAdapter",
+      "file": "contracts/RewardSwapAdapter.sol",
+      "address": "0x062c67B82f97d9928B2C6f3A3aC6aAb6Df87e64C",
+      "args": [
+        "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "0xCc2a5477978A23282b80a66aAa2903b71f702040",
+        "0x62983b1c9e3c0cece7438c16cf954aac862ba329b7d57e0e6cb886edc75e7363",
+        "0x2bc17223A99B6e2857796a5F64A1ED91067b5657",
+        "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+      ],
+      "runtimeKeccak256": "0xf7f209745b12ef956db1b8c11f8d1b302363676599936c3a6df793be2bfc2a3d",
+      "immutableValues": {
+        "7046": [
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "7049": [
+          "0x000000000000000000000000cc2a5477978a23282b80a66aaa2903b71f702040",
+          "0x000000000000000000000000cc2a5477978a23282b80a66aaa2903b71f702040",
+          "0x000000000000000000000000cc2a5477978a23282b80a66aaa2903b71f702040"
+        ],
+        "7052": [
+          "0x0000000000000000000000002bc17223a99b6e2857796a5f64a1ed91067b5657",
+          "0x0000000000000000000000002bc17223a99b6e2857796a5f64a1ed91067b5657",
+          "0x0000000000000000000000002bc17223a99b6e2857796a5f64a1ed91067b5657",
+          "0x0000000000000000000000002bc17223a99b6e2857796a5f64a1ed91067b5657"
+        ],
+        "7054": [
+          "0x0000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        ],
+        "7056": [
+          "0x62983b1c9e3c0cece7438c16cf954aac862ba329b7d57e0e6cb886edc75e7363",
+          "0x62983b1c9e3c0cece7438c16cf954aac862ba329b7d57e0e6cb886edc75e7363"
+        ]
+      }
+    }
+  ],
+  "assets": [
+    {
+      "symbol": "WPOL",
+      "address": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+      "decimals": 18,
+      "runtimeKeccak256": "0xae820ea59b005f58a45eea35b374afbd5dc503d4f219a6b670cd3453f1142ed5",
+      "implementation": null
+    },
+    {
+      "symbol": "USDT",
+      "address": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+      "decimals": 6,
+      "runtimeKeccak256": "0x8cb0cfc9b3aa516d8c5a1cdf94a2c60b668a903e21711cb6f3f3501fdd8478b5",
+      "implementation": "0x90040487A6C9F949C4F07CaDCFB0f3B8EEAb4229"
+    },
+    {
+      "symbol": "WBTC",
+      "address": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
+      "decimals": 8,
+      "runtimeKeccak256": "0x8cb0cfc9b3aa516d8c5a1cdf94a2c60b668a903e21711cb6f3f3501fdd8478b5",
+      "implementation": "0x7FFB3d637014488b63fb9858E279385685AFc1e2"
+    },
+    {
+      "symbol": "WETH",
+      "address": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+      "decimals": 18,
+      "runtimeKeccak256": "0x06025eef5a4b1b3cb0031bce61d6a571f478e213d24984621eafcb59b8d71473",
+      "implementation": null
+    },
+    {
+      "symbol": "SHIB",
+      "address": "0x6f8a06447ff6fcf75d803135a7de15ce88c1d4ec",
+      "decimals": 18,
+      "runtimeKeccak256": "0xe0039e200dc94a84760089ea18de72126e37d0c2aabbd11ca76d4b258f2249ff",
+      "implementation": "0x0ED3D66Dd0c9be71C8bf280A010B96881C69e7B6"
+    },
+    {
+      "symbol": "COLLECT",
+      "address": "0x56633733fc8baf9f730ad2b6b9956ae22c6d4148",
+      "decimals": 18,
+      "runtimeKeccak256": "0x3d34462c9ca75095634a42f3e34145a181aecf31b9fa970cf97f9cfda5519449",
+      "implementation": null
+    }
+  ],
+  "routerInputs": [
+    [
+      "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
+      "0xf1ce1bb9d7403281292baa290f5c56136484cc34395dc3666ad7f94c79f99b71",
+      "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
+    ],
+    [
+      "0xCc2a5477978A23282b80a66aAa2903b71f702040",
+      "0x62983b1c9e3c0cece7438c16cf954aac862ba329b7d57e0e6cb886edc75e7363",
+      "0x2bc17223A99B6e2857796a5F64A1ED91067b5657"
+    ]
+  ],
+  "pairInputs": [
+    [
+      1,
+      "COLLECT",
+      "USDT",
+      "0x0cCc84b6506003487AEC687085e82C2f912E607B",
+      "100000",
+      "100"
+    ],
+    [
+      0,
+      "WPOL",
+      "USDT",
+      "0x604229c960e5CACF2aaEAc8Be68Ac07BA9dF81c3",
+      "50000",
+      "10000"
+    ],
+    [
+      0,
+      "WPOL",
+      "SHIB",
+      "0x5FB641De2663e8a94C9dea0a539817850d996e99",
+      "5000",
+      "10000000"
+    ],
+    [
+      0,
+      "WPOL",
+      "WBTC",
+      "0xf6B87181BF250af082272E3f448eC3238746Ce3D",
+      "10000",
+      "0.02"
+    ],
+    [
+      1,
+      "WPOL",
+      "COLLECT",
+      "0xFb09801B10298dB9663D2790F5D5Bc6aFa354497",
+      "1000",
+      "100000"
+    ],
+    [
+      0,
+      "WETH",
+      "USDT",
+      "0xF6422B997c7F54D1c6a6e103bcb1499EeA0a7046",
+      "10",
+      "10000"
+    ]
+  ],
+  "swaps": [
+    {
+      "from": "COLLECT",
+      "to": "USDT",
+      "intermediate": null,
+      "input": "100000000000000000000",
+      "received": "14201",
+      "transaction": "0xaba57e1740b4c37e28e9e7b2c2879c17f7c79333f29cf186b69cc1dfb624d319",
+      "gasUsed": 449581
+    },
+    {
+      "from": "USDT",
+      "to": "COLLECT",
+      "intermediate": null,
+      "input": "500000",
+      "received": "3500922672070227469600",
+      "transaction": "0xf865590a009ca5e815d3c28cb99c2d935b739a48411f11e0b5f16c1885afe370",
+      "gasUsed": 446167
+    },
+    {
+      "from": "SHIB",
+      "to": "USDT",
+      "intermediate": "WPOL",
+      "input": "10000000000000000000000",
+      "received": "37896",
+      "transaction": "0x52170c90cbb12654068fe174dfbef178394b029a89a834f53f5c69f1192fcafb",
+      "gasUsed": 701586
+    },
+    {
+      "from": "USDT",
+      "to": "SHIB",
+      "intermediate": "WPOL",
+      "input": "500000",
+      "received": "130302869517270290616718",
+      "transaction": "0xcb8acb6e9bc5b39d8759e5b34578ec4e269d1f88cddbe09779ea99e36340f5d7",
+      "gasUsed": 688213
+    },
+    {
+      "from": "COLLECT",
+      "to": "WBTC",
+      "intermediate": "WPOL",
+      "input": "100000000000000000000",
+      "received": "25",
+      "transaction": "0x92eda2bdeb461360a5ba1d0951249eeb51435b23819326aaf2ad8ecf182bf81f",
+      "gasUsed": 703920
+    },
+    {
+      "from": "WBTC",
+      "to": "COLLECT",
+      "intermediate": "WPOL",
+      "input": "1000",
+      "received": "3916333454684503384530",
+      "transaction": "0x93535944fde7be36e27f2127bea55c9ef9fca9a7a49c1a657bbece505975282d",
+      "gasUsed": 689565
+    },
+    {
+      "from": "USDT",
+      "to": "WBTC",
+      "intermediate": "WPOL",
+      "input": "500000",
+      "received": "797",
+      "transaction": "0x3173326bd9be9e2e3648020eb724b75197b3520ab955758b9939a1ec70ca4c7b",
+      "gasUsed": 674728
+    },
+    {
+      "from": "WBTC",
+      "to": "USDT",
+      "intermediate": "WPOL",
+      "input": "1000",
+      "received": "619733",
+      "transaction": "0x95b20af5437d02885894740c12df0e36365b61878fe14634eea97848b8e7429f",
+      "gasUsed": 671488
+    },
+    {
+      "from": "SHIB",
+      "to": "WPOL",
+      "intermediate": null,
+      "input": "10000000000000000000000",
+      "received": "480614559391472242",
+      "transaction": "0x1797ff395b488eca2dfe4658303d89c4f836924129042c3d561007135c7cc449",
+      "gasUsed": 483092
+    },
+    {
+      "from": "WPOL",
+      "to": "SHIB",
+      "intermediate": null,
+      "input": "1000000000000000000",
+      "received": "20681226202249127215565",
+      "transaction": "0xcd4996b28e691d4fa0b142b842c3a4f5ce21fc93fed3914b1f2080c51df8d218",
+      "gasUsed": 467156
+    },
+    {
+      "from": "WETH",
+      "to": "USDT",
+      "intermediate": null,
+      "input": "500000000000000",
+      "received": "874260",
+      "transaction": "0x52c7676cad1ccc61f6096cef41967b4f87152cbae694278da13bd58c0062556b",
+      "gasUsed": 416017
+    },
+    {
+      "from": "USDT",
+      "to": "WETH",
+      "intermediate": null,
+      "input": "500000",
+      "received": "284244376077177",
+      "transaction": "0xd072a7a8292a58ae77c84192e034642a66f1aa7a0cbd606a05e4ca3d30ce0fe2",
+      "gasUsed": 420625
+    }
+  ],
+  "observationGas": [
+    93743,
+    93786,
+    93259,
+    93302,
+    93259,
+    93302,
+    93259,
+    93302,
+    93743,
+    93786,
+    93259,
+    93302,
+    79574,
+    79617,
+    79090,
+    79133,
+    79090,
+    79133,
+    79090,
+    79133,
+    79574,
+    79617,
+    79090,
+    79133
+  ]
+}

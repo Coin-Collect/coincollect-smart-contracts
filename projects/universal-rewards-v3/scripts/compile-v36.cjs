@@ -35,7 +35,7 @@ function allowanceChecks(token, spender, amount, error, indent = '        ') {
   })
 }
 
-function compileV36(additionalEntries = [], exportInput, harden = true) {
+function compileV36(additionalEntries = [], exportInput, harden = true, { directTreasuryRewards = false, batchPositions = false, managedBatch = false, instantStart = false } = {}) {
   const ledger = 'contracts/UniversalRewards.sol'
   const planner = 'contracts/RewardRoutePlanner.sol'
   const sources = {
@@ -102,6 +102,137 @@ function compileV36(additionalEntries = [], exportInput, harden = true) {
     sources[planner] = replaceAnchors(planner, sources[planner], [
       ...allowanceChecks('asset', 'address(adapter)', 'amount', 'UnexpectedTransfer'),
       ['        Path storage path = paths[input][output][index];\n        IERC20 reward', '        Path storage path = paths[input][output][index];\n        _validatePath(input, output, path);\n        IERC20 reward'],
+    ])
+  }
+  if (directTreasuryRewards) {
+    const oldReplenishment = sources[ledger].slice(
+      sources[ledger].indexOf('    function _replenishment('),
+      sources[ledger].indexOf('    function _intervalEmission('),
+    )
+    sources[ledger] = replaceAnchors(ledger, sources[ledger], [
+      [
+        'import {TreasuryVault} from "./TreasuryVault.sol";',
+        'import {TreasuryVault} from "./TreasuryVault.sol";\nimport {TreasuryRewardFunding} from "./v37/TreasuryRewardFunding.sol";',
+      ],
+      [
+        oldReplenishment,
+        oldReplenishment.slice(0, oldReplenishment.indexOf('    {\n')) +
+          '    {\n        return TreasuryRewardFunding.replenishment(pool, token, available, treasuryVault);\n    }\n\n',
+      ],
+      [
+        '        poolId = _createPool(config, collections, rewards);\n        _configureFunding(poolId, funding.asset, funding.budget, funding.interval, funding.allocations);\n        Pool storage pool = pools[poolId];',
+        [
+          '        poolId = _createPool(config, collections, rewards);',
+          '        if (funding.asset == address(0)) {',
+          '            if (funding.budget != 0 || funding.interval != 0 || funding.allocations.length != 0',
+          '                || initialAllocation != 0 || consolidated) revert InvalidFundingPlan();',
+          '            _fundDirectTreasuryRewards(poolId, rewards);',
+          '            return poolId;',
+          '        }',
+          '        _configureFunding(poolId, funding.asset, funding.budget, funding.interval, funding.allocations);',
+          '        Pool storage pool = pools[poolId];',
+        ].join('\n'),
+      ],
+      [
+        '    function allocateTreasuryBudget(uint256 poolId, uint128 amount)',
+        '    function _fundDirectTreasuryRewards(uint256, RewardConfig[] calldata) internal virtual { revert InvalidFundingPlan(); }\n\n    function allocateTreasuryBudget(uint256 poolId, uint128 amount)',
+      ],
+    ])
+  }
+  if (batchPositions) {
+    sources[ledger] = replaceAnchors(ledger, sources[ledger], [
+      [
+        'import {TreasuryVault} from "./TreasuryVault.sol";',
+        'import {TreasuryVault} from "./TreasuryVault.sol";\nimport {RewardTransferV38} from "./v38/RewardTransferV38.sol";',
+      ],
+      [
+        `    function claim(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
+        for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
+    }`,
+        `    function claim(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        _claimOrExit(poolId, sourceChainId, collection, tokenId, false);
+    }`,
+      ],
+      [
+        `    function exit(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        _requireDirectCollection(collection);
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
+        _leave(poolId, pool, key);
+        for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
+    }`,
+        `    function exit(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId) external nonReentrant {
+        _claimOrExit(poolId, sourceChainId, collection, tokenId, true);
+    }
+
+    function _claimOrExit(uint256 poolId, uint256 sourceChainId, address collection, uint256 tokenId, bool exiting)
+        internal
+    {
+        if (exiting) _requireDirectCollection(collection);
+        (Pool storage pool, bytes32 key) = _ownedPosition(poolId, sourceChainId, collection, tokenId, true);
+        if (exiting) _leave(poolId, pool, key);
+        for (uint256 i; i < pool.rewardTokens.length; ++i) _pay(poolId, pool, key, pool.rewardTokens[i]);
+    }`,
+      ],
+      [
+        `    function _transferExact(address token, address receiver, uint256 amount) private {
+        IERC20 asset = IERC20(token);
+        uint256 beforePool = asset.balanceOf(address(this));
+        uint256 beforeReceiver = asset.balanceOf(receiver);
+        asset.safeTransfer(receiver, amount);
+        if (beforePool - asset.balanceOf(address(this)) != amount || asset.balanceOf(receiver) - beforeReceiver != amount) {
+            revert InvalidReceipt();
+        }
+    }`,
+        `    function _transferExact(address token, address receiver, uint256 amount) private {
+        RewardTransferV38.transferExact(token, receiver, amount);
+    }`,
+      ],
+    ])
+  }
+  if (managedBatch) {
+    const adapter = 'contracts/ManagedNftCollection.sol'
+    sources[adapter] = extendFrozenSource(adapter, '196c8cc26fc2f6414f2f7dfae807c715a908cb6761c8f579c7cfac6ed5428b76', [
+      [
+        `        uint256 id = positionId(poolId, tokenId, msg.sender, false);
+        if (IERC1155(sourceCollection).balanceOf(msg.sender, tokenId) < positions[id].entitled) revert InvalidQuantity();
+        _release(poolId, tokenId, msg.sender, quantity, true);`,
+        `        _exitLocal(poolId, tokenId, msg.sender, quantity);
+    }
+
+    function _exitLocal(uint256 poolId, uint256 tokenId, address owner, uint128 quantity) internal {
+        uint256 id = positionId(poolId, tokenId, owner, false);
+        if (IERC1155(sourceCollection).balanceOf(owner, tokenId) < positions[id].entitled) revert InvalidQuantity();
+        _release(poolId, tokenId, owner, quantity, true);`,
+      ],
+    ])
+  }
+  if (instantStart) {
+    sources[ledger] = replaceAnchors(ledger, sources[ledger], [
+      [
+        '        if (\n            config.start < block.timestamp || config.end <= config.start || config.end - config.start > 4 * 365 days',
+        '        uint64 start = config.start == 0 ? uint64(block.timestamp) : config.start;\n        uint64 end = config.start == 0 ? start + config.end : config.end;\n        if (\n            start < block.timestamp || end <= start || end - start > 4 * 365 days',
+      ],
+      [
+        '        pool.checkedUntil = config.start;',
+        '        pool.config.start = start;\n        pool.config.end = end;\n        pool.checkedUntil = start;',
+      ],
+      [
+        '        emit PoolCreated(poolId, config.start, config.end, config.metadataURI);',
+        '        emit PoolCreated(poolId, start, end, config.metadataURI);',
+      ],
+      [
+        '        if (msg.sender != admin) revert Unauthorized();\n        _configureFunding(poolId, asset, budget, interval, splits);',
+        '        if (msg.sender != admin) revert Unauthorized();\n        if (block.timestamp >= _pool(poolId).config.start) revert InvalidFundingPlan();\n        _configureFunding(poolId, asset, budget, interval, splits);',
+      ],
+      [
+        '|| block.timestamp >= pool.config.start || interval < MIN_REPLENISH_INTERVAL',
+        '|| interval < MIN_REPLENISH_INTERVAL',
+      ],
+    ])
+    const batchLedger = 'contracts/v38/UniversalRewardsV38.sol'
+    sources[batchLedger] = extendFrozenSource(batchLedger, 'b4c26acb0e13f37d12bdadee6a2901c85f01a649da8937dc9e75da6f9666e8aa', [
+      ['string public constant VERSION = "3.8.0";', 'function VERSION() external pure virtual returns (string memory) { return "3.8.0"; }'],
     ])
   }
   return compile([...entries, ...additionalEntries], exportInput, { sources, optimizerRuns: 1, evmVersion: 'shanghai' })

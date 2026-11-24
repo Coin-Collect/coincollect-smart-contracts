@@ -6,6 +6,10 @@ const { utils } = require('ethers')
 const solc = require('solc')
 const { compile } = require('./compile.cjs')
 const { compileV36 } = require('./compile-v36.cjs')
+const { compileV37, directTreasuryLedger, treasuryRewardFunding } = require('./compile-v37.cjs')
+const { compileV38, batchLedger, rewardTransfer } = require('./compile-v38.cjs')
+const { compileV39, managedBatchAdapter } = require('./compile-v39.cjs')
+const { compileV310, instantLedger } = require('./compile-v310.cjs')
 const { linkBytecode } = require('./link-bytecode.cjs')
 
 const sha256 = (contents) => createHash('sha256').update(contents).digest('hex')
@@ -52,11 +56,28 @@ function recordDeployment(artifact, links, code, address) {
 
 function buildRelease(destination, version = '3.5-rc') {
   const v361 = version === '3.6.1-rc'
-  const v36 = version === '3.6-rc' || v361
+  const v37 = version === '3.7.0-rc'
+  const v310 = version === '3.10.0-rc'
+  const v39 = version === '3.9.0-rc' || v310
+  const v38 = version === '3.8.0-rc' || v39
+  const directTreasury = v37 || v38
+  const v36 = version === '3.6-rc' || v361 || directTreasury
   if (!v36 && version !== '3.5-rc') throw new Error('Unknown release ' + version)
+  const ledgerName = v310 ? 'UniversalRewardsV310' : v38 ? 'UniversalRewardsV38' : v37 ? 'UniversalRewardsV37' : 'UniversalRewardsV36'
+  const sources = {
+    UniversalRewardsV37: directTreasuryLedger,
+    TreasuryRewardFunding: treasuryRewardFunding,
+    UniversalRewardsV38: batchLedger,
+    RewardTransferV38: rewardTransfer,
+    ManagedNftCollectionV39: managedBatchAdapter,
+    UniversalRewardsV310: instantLedger,
+  }
   const polygon = v36 ? [
-    'TreasuryAssetsV36', 'RewardRoutePlannerV36', 'TreasuryVaultV36', 'UniversalRewardsV36',
+    'TreasuryAssetsV36', 'RewardRoutePlannerV36', 'TreasuryVaultV36', ledgerName,
     'ManagedRewardPositions', 'RewardSwapAdapter', 'ManagedNftCollection',
+    ...(directTreasury ? ['TreasuryRewardFunding'] : []),
+    ...(v38 ? ['RewardTransferV38'] : []),
+    ...(v39 ? ['ManagedNftCollectionV39'] : []),
   ] : polygonContracts
   const write = (file, value) => {
     const contents = serialize(value)
@@ -66,10 +87,14 @@ function buildRelease(destination, version = '3.5-rc') {
   fs.mkdirSync(path.join(destination, 'contracts'), { recursive: true })
   let inputHash
   const recordInput = (input) => { inputHash = write('standard-input.json', input) }
-  const output = v36 ? compileV36([], recordInput, v361) : compile(undefined, recordInput)
+  const output = v310
+    ? compileV310([], recordInput)
+    : v39 ? compileV39([], recordInput)
+    : v38 ? compileV38([], recordInput)
+    : v37 ? compileV37([], recordInput) : v36 ? compileV36([], recordInput, v361) : compile(undefined, recordInput)
   const names = v36 ? polygon : [...polygon, ...isolatedContracts, 'UniversalRewards']
   const contracts = names.map((name) => {
-    const source = (name.endsWith('V36') ? 'contracts/v36/' : 'contracts/') + name + '.sol'
+    const source = sources[name] ?? (name.endsWith('V36') ? 'contracts/v36/' : 'contracts/') + name + '.sol'
     const { abi, evm, metadata } = output[source][name]
     const { object, linkReferences, immutableReferences } = evm.deployedBytecode
     const bytes = object.length / 2
@@ -88,6 +113,7 @@ function buildRelease(destination, version = '3.5-rc') {
   })
   write('manifest.json', {
     release: version, compiler: solc.version(), chainId: 137,
+    ...(directTreasury ? { ledger: ledgerName, status: 'test-candidate' } : {}),
     packageLockSha256: sha256(fs.readFileSync(path.join(__dirname, '..', 'package-lock.json'))),
     standardInputSha256: inputHash,
     contracts,

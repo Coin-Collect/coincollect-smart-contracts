@@ -3,6 +3,7 @@ const fs = require('node:fs')
 const { test } = require('node:test')
 const { Contract, ContractFactory, constants, utils } = require('ethers')
 const { compileV36 } = require('./compile-v36.cjs')
+const { compileV310 } = require('./compile-v310.cjs')
 const { recordDeployment } = require('./build-release.cjs')
 const { linkBytecode } = require('./link-bytecode.cjs')
 const { startLocalAnvil } = require('./local-anvil.cjs')
@@ -35,7 +36,8 @@ const implementations = {
 }
 const toUnits = (symbol, amount) => utils.parseUnits(String(amount), decimals[symbol])
 
-test('V3.6 pinned Polygon Treasury swaps use the reviewed direct and two-leg paths in both directions', async (t) => {
+const instant = process.env.COINCOLLECT_V310_FIXTURE === '1'
+test(`V${instant ? '3.10' : '3.6.1'} pinned Polygon Treasury swaps use the reviewed direct and two-leg paths in both directions`, async (t) => {
   const upstream = process.env.COINCOLLECT_V3_POLYGON_RPC || 'https://polygon.gateway.tenderly.co'
   assert.equal(new URL(upstream).protocol, 'https:')
   const fork = await startLocalAnvil(['--fork-url', upstream, '--fork-block-number', String(BLOCK)])
@@ -45,7 +47,7 @@ test('V3.6 pinned Polygon Treasury swaps use the reviewed direct and two-leg pat
   assert.equal((await provider.getBlock(BLOCK)).hash, BLOCK_HASH)
   const [operator] = await provider.listAccounts()
   const signer = provider.getSigner(operator)
-  const output = compileV36()
+  const output = instant ? compileV310() : compileV36()
   const links = {}
   const deployments = []
   const deploy = async (name, file, ...args) => {
@@ -57,7 +59,7 @@ test('V3.6 pinned Polygon Treasury swaps use the reviewed direct and two-leg pat
     deployments.push({ name, file, address: instance.address, args, ...runtime })
     return instance
   }
-  const { registry, planner, vault, ledger } = await deployV36Core(deploy, operator, tokens.WPOL)
+  const { registry, planner, vault, ledger } = await deployV36Core(deploy, operator, tokens.WPOL, instant)
   await send(ledger.attachTreasuryVault(vault.address))
   const ERC20 = [
     'function approve(address,uint256) returns(bool)', 'function balanceOf(address) view returns(uint256)',

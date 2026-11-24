@@ -16,12 +16,18 @@ async function reviewAndApprove(registry, token, provider, decimals, permissions
   return review
 }
 
-async function deployV36Core(deploy, admin, wrapped) {
+async function deployV36Core(deploy, admin, wrapped, instant = false) {
   const file = (name) => 'contracts/v36/' + name + '.sol'
   const registry = await deploy('TreasuryAssetsV36', file('TreasuryAssetsV36'), admin)
   const planner = await deploy('RewardRoutePlannerV36', file('RewardRoutePlannerV36'), registry.address, wrapped)
   await deploy('ManagedRewardPositions', 'contracts/ManagedRewardPositions.sol')
-  const ledger = await deploy('UniversalRewardsV36', file('UniversalRewardsV36'), planner.address)
+  if (instant) {
+    await deploy('TreasuryRewardFunding', 'contracts/v37/TreasuryRewardFunding.sol')
+    await deploy('RewardTransferV38', 'contracts/v38/RewardTransferV38.sol')
+  }
+  const ledger = instant
+    ? await deploy('UniversalRewardsV310', 'contracts/v310/UniversalRewardsV310.sol', planner.address)
+    : await deploy('UniversalRewardsV36', file('UniversalRewardsV36'), planner.address)
   const vault = await deploy('TreasuryVaultV36', file('TreasuryVaultV36'), ledger.address)
   return { registry, planner, ledger, vault }
 }

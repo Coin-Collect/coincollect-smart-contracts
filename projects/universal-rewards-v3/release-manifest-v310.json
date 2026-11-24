@@ -1,0 +1,846 @@
+{
+  "release": "3.10.0-rc",
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "chainId": 137,
+  "ledger": "UniversalRewardsV310",
+  "status": "test-candidate",
+  "packageLockSha256": "5a598f651ee2faf35695f993d7960d4cc307a63539dda2ca8b83ba5714053bda",
+  "standardInputSha256": "bf0053a06db21544d75744dfa654dc9277bb7fbec4c8799739ad227e34bee3ce",
+  "contracts": [
+    {
+      "name": "TreasuryAssetsV36",
+      "source": "contracts/v36/TreasuryAssetsV36.sol",
+      "artifact": "contracts/TreasuryAssetsV36.json",
+      "tier": "polygon",
+      "artifactSha256": "c5cfe182052ef0f0efc2d8903ad13ce5a22a2acd29176e01211b890ee0761ec9",
+      "abiSha256": "1849df60467d2cd71e3a72d61d06ba94eaebd723ce158129036e1af374fb6231",
+      "creationTemplateSha256": "089ba0b0479ab569d912e8beff71d7dfc78aac19b1210151de3a99e48f0e0b55",
+      "runtimeTemplateSha256": "c6719f1822d1529947d42ef7d45da3ccc387e8d1f52bf3a1bf99922a7c3bb708",
+      "runtimeBytes": 3385,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "19025": [
+          {
+            "length": 32,
+            "start": 334
+          },
+          {
+            "length": 32,
+            "start": 1829
+          },
+          {
+            "length": 32,
+            "start": 1965
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardRoutePlannerV36",
+      "source": "contracts/v36/RewardRoutePlannerV36.sol",
+      "artifact": "contracts/RewardRoutePlannerV36.json",
+      "tier": "polygon",
+      "artifactSha256": "cdb88b9355fa9217aa3236a7f782759e2486a686850cb86ab5e9e0b692814a85",
+      "abiSha256": "e17307ffbba70a5a07b07135fa31409e9a39d63773c0f11359e129a071d99f1e",
+      "creationTemplateSha256": "11df024e8c1f4924b33bbe34ced0d3a43c7a450463975808dd5da7a5ad77094f",
+      "runtimeTemplateSha256": "15c15e878522db8e60541305b92f033a5c0fd01f32da2a85ae7eab900de2507e",
+      "runtimeBytes": 9440,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "10249": [
+          {
+            "length": 32,
+            "start": 2194
+          },
+          {
+            "length": 32,
+            "start": 2372
+          },
+          {
+            "length": 32,
+            "start": 3684
+          },
+          {
+            "length": 32,
+            "start": 4074
+          },
+          {
+            "length": 32,
+            "start": 4857
+          }
+        ],
+        "10251": [
+          {
+            "length": 32,
+            "start": 2813
+          },
+          {
+            "length": 32,
+            "start": 4279
+          }
+        ],
+        "18769": [
+          {
+            "length": 32,
+            "start": 4430
+          },
+          {
+            "length": 32,
+            "start": 8746
+          }
+        ]
+      }
+    },
+    {
+      "name": "TreasuryVaultV36",
+      "source": "contracts/v36/TreasuryVaultV36.sol",
+      "artifact": "contracts/TreasuryVaultV36.json",
+      "tier": "polygon",
+      "artifactSha256": "909830c6a0ac8cfe51f92d0c10cad067acfbd418767725af6c8482d326702b88",
+      "abiSha256": "ef8638e3f22c748003fda926f7e8a9d3ffcf9bcf7cd4f04a2b26b597e7c0da31",
+      "creationTemplateSha256": "0c44a6a51eff52b75821e6f2d42c688412711cc9a965b0ec8a779a1b6882de7a",
+      "runtimeTemplateSha256": "b4b7990fa20f4d37b5aa7ea949c186ed80669e23686deff5c4322f888775b2e1",
+      "runtimeBytes": 8058,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "19663": [
+          {
+            "length": 32,
+            "start": 2523
+          },
+          {
+            "length": 32,
+            "start": 4180
+          },
+          {
+            "length": 32,
+            "start": 4393
+          },
+          {
+            "length": 32,
+            "start": 5666
+          }
+        ],
+        "19666": [
+          {
+            "length": 32,
+            "start": 2892
+          },
+          {
+            "length": 32,
+            "start": 3792
+          },
+          {
+            "length": 32,
+            "start": 4650
+          },
+          {
+            "length": 32,
+            "start": 6826
+          },
+          {
+            "length": 32,
+            "start": 6982
+          }
+        ],
+        "19669": [
+          {
+            "length": 32,
+            "start": 581
+          },
+          {
+            "length": 32,
+            "start": 3963
+          },
+          {
+            "length": 32,
+            "start": 5574
+          }
+        ],
+        "19671": [
+          {
+            "length": 32,
+            "start": 350
+          },
+          {
+            "length": 32,
+            "start": 2013
+          },
+          {
+            "length": 32,
+            "start": 2456
+          },
+          {
+            "length": 32,
+            "start": 2745
+          },
+          {
+            "length": 32,
+            "start": 4533
+          },
+          {
+            "length": 32,
+            "start": 6023
+          }
+        ],
+        "19673": [
+          {
+            "length": 32,
+            "start": 28
+          },
+          {
+            "length": 32,
+            "start": 2156
+          },
+          {
+            "length": 32,
+            "start": 2828
+          },
+          {
+            "length": 32,
+            "start": 5263
+          }
+        ]
+      }
+    },
+    {
+      "name": "UniversalRewardsV310",
+      "source": "contracts/v310/UniversalRewardsV310.sol",
+      "artifact": "contracts/UniversalRewardsV310.json",
+      "tier": "polygon",
+      "artifactSha256": "26299aaf89d02fc82859ed89bfb25edba0427a9181944e4b4c332c58caaa0580",
+      "abiSha256": "5797a711a7bee2032f9ca907ba2317345617e7075ec7882cd462b9c5da9a6f20",
+      "creationTemplateSha256": "7af922ad726a9147ec411240d1f31da9c0c1619c5032323612d9a62493ddecdf",
+      "runtimeTemplateSha256": "4e94befd5d2965e31d1f95fa62257e78fa11b6574d7c2177b459e2170c8327b8",
+      "runtimeBytes": 24538,
+      "runtimeLinkReferences": {
+        "contracts/ManagedRewardPositions.sol": {
+          "ManagedRewardPositions": [
+            {
+              "length": 20,
+              "start": 6841
+            },
+            {
+              "length": 20,
+              "start": 10214
+            }
+          ]
+        },
+        "contracts/v37/TreasuryRewardFunding.sol": {
+          "TreasuryRewardFunding": [
+            {
+              "length": 20,
+              "start": 14471
+            },
+            {
+              "length": 20,
+              "start": 20785
+            }
+          ]
+        },
+        "contracts/v38/RewardTransferV38.sol": {
+          "RewardTransferV38": [
+            {
+              "length": 20,
+              "start": 22326
+            }
+          ]
+        }
+      },
+      "immutableReferences": {
+        "13686": [
+          {
+            "length": 32,
+            "start": 1068
+          },
+          {
+            "length": 32,
+            "start": 3836
+          },
+          {
+            "length": 32,
+            "start": 6128
+          },
+          {
+            "length": 32,
+            "start": 7245
+          },
+          {
+            "length": 32,
+            "start": 9656
+          },
+          {
+            "length": 32,
+            "start": 10140
+          },
+          {
+            "length": 32,
+            "start": 12043
+          },
+          {
+            "length": 32,
+            "start": 14131
+          }
+        ],
+        "13688": [
+          {
+            "length": 32,
+            "start": 4147
+          },
+          {
+            "length": 32,
+            "start": 8610
+          },
+          {
+            "length": 32,
+            "start": 9794
+          },
+          {
+            "length": 32,
+            "start": 14404
+          },
+          {
+            "length": 32,
+            "start": 16236
+          }
+        ],
+        "13690": [
+          {
+            "length": 32,
+            "start": 1356
+          },
+          {
+            "length": 32,
+            "start": 4681
+          },
+          {
+            "length": 32,
+            "start": 11306
+          },
+          {
+            "length": 32,
+            "start": 11443
+          }
+        ],
+        "13693": [
+          {
+            "length": 32,
+            "start": 2316
+          },
+          {
+            "length": 32,
+            "start": 4447
+          },
+          {
+            "length": 32,
+            "start": 8758
+          },
+          {
+            "length": 32,
+            "start": 18789
+          }
+        ],
+        "13696": [
+          {
+            "length": 32,
+            "start": 9464
+          },
+          {
+            "length": 32,
+            "start": 24260
+          }
+        ],
+        "20747": [
+          {
+            "length": 32,
+            "start": 4277
+          },
+          {
+            "length": 32,
+            "start": 5380
+          },
+          {
+            "length": 32,
+            "start": 8689
+          },
+          {
+            "length": 32,
+            "start": 19044
+          },
+          {
+            "length": 32,
+            "start": 20488
+          }
+        ]
+      }
+    },
+    {
+      "name": "ManagedRewardPositions",
+      "source": "contracts/ManagedRewardPositions.sol",
+      "artifact": "contracts/ManagedRewardPositions.json",
+      "tier": "polygon",
+      "artifactSha256": "888d3da2b5713f3fad196e2bee2b30fb398def6ccda97a22809fd5dd07d942c1",
+      "abiSha256": "0f752106da2e5e8a0bbdb9e13bf26a5a0fd1c58ccbd956d405739b96ece7fa0e",
+      "creationTemplateSha256": "1fabd6aa7a209273fc6dfe12a1e9981d17320d3e55b37df20fc28350c12b6743",
+      "runtimeTemplateSha256": "a0209d9f051b578a78e0e9771a5834957d7673ed2d2aac90bf73a32616920cad",
+      "runtimeBytes": 3458,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "library_deploy_address": [
+          {
+            "length": 32,
+            "start": 601
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardSwapAdapter",
+      "source": "contracts/RewardSwapAdapter.sol",
+      "artifact": "contracts/RewardSwapAdapter.json",
+      "tier": "polygon",
+      "artifactSha256": "03503161d1950bbc6fca678660b6f59a23be641faa2bc9d01dc0afe882141866",
+      "abiSha256": "5f64e342b29e89bf19815efea4147c977c17e3b2f616feaa5137e3d605167fdb",
+      "creationTemplateSha256": "62ebdddc7422a16f7be3325a12b1c4359dc5525fbde07df981deb4162ca5854b",
+      "runtimeTemplateSha256": "c4cec698aa236824077d934c161a49c6b4c333ed80895734694d38e330ad9f05",
+      "runtimeBytes": 6665,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "11629": [
+          {
+            "length": 32,
+            "start": 340
+          },
+          {
+            "length": 32,
+            "start": 3129
+          },
+          {
+            "length": 32,
+            "start": 4103
+          }
+        ],
+        "11632": [
+          {
+            "length": 32,
+            "start": 268
+          },
+          {
+            "length": 32,
+            "start": 705
+          },
+          {
+            "length": 32,
+            "start": 5135
+          }
+        ],
+        "11635": [
+          {
+            "length": 32,
+            "start": 2735
+          },
+          {
+            "length": 32,
+            "start": 3762
+          },
+          {
+            "length": 32,
+            "start": 3912
+          },
+          {
+            "length": 32,
+            "start": 5939
+          }
+        ],
+        "11637": [
+          {
+            "length": 32,
+            "start": 1965
+          }
+        ],
+        "11639": [
+          {
+            "length": 32,
+            "start": 2805
+          },
+          {
+            "length": 32,
+            "start": 5180
+          }
+        ]
+      }
+    },
+    {
+      "name": "ManagedNftCollection",
+      "source": "contracts/ManagedNftCollection.sol",
+      "artifact": "contracts/ManagedNftCollection.json",
+      "tier": "polygon",
+      "artifactSha256": "60faff933c7249efbba2d4bef61ba86bd9a95020cbd9d4a34fe5ef67e582687a",
+      "abiSha256": "cc84455711738ac3f30abbfeb3ff8f5778ff925de89534fa5341a427d2f8bd82",
+      "creationTemplateSha256": "a286990abce03da315d0bc369efc629c550f8b307dbdeec3a05e0b2d99cd04b6",
+      "runtimeTemplateSha256": "2188350fd446b4ae59f816ad793f56c10e8a11ed1d9c19bc1336452732816b0a",
+      "runtimeBytes": 9445,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "7875": [
+          {
+            "length": 32,
+            "start": 518
+          },
+          {
+            "length": 32,
+            "start": 752
+          },
+          {
+            "length": 32,
+            "start": 2903
+          },
+          {
+            "length": 32,
+            "start": 3046
+          },
+          {
+            "length": 32,
+            "start": 4171
+          },
+          {
+            "length": 32,
+            "start": 6902
+          },
+          {
+            "length": 32,
+            "start": 7796
+          },
+          {
+            "length": 32,
+            "start": 8921
+          }
+        ],
+        "7877": [
+          {
+            "length": 32,
+            "start": 2093
+          },
+          {
+            "length": 32,
+            "start": 3578
+          },
+          {
+            "length": 32,
+            "start": 5390
+          },
+          {
+            "length": 32,
+            "start": 5675
+          },
+          {
+            "length": 32,
+            "start": 5884
+          }
+        ],
+        "7879": [
+          {
+            "length": 32,
+            "start": 1677
+          },
+          {
+            "length": 32,
+            "start": 1816
+          },
+          {
+            "length": 32,
+            "start": 2139
+          },
+          {
+            "length": 32,
+            "start": 2230
+          },
+          {
+            "length": 32,
+            "start": 3740
+          },
+          {
+            "length": 32,
+            "start": 5499
+          },
+          {
+            "length": 32,
+            "start": 5949
+          },
+          {
+            "length": 32,
+            "start": 6063
+          }
+        ],
+        "7881": [
+          {
+            "length": 32,
+            "start": 2846
+          }
+        ],
+        "7883": [
+          {
+            "length": 32,
+            "start": 3431
+          },
+          {
+            "length": 32,
+            "start": 4530
+          },
+          {
+            "length": 32,
+            "start": 6164
+          }
+        ],
+        "7885": [
+          {
+            "length": 32,
+            "start": 391
+          },
+          {
+            "length": 32,
+            "start": 2682
+          },
+          {
+            "length": 32,
+            "start": 5758
+          }
+        ],
+        "7887": [
+          {
+            "length": 32,
+            "start": 2173
+          },
+          {
+            "length": 32,
+            "start": 4587
+          },
+          {
+            "length": 32,
+            "start": 6097
+          }
+        ],
+        "7889": [
+          {
+            "length": 32,
+            "start": 829
+          },
+          {
+            "length": 32,
+            "start": 7426
+          },
+          {
+            "length": 32,
+            "start": 8643
+          }
+        ]
+      }
+    },
+    {
+      "name": "TreasuryRewardFunding",
+      "source": "contracts/v37/TreasuryRewardFunding.sol",
+      "artifact": "contracts/TreasuryRewardFunding.json",
+      "tier": "polygon",
+      "artifactSha256": "dd185fe555a8ec452fe40f45f7d38cae9142f2314b584373fdd58afd0c3c527d",
+      "abiSha256": "05054c4faf5c088076f850555574a72f7f570c5ec5cca701361654a77b281a80",
+      "creationTemplateSha256": "9eb273adfbc2626658e5d869476a8359066dd54e9ad0bb9af2bd9943acc7b136",
+      "runtimeTemplateSha256": "c12836a6bd4cbc2e6489839f3711a3228978a98c54bf27d888c2a7c35bfbce24",
+      "runtimeBytes": 1895,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "library_deploy_address": [
+          {
+            "length": 32,
+            "start": 149
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardTransferV38",
+      "source": "contracts/v38/RewardTransferV38.sol",
+      "artifact": "contracts/RewardTransferV38.json",
+      "tier": "polygon",
+      "artifactSha256": "814846634034667f7ebe8892481554146aa741ae7fc34236c073ce036fd0de23",
+      "abiSha256": "62a6e7b2eba1ca4032ca46fbe754bf693f5b9c2abedf5ed86355a4db8678b246",
+      "creationTemplateSha256": "83471d11c989b7a62cd2dc876ceb8be3813fc9b62eb91b6b5302340132164ebe",
+      "runtimeTemplateSha256": "fedd2f116b79ea163e41de4e890135a9d6aac06b1b5953180eceffb0e8e4162c",
+      "runtimeBytes": 845,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "library_deploy_address": [
+          {
+            "length": 32,
+            "start": 40
+          }
+        ]
+      }
+    },
+    {
+      "name": "ManagedNftCollectionV39",
+      "source": "contracts/v39/ManagedNftCollectionV39.sol",
+      "artifact": "contracts/ManagedNftCollectionV39.json",
+      "tier": "polygon",
+      "artifactSha256": "be1e010cef64507ca512e978c6e138f6b1fbe189b2e30d2f5b05b41047a2aa9b",
+      "abiSha256": "6864ff14ea8c891ca2de0f2761e7b3af039f4c73059c28739c56c71afd265785",
+      "creationTemplateSha256": "ff75540194756abd2ef6973966e22350476708fea7ce0e9e042c4c673ec81630",
+      "runtimeTemplateSha256": "78701632e7b48c1631e08d988a971c28602c08ceb10383b419bcd52c1e81442a",
+      "runtimeBytes": 9896,
+      "runtimeLinkReferences": {},
+      "immutableReferences": {
+        "7875": [
+          {
+            "length": 32,
+            "start": 645
+          },
+          {
+            "length": 32,
+            "start": 879
+          },
+          {
+            "length": 32,
+            "start": 3053
+          },
+          {
+            "length": 32,
+            "start": 3196
+          },
+          {
+            "length": 32,
+            "start": 6425
+          },
+          {
+            "length": 32,
+            "start": 7366
+          },
+          {
+            "length": 32,
+            "start": 8247
+          },
+          {
+            "length": 32,
+            "start": 9372
+          }
+        ],
+        "7877": [
+          {
+            "length": 32,
+            "start": 2243
+          },
+          {
+            "length": 32,
+            "start": 3728
+          },
+          {
+            "length": 32,
+            "start": 5052
+          },
+          {
+            "length": 32,
+            "start": 5337
+          },
+          {
+            "length": 32,
+            "start": 5546
+          }
+        ],
+        "7879": [
+          {
+            "length": 32,
+            "start": 1800
+          },
+          {
+            "length": 32,
+            "start": 1939
+          },
+          {
+            "length": 32,
+            "start": 2289
+          },
+          {
+            "length": 32,
+            "start": 2380
+          },
+          {
+            "length": 32,
+            "start": 5161
+          },
+          {
+            "length": 32,
+            "start": 5611
+          },
+          {
+            "length": 32,
+            "start": 5725
+          },
+          {
+            "length": 32,
+            "start": 5971
+          }
+        ],
+        "7881": [
+          {
+            "length": 32,
+            "start": 2996
+          }
+        ],
+        "7883": [
+          {
+            "length": 32,
+            "start": 3581
+          },
+          {
+            "length": 32,
+            "start": 3864
+          },
+          {
+            "length": 32,
+            "start": 5826
+          }
+        ],
+        "7885": [
+          {
+            "length": 32,
+            "start": 518
+          },
+          {
+            "length": 32,
+            "start": 2832
+          },
+          {
+            "length": 32,
+            "start": 5420
+          }
+        ],
+        "7887": [
+          {
+            "length": 32,
+            "start": 2323
+          },
+          {
+            "length": 32,
+            "start": 3923
+          },
+          {
+            "length": 32,
+            "start": 5759
+          }
+        ],
+        "7889": [
+          {
+            "length": 32,
+            "start": 956
+          },
+          {
+            "length": 32,
+            "start": 7877
+          },
+          {
+            "length": 32,
+            "start": 9094
+          }
+        ]
+      }
+    }
+  ]
+}

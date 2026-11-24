@@ -49,9 +49,11 @@ async function main() {
   let managed
   if (v33) {
     const collection = await deploy('Hooked1155Fixture', 'test/ManagedFixtures.sol')
-    const adapter = await deploy(v310 ? 'ManagedNftCollectionV39' : 'ManagedNftCollection',
-      v310 ? 'contracts/v39/ManagedNftCollectionV39.sol' : 'contracts/ManagedNftCollection.sol',
-      ledger.address, 137, collection.address, 1155, 25, constants.AddressZero)
+    const adapter = v310
+      ? await deploy('ManagedNftCollectionV39', 'contracts/v39/ManagedNftCollectionV39.sol',
+          ledger.address, collection.address, 25)
+      : await deploy('ManagedNftCollection', 'contracts/ManagedNftCollection.sol',
+          ledger.address, 137, collection.address, 1155, 25, constants.AddressZero)
     await (await collection.setHook(adapter.address)).wait()
     await (await ledger.approveManagedCollection(adapter.address)).wait()
     await (await collection.mint(participant, 25, 10)).wait()
@@ -122,6 +124,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('Browser fixture setup failed: ' + (error.code || error.message))
+  console.error('Browser fixture setup failed: ' + error.message)
   process.exitCode = 1
 })
